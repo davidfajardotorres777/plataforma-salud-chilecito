@@ -225,4 +225,3 @@ insert into hca.health_relations (doc_id, heq_id, hre_calendar_id, hre_calendar_
 VALUES(8, 2, 'n9nrh9uq5kq3p2feoafecaq1s0@group.calendar.google.com', '');
 
 COMMIT;
-
