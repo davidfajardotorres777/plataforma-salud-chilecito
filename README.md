@@ -196,9 +196,9 @@ conexion Python, DAOs y pruebas. Tambien toma de los repos de companeros la
 documentacion de instalacion, seed y scripts de verificacion, pero aplicado a
 tu idea de Salud Chilecito y a una entrega Oracle.
 
-## Autor
+## Autores
 
 Alesandro David Fajardo
-Kevin Facundo nuñez
+---Kevin Facundo nuñez
 Ingenieria en Sistemas - Universidad Nacional de Chilecito
 Base de Datos II - 2026
