@@ -199,5 +199,6 @@ tu idea de Salud Chilecito y a una entrega Oracle.
 ## Autor
 
 Alesandro David Fajardo
+Kevin Facundo nuñez
 Ingenieria en Sistemas - Universidad Nacional de Chilecito
 Base de Datos II - 2026
