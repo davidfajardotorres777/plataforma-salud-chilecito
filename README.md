@@ -1,354 +1,156 @@
-# 🏥 Salud Chilecito — Oracle + Python DAO
+# Salud Chilecito - Oracle + Python DAO
 
-> **Plataforma integral de gestión de turnos y datos clínicos para el departamento de Chilecito y sus distritos.**  
-> Trabajo Integrador — Bases de Datos II · Ingeniería en Sistemas · Universidad Nacional de Chilecito · 2026
+Plataforma de gestion de turnos y datos clinicos para Chilecito, Nonogasta,
+Sanogasta y Vichigasta. Esta version adapta la idea original a una entrega de
+Base de Datos II con Oracle XE, scripts SQL, roles, tablespaces, capa DAO en
+Python y pruebas automatizadas.
 
-[![Estado](https://img.shields.io/badge/Estado-En_Desarrollo-blue?style=flat-square)](.)
-[![Oracle](https://img.shields.io/badge/Oracle-21c_XE-red?style=flat-square&logo=oracle)](.)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python)](.)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat-square)](.)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](.)
-[![License](https://img.shields.io/badge/Licencia-MIT-green?style=flat-square)](LICENSE)
+## Que problema resuelve
 
----
+En Chilecito muchas personas todavia deben trasladarse y hacer fila temprano
+para averiguar si hay turnos. El sistema propuesto centraliza centros de salud,
+medicos, especialidades, pacientes, agendas y turnos para que cada institucion
+pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 
-## 📋 Índice
+## Alcance de la entrega
 
-- [El problema](#-el-problema)
-- [La solución](#-la-solución)
-- [Tecnologías](#-tecnologías)
-- [Arquitectura Oracle](#️-arquitectura-oracle)
-- [Estructura del proyecto](#️-estructura-del-proyecto)
-- [Instalación rápida](#-instalación-rápida)
-- [Scripts SQL](#-scripts-sql)
-- [Capa DAO Python](#-capa-dao-python)
-- [Ejecución y tests](#-ejecución-y-tests)
-- [Capturas requeridas](#-capturas-requeridas)
-- [Autor](#-autor)
+- Oracle XE en Docker para levantar un entorno reproducible.
+- Tablespaces separados para datos e indices.
+- Roles de administracion y consulta con usuarios de aplicacion.
+- Esquema relacional para centros, especialidades, medicos, pacientes, agendas,
+  turnos, historial clinico y documentos.
+- Indices sobre claves foraneas y campos de busqueda.
+- Seed SQL con datos locales de Chilecito.
+- DAO Python con operaciones CRUD y consultas utiles.
+- Tests de contrato para validar estructura SQL y DAOs sin depender de una base
+  activa.
 
----
+## Tecnologias
 
-## 🔴 El problema
-
-En el departamento de Chilecito (La Rioja), el sistema de salud presenta deficiencias estructurales que afectan especialmente a la población de menores recursos y a los habitantes de los distritos periféricos (Nonogasta, Sañogasta, Vichigasta):
-
-| Problema | Impacto en la comunidad |
+| Tecnologia | Uso |
 |---|---|
-| **Saturación física** | Pacientes que hacen fila desde las 5 AM sin garantía de turno. |
-| **Falta de información** | El ciudadano no sabe qué especialistas están disponibles sin ir personalmente. |
-| **Desperdicio de recursos** | Alto ausentismo; médicos con huecos en la agenda sin poder cubrirlos. |
-| **Barreras geográficas** | Habitantes de distritos alejados se trasladan solo para pedir turno. |
+| Oracle Database XE 21c | Base de datos principal |
+| Docker Compose | Contenedor local reproducible |
+| Python 3.12 | Capa DAO, seed y demo |
+| python-oracledb | Driver oficial Oracle para Python |
+| pytest | Pruebas automatizadas |
 
----
+## Estructura
 
-## ✅ La solución
-
-**Salud Chilecito** digitaliza la gestión de turnos médicos. Para esta entrega (Bases de Datos II) se implementó la persistencia en **Oracle Database 21c** con una capa **DAO en Python**.
-
-| Funcionalidad | Descripción |
-|---|---|
-| **Gestión de centros** | Alta, baja y modificación de centros de salud por distrito. |
-| **Gestión de médicos** | Registro con matrícula, especialidad y centro asignado. |
-| **Gestión de pacientes** | Padrón de pacientes con obra social y DNI único. |
-| **Gestión de turnos** | Reserva con control de estado (pendiente / atendido / cancelado). |
-| **Historial clínico** | Registro de diagnósticos y observaciones por paciente. |
-
----
-
-## 🛠️ Tecnologías
-
-| Tecnología | Versión | Uso |
-|---|---|---|
-| Oracle Database XE | 21c | Base de datos principal |
-| Python | 3.12 | DAOs y scripts |
-| SQLAlchemy | 2.0 | ORM / acceso a datos |
-| oracledb | 2.5 | Driver Oracle Python |
-| Faker | 33.1 | Generación de datos de prueba |
-| pytest | 8.3 | Tests automatizados |
-| Docker / Compose | latest | Contenedor Oracle multiplataforma |
-
----
-
-## 🗄️ Arquitectura Oracle
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      ORACLE DATABASE 21c XE                     │
-│                                                                  │
-│  TABLESPACES                                                     │
-│  ┌─────────────────────┐   ┌─────────────────────┐             │
-│  │  tbs_salud_data     │   │  tbs_salud_indx     │             │
-│  │  (datos, 512M→3G)   │   │  (índices, 512M→3G) │             │
-│  └─────────────────────┘   └─────────────────────┘             │
-│                                                                  │
-│  SCHEMA: salud                                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐     │
-│  │ especialidad │  │ centro_salud │  │      medico       │     │
-│  │──────────────│  │──────────────│  │───────────────────│     │
-│  │ id (PK)      │  │ id (PK)      │  │ id (PK)           │     │
-│  │ nombre       │  │ nombre       │  │ nombre            │     │
-│  │ descripcion  │  │ direccion    │  │ matricula (UNIQUE)│     │
-│  └──────┬───────┘  │ telefono     │  │ id_especialidad FK│     │
-│         │          │ distrito     │  │ id_centro FK      │     │
-│         │          │ tipo         │  └─────────┬─────────┘     │
-│         │          └──────┬───────┘            │               │
-│         └─────────────────┼────────────────────┘               │
-│                           │                                      │
-│  ┌──────────────┐  ┌──────▼────────────────────────────────┐   │
-│  │   paciente   │  │                 turno                  │   │
-│  │──────────────│  │───────────────────────────────────────│   │
-│  │ id (PK)      │  │ id (PK)                               │   │
-│  │ nombre       │  │ fecha_turno                           │   │
-│  │ dni (UNIQUE) │  │ estado                                │   │
-│  │ telefono     │  │ observaciones                         │   │
-│  │ obra_social  │◄─┤ id_paciente FK                        │   │
-│  └──────────────┘  │ id_medico FK                          │   │
-│                    │ id_centro FK                          │   │
-│                    └───────────────────────────────────────┘   │
-│                                                                  │
-│  ROLES: rl_salud_admin · rl_salud_consulta                      │
-│  ARCHIVELOG + FLASH RECOVERY AREA habilitados                   │
-└─────────────────────────────────────────────────────────────────┘
+```text
+plataforma-salud-chilecito/
+|-- docker-compose.yml
+|-- requirements.txt
+|-- .env.example
+|-- dbscripts.sql
+|-- sql/
+|   |-- 01_tablespaces.sql
+|   |-- 02_users_roles.sql
+|   |-- 03_schema.sql
+|   |-- 04_indexes.sql
+|   |-- 05_seed.sql
+|   |-- 06_validate.sql
+|   `-- 07_security_checks.sql
+|-- src/
+|   |-- config/
+|   |-- dao/
+|   |-- models/
+|   |-- services/
+|   `-- main.py
+|-- tests/
+|-- docs/
+`-- scripts/
 ```
 
----
+## Instalacion rapida
 
-## 🗂️ Estructura del proyecto
-
-```
-salud-chilecito-oracle/
-│
-├── docker-compose.yml          # Oracle XE 21c contenedor
-├── requirements.txt            # Dependencias Python
-├── .env.example                # Variables de entorno (template)
-├── .gitignore
-├── README.md
-│
-├── sql/
-│   ├── 01_create_tablespaces.sql
-│   ├── 02_create_users.sql
-│   ├── 03_create_schema.sql
-│   ├── 04_create_indexes.sql
-│   ├── 05_create_roles.sql
-│   ├── 06_seed_data.sql
-│   └── 07_archivelog.sql
-│
-├── src/
-│   ├── __init__.py
-│   ├── config/
-│   │   ├── __init__.py
-│   │   └── database.py         # Engine SQLAlchemy
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── especialidad.py
-│   │   ├── centro.py
-│   │   ├── medico.py
-│   │   ├── paciente.py
-│   │   └── turno.py
-│   │
-│   ├── dao/
-│   │   ├── __init__.py
-│   │   ├── especialidad_dao.py
-│   │   ├── centro_dao.py
-│   │   ├── medico_dao.py
-│   │   ├── paciente_dao.py
-│   │   └── turno_dao.py
-│   │
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── seed.py             # Seed con Faker
-│   │
-│   └── main.py                 # Demo interactivo
-│
-├── tests/
-│   ├── __init__.py
-│   └── test_dao.py             # Tests con pytest
-│
-└── docs/
-    └── capturas/               # Capturas para el informe
-```
-
----
-
-## 🚀 Instalación rápida
-
-### Requisitos previos
-
-```bash
-docker --version   # 20+
-python --version   # 3.12+
-git --version
-```
-
-### 1. Clonar
+1. Clonar el repositorio.
 
 ```bash
 git clone https://github.com/davidfajardotorres777/plataforma-salud-chilecito.git
 cd plataforma-salud-chilecito
 ```
 
-### 2. Variables de entorno
+2. Crear variables de entorno.
 
 ```bash
 cp .env.example .env
-# No necesita modificarse para desarrollo local
 ```
 
-### 3. Levantar Oracle con Docker
+3. Levantar Oracle.
 
 ```bash
 docker compose up -d
+docker logs -f oracle_salud_chilecito
 ```
 
-Verificar que esté corriendo:
+4. Crear entorno Python e instalar dependencias.
 
 ```bash
-docker ps
-# oracle_salud_chilecito  STATUS: Up
-```
-
-> ⏳ La primera vez Oracle tarda ~2 minutos en inicializarse. Verificá los logs con `docker logs oracle_salud_chilecito`.
-
-### 4. Instalar dependencias Python
-
-```bash
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 5. Ejecutar scripts SQL (en orden)
+5. Ejecutar los scripts SQL en orden con SQL Developer o SQL*Plus. Los scripts
+   `01` y `02` se ejecutan con usuario administrador; el resto con el esquema
+   `salud`.
 
-Conectate con SQL Developer o sqlplus al usuario `salud/salud123@localhost:1521/XEPDB1` y ejecutá:
-
-```
-sql/01_create_tablespaces.sql
-sql/02_create_users.sql
-sql/03_create_schema.sql
-sql/04_create_indexes.sql
-sql/05_create_roles.sql
-sql/06_seed_data.sql
-```
-
-> Para habilitar Archivelog (requiere DBA): `sql/07_archivelog.sql`
-
-### 6. Cargar datos de prueba con Faker
-
-```bash
-python -m src.services.seed
+```sql
+@sql/01_tablespaces.sql
+@sql/02_users_roles.sql
+@sql/03_schema.sql
+@sql/04_indexes.sql
+@sql/05_seed.sql
+@sql/06_validate.sql
 ```
 
-Resultado esperado:
-```
-✅ Conectado a Oracle 21c XE
-🌱 Insertando especialidades...  OK (8)
-🌱 Insertando centros de salud... OK (5)
-🌱 Insertando médicos...          OK (20)
-🌱 Insertando pacientes...        OK (50)
-🌱 Insertando turnos...           OK (100)
-🎉 Seed completado.
-```
-
-### 7. Ejecutar demo
+6. Ejecutar demo y tests.
 
 ```bash
 python -m src.main
+pytest -q
 ```
 
----
+## Modelo de datos
 
-## 📜 Scripts SQL
+```mermaid
+erDiagram
+    CENTRO_SALUD ||--o{ MEDICO : trabaja_en
+    ESPECIALIDAD ||--o{ MEDICO : clasifica
+    CENTRO_SALUD ||--o{ CENTRO_ESPECIALIDAD : ofrece
+    ESPECIALIDAD ||--o{ CENTRO_ESPECIALIDAD : pertenece
+    MEDICO ||--o{ AGENDA_MEDICO : agenda
+    PACIENTE ||--o{ TURNO : reserva
+    MEDICO ||--o{ TURNO : atiende
+    CENTRO_SALUD ||--o{ TURNO : recibe
+    TURNO ||--o{ HISTORIAL_CLINICO : genera
+    PACIENTE ||--o{ DOCUMENTO_PACIENTE : adjunta
+```
 
-| Script | Contenido |
+## Roles
+
+| Rol | Permisos |
 |---|---|
-| `01_create_tablespaces.sql` | `tbs_salud_data` y `tbs_salud_indx` (512M → 3G cada uno) |
-| `02_create_users.sql` | Usuario `david` (DBA) y `salud` (aplicación) |
-| `03_create_schema.sql` | Tablas: especialidad, centro_salud, medico, paciente, turno |
-| `04_create_indexes.sql` | Índices sobre claves foráneas (tablespace `tbs_salud_indx`) |
-| `05_create_roles.sql` | `rl_salud_admin` (CRUD) y `rl_salud_consulta` (SELECT) |
-| `06_seed_data.sql` | Datos iniciales mínimos |
-| `07_archivelog.sql` | Habilita Archivelog + Flash Recovery Area |
+| `rl_salud_admin` | CRUD sobre tablas del sistema |
+| `rl_salud_consulta` | Lectura para reportes y auditoria |
 
----
+Usuarios incluidos:
 
-## 🐍 Capa DAO Python
+- `salud`: esquema propietario.
+- `salud_app_admin`: usuario de aplicacion con rol admin.
+- `salud_consulta_01`, `salud_consulta_02`, `salud_consulta_03`: usuarios de
+  consulta con password life time de 15 dias.
 
-Cada DAO expone operaciones CRUD completas:
+## Comparacion con las referencias
 
-```python
-from src.dao.paciente_dao import PacienteDAO
+El repositorio sigue la linea del profesor `hdrobins/dao`: SQL principal,
+conexion Python, DAOs y pruebas. Tambien toma de los repos de companeros la
+documentacion de instalacion, seed y scripts de verificacion, pero aplicado a
+tu idea de Salud Chilecito y a una entrega Oracle.
 
-# Insertar
-PacienteDAO.insertar("Ana Rodríguez", "28111222", "3825-555111")
+## Autor
 
-# Listar todos
-pacientes = PacienteDAO.listar()
-
-# Buscar por ID
-p = PacienteDAO.buscar_por_id(1)
-
-# Actualizar
-PacienteDAO.actualizar(1, telefono="3825-999000")
-
-# Eliminar
-PacienteDAO.eliminar(1)
-```
-
----
-
-## 🧪 Ejecución y tests
-
-```bash
-# Ejecutar todos los tests
-pytest tests/ -v
-
-# Output esperado:
-# tests/test_dao.py::test_insertar_paciente     PASSED
-# tests/test_dao.py::test_listar_pacientes      PASSED
-# tests/test_dao.py::test_buscar_paciente       PASSED
-# tests/test_dao.py::test_actualizar_paciente   PASSED
-# tests/test_dao.py::test_insertar_turno        PASSED
-# tests/test_dao.py::test_listar_turnos         PASSED
-```
-
----
-
-## 📸 Capturas requeridas
-
-Para el informe final, guardar en `docs/capturas/`:
-
-- [ ] Docker corriendo (`docker ps`)
-- [ ] Oracle iniciado (logs del container)
-- [ ] Ejecución de cada script SQL
-- [ ] Tablespaces creados (`DBA_TABLESPACES`)
-- [ ] Usuarios creados (`DBA_USERS`)
-- [ ] Roles creados y asignados (`DBA_ROLES`)
-- [ ] Archivelog habilitado (`ARCHIVE LOG LIST`)
-- [ ] Flash Recovery Area configurada
-- [ ] Índices creados (`USER_INDEXES`)
-- [ ] Inserciones DAO (output del seed)
-- [ ] Consultas DAO (output del test)
-- [ ] Datos insertados (SELECT de cada tabla)
-
----
-
-## ⚙️ Configuración de memoria Oracle (referencia)
-
-Para un equipo de 8 GB RAM (50% para Oracle):
-
-```sql
-ALTER SYSTEM SET MEMORY_TARGET=4G SCOPE=SPFILE;
-ALTER SYSTEM SET SGA_TARGET=2400M SCOPE=SPFILE;
-ALTER SYSTEM SET PGA_AGGREGATE_TARGET=1600M SCOPE=SPFILE;
-```
-
----
-
-## 👤 Autor
-
-**David Fajardo**  
-Ingeniería en Sistemas — Universidad Nacional de Chilecito (UNdeC)  
-Materia: Bases de Datos II — Año: 2026
-
----
-
-*Bases de Datos II · Diseño Físico Oracle · UNdeC 2026*
+Alesandro David Fajardo
+Ingenieria en Sistemas - Universidad Nacional de Chilecito
+Base de Datos II - 2026

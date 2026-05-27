@@ -1,0 +1,18 @@
+# Checklist de entrega
+
+- [x] Repo con README claro y pasos de instalacion.
+- [x] Docker Compose para Oracle XE.
+- [x] `.env.example` sin secretos reales.
+- [x] Tablespaces `tbs_salud_data` y `tbs_salud_idx`.
+- [x] FRA configurada en 3 GB.
+- [x] `UNDO_RETENTION` configurado en 172800 segundos.
+- [x] Instrucciones para ARCHIVELOG.
+- [x] Perfil con password life time de 15 dias.
+- [x] Roles `rl_salud_admin` y `rl_salud_consulta`.
+- [x] Un usuario admin de aplicacion y tres usuarios de consulta.
+- [x] Tablas con `NUMBER`, `VARCHAR2`, `DATE`, `CLOB` y `BLOB`.
+- [x] Claves primarias, claves foraneas y checks.
+- [x] Indices de FK en tablespace separado.
+- [x] Seed SQL con datos de Chilecito.
+- [x] DAO Python con consultas CRUD.
+- [x] Tests automatizados.
