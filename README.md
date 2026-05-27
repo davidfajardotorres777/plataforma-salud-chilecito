@@ -3,7 +3,8 @@
 Plataforma de gestion de turnos y datos clinicos para Chilecito, Nonogasta,
 Sanogasta y Vichigasta. Esta version adapta la idea original a una entrega de
 Base de Datos II con Oracle XE, scripts SQL, roles, tablespaces, capa DAO en
-Python y pruebas automatizadas.
+Python, pruebas automatizadas y una interfaz web funcional para operar la
+plataforma desde el navegador.
 
 ## Que problema resuelve
 
@@ -22,6 +23,10 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 - Indices sobre claves foraneas y campos de busqueda.
 - Seed SQL con datos locales de Chilecito.
 - DAO Python con operaciones CRUD y consultas utiles.
+- Interfaz grafica web para centros, pacientes, turnos y documentos.
+- API local con almacenamiento JSON de demo para usar la plataforma aunque
+  Oracle todavia no este inicializado.
+- Scripts de instalacion y uso para Windows y Ubuntu.
 - Tests de contrato para validar estructura SQL y DAOs sin depender de una base
   activa.
 
@@ -33,6 +38,7 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 | Docker Compose | Contenedor local reproducible |
 | Python 3.12 | Capa DAO, seed y demo |
 | python-oracledb | Driver oficial Oracle para Python |
+| HTML/CSS/JavaScript | Interfaz web en navegador |
 | pytest | Pruebas automatizadas |
 
 ## Estructura
@@ -55,8 +61,11 @@ plataforma-salud-chilecito/
 |   |-- config/
 |   |-- dao/
 |   |-- models/
+|   |-- webapp/
 |   |-- services/
 |   `-- main.py
+|-- data/
+|   `-- demo_seed.json
 |-- tests/
 |-- docs/
 `-- scripts/
@@ -111,6 +120,44 @@ pip install -r requirements.txt
 python -m src.main
 pytest -q
 ```
+
+7. Ejecutar la plataforma grafica en navegador.
+
+Windows:
+
+```powershell
+scripts\windows\02_iniciar_plataforma.ps1
+```
+
+Ubuntu:
+
+```bash
+bash scripts/ubuntu/02_iniciar_plataforma.sh
+```
+
+Luego abrir:
+
+```text
+http://localhost:8000
+```
+
+La interfaz permite crear pacientes, reservar turnos, cambiar estados, consultar
+centros/medicos y adjuntar documentos de pacientes. Si Oracle no esta listo,
+trabaja con `runtime/salud_chilecito_data.json` para que el profesor pueda usar
+la demo completa desde Chrome, Edge o Firefox.
+
+## Scripts de instalacion
+
+| Sistema | Script | Uso |
+|---|---|---|
+| Windows | `scripts/windows/01_instalar.ps1` | Instala Git, Python, Docker y dependencias Python |
+| Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, abre navegador e inicia la web |
+| Windows | `scripts/windows/03_cargar_oracle.ps1` | Ejecuta scripts SQL con SQL*Plus |
+| Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala Git, Python, Docker y dependencias |
+| Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle e inicia la web |
+| Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Ejecuta scripts SQL con SQL*Plus |
+
+Guia completa de uso: [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md).
 
 ## Modelo de datos
 

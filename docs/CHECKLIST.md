@@ -16,3 +16,9 @@
 - [x] Seed SQL con datos de Chilecito.
 - [x] DAO Python con consultas CRUD.
 - [x] Tests automatizados.
+- [x] Interfaz web funcional en navegador.
+- [x] API local para pacientes, turnos, documentos y dashboard.
+- [x] Modo demo JSON para usar sin Oracle activo.
+- [x] Scripts Windows de instalacion, inicio y carga Oracle.
+- [x] Scripts Ubuntu de instalacion, inicio y carga Oracle.
+- [x] Documentacion de uso operativo para el profesor.

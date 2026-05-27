@@ -7,6 +7,29 @@
 - Git.
 - SQL Developer, SQLcl o SQL*Plus para ejecutar scripts Oracle.
 
+## Instalacion automatica
+
+Windows PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+scripts\windows\01_instalar.ps1
+scripts\windows\02_iniciar_plataforma.ps1
+```
+
+Ubuntu:
+
+```bash
+bash scripts/ubuntu/01_instalar.sh
+bash scripts/ubuntu/02_iniciar_plataforma.sh
+```
+
+La plataforma queda disponible en:
+
+```text
+http://localhost:8000
+```
+
 ## Pasos
 
 1. Levantar Oracle.
@@ -65,6 +88,14 @@ pip install -r requirements.txt
 python -m src.main
 pytest -q
 ```
+
+8. Probar interfaz grafica.
+
+```bash
+python -m src.webapp.server
+```
+
+Abrir `http://localhost:8000` desde Chrome, Edge o Firefox.
 
 ## Notas de entrega
 

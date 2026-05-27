@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Salud Chilecito</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="/static/logo.svg" alt="Salud Chilecito">
+          <div>
+            <strong>Salud Chilecito</strong>
+            <span>Panel operativo</span>
+          </div>
+        </div>
+        <nav class="nav-tabs" aria-label="Vistas">
+          <button class="nav-tab active" data-view="turnos">Turnos</button>
+          <button class="nav-tab" data-view="pacientes">Pacientes</button>
+          <button class="nav-tab" data-view="centros">Centros</button>
+          <button class="nav-tab" data-view="documentos">Documentos</button>
+        </nav>
+        <div class="sync-box">
+          <span id="apiStatus">Conectando...</span>
+          <button id="resetData" type="button">Reiniciar demo</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1>Gestion de atencion medica</h1>
+            <p>Chilecito, Nonogasta, Sanogasta y distritos cercanos</p>
+          </div>
+          <div class="top-actions">
+            <input id="globalSearch" type="search" placeholder="Buscar paciente, medico o centro">
+            <button id="refreshData" type="button">Actualizar</button>
+          </div>
+        </header>
+
+        <section class="metrics" aria-label="Indicadores">
+          <div class="metric">
+            <span>Centros</span>
+            <strong id="metricCentros">0</strong>
+          </div>
+          <div class="metric">
+            <span>Pacientes</span>
+            <strong id="metricPacientes">0</strong>
+          </div>
+          <div class="metric warning">
+            <span>Pendientes</span>
+            <strong id="metricPendientes">0</strong>
+          </div>
+          <div class="metric success">
+            <span>Confirmados</span>
+            <strong id="metricConfirmados">0</strong>
+          </div>
+          <div class="metric">
+            <span>Documentos</span>
+            <strong id="metricDocumentos">0</strong>
+          </div>
+        </section>
+
+        <section class="view active" id="view-turnos">
+          <div class="split-grid">
+            <form class="panel form-panel" id="turnoForm">
+              <div class="panel-head">
+                <h2>Nuevo turno</h2>
+                <span>Reserva digital</span>
+              </div>
+              <label>Paciente
+                <select name="paciente_id" id="turnoPaciente" required></select>
+              </label>
+              <label>Medico
+                <select name="medico_id" id="turnoMedico" required></select>
+              </label>
+              <div class="form-row">
+                <label>Fecha
+                  <input name="fecha" type="date" required>
+                </label>
+                <label>Hora
+                  <input name="hora" type="time" required>
+                </label>
+              </div>
+              <div class="form-row">
+                <label>Precio
+                  <input name="precio" type="number" min="0" step="100" value="0">
+                </label>
+                <label>Estado
+                  <select name="estado">
+                    <option>PENDIENTE</option>
+                    <option>CONFIRMADO</option>
+                  </select>
+                </label>
+              </div>
+              <label>Motivo
+                <textarea name="motivo" rows="3" required></textarea>
+              </label>
+              <button type="submit">Guardar turno</button>
+            </form>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Agenda</h2>
+                <span id="turnosCount">0 registros</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Paciente</th>
+                      <th>Medico</th>
+                      <th>Centro</th>
+                      <th>Estado</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="turnosBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-pacientes">
+          <div class="split-grid">
+            <form class="panel form-panel" id="pacienteForm">
+              <div class="panel-head">
+                <h2>Paciente</h2>
+                <span>Alta rapida</span>
+              </div>
+              <label>DNI
+                <input name="dni" required maxlength="20">
+              </label>
+              <label>Nombre completo
+                <input name="nombre" required>
+              </label>
+              <div class="form-row">
+                <label>Telefono
+                  <input name="telefono" required>
+                </label>
+                <label>Distrito
+                  <input name="distrito" required>
+                </label>
+              </div>
+              <label>Obra social
+                <input name="obra_social" value="Sin obra social">
+              </label>
+              <button type="submit">Guardar paciente</button>
+            </form>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Padron</h2>
+                <span id="pacientesCount">0 registros</span>
+              </div>
+              <div id="pacientesList" class="records"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-centros">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Centros y medicos</h2>
+              <span>Red de atencion</span>
+            </div>
+            <div id="centrosList" class="center-grid"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-documentos">
+          <div class="split-grid">
+            <form class="panel form-panel" id="documentoForm">
+              <div class="panel-head">
+                <h2>Documento clinico</h2>
+                <span>Adjunto local</span>
+              </div>
+              <label>Paciente
+                <select name="paciente_id" id="documentoPaciente" required></select>
+              </label>
+              <label>Tipo
+                <select name="tipo">
+                  <option>ORDEN</option>
+                  <option>ESTUDIO</option>
+                  <option>RECETA</option>
+                  <option>IMAGEN</option>
+                  <option>OTRO</option>
+                </select>
+              </label>
+              <label>Archivo
+                <input name="archivo" type="file" required>
+              </label>
+              <button type="submit">Adjuntar</button>
+            </form>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Repositorio</h2>
+                <span id="documentosCount">0 archivos</span>
+              </div>
+              <div id="documentosList" class="records"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

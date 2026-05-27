@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Salud Chilecito">
+  <rect width="64" height="64" rx="12" fill="#0f766e"/>
+  <path d="M31 11h8v14h14v8H39v20h-8V33H11v-8h20V11z" fill="#ffffff"/>
+  <path d="M13 47c8-3 15-4 23-2 5 1 10 3 15 6" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+</svg>

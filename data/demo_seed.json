@@ -1,0 +1,129 @@
+{
+  "centros": [
+    {
+      "id": 1,
+      "nombre": "Hospital Eleazar Herrera Motta",
+      "direccion": "Av. La Mexicana 180",
+      "distrito": "Chilecito",
+      "telefono": "3825-422100",
+      "tipo": "PUBLICO"
+    },
+    {
+      "id": 2,
+      "nombre": "Clinica San Nicolas",
+      "direccion": "Castro Barros 260",
+      "distrito": "Chilecito",
+      "telefono": "3825-430001",
+      "tipo": "PRIVADO"
+    },
+    {
+      "id": 3,
+      "nombre": "Centro de Salud Nonogasta",
+      "direccion": "Ruta 40 y San Martin",
+      "distrito": "Nonogasta",
+      "telefono": "3825-490120",
+      "tipo": "PUBLICO"
+    },
+    {
+      "id": 4,
+      "nombre": "Centro de Salud Sanogasta",
+      "direccion": "9 de Julio s/n",
+      "distrito": "Sanogasta",
+      "telefono": "3825-480010",
+      "tipo": "PUBLICO"
+    }
+  ],
+  "especialidades": [
+    { "id": 1, "nombre": "Clinica Medica" },
+    { "id": 2, "nombre": "Pediatria" },
+    { "id": 3, "nombre": "Cardiologia" },
+    { "id": 4, "nombre": "Odontologia" },
+    { "id": 5, "nombre": "Ginecologia" },
+    { "id": 6, "nombre": "Traumatologia" }
+  ],
+  "medicos": [
+    {
+      "id": 1,
+      "nombre": "Dra. Maria Gonzalez",
+      "matricula": "LR-1001",
+      "especialidad_id": 3,
+      "centro_id": 1,
+      "telefono": "3825-500001"
+    },
+    {
+      "id": 2,
+      "nombre": "Dr. Lucas Ferreyra",
+      "matricula": "LR-1002",
+      "especialidad_id": 2,
+      "centro_id": 3,
+      "telefono": "3825-500002"
+    },
+    {
+      "id": 3,
+      "nombre": "Dra. Ana Rojas",
+      "matricula": "LR-1003",
+      "especialidad_id": 1,
+      "centro_id": 4,
+      "telefono": "3825-500003"
+    },
+    {
+      "id": 4,
+      "nombre": "Dr. Emiliano Vega",
+      "matricula": "LR-1004",
+      "especialidad_id": 4,
+      "centro_id": 2,
+      "telefono": "3825-500004"
+    }
+  ],
+  "pacientes": [
+    {
+      "id": 1,
+      "dni": "40111222",
+      "nombre": "Juan Perez",
+      "telefono": "3825-600001",
+      "obra_social": "APOS",
+      "distrito": "Chilecito"
+    },
+    {
+      "id": 2,
+      "dni": "38222333",
+      "nombre": "Carla Mercado",
+      "telefono": "3825-600002",
+      "obra_social": "OSDE",
+      "distrito": "Nonogasta"
+    },
+    {
+      "id": 3,
+      "dni": "45123456",
+      "nombre": "Mateo Brizuela",
+      "telefono": "3825-600003",
+      "obra_social": "Sin obra social",
+      "distrito": "Sanogasta"
+    }
+  ],
+  "turnos": [
+    {
+      "id": 1,
+      "paciente_id": 1,
+      "medico_id": 1,
+      "centro_id": 1,
+      "fecha": "2026-06-03",
+      "hora": "08:30",
+      "estado": "CONFIRMADO",
+      "precio": 0,
+      "motivo": "Control cardiologico"
+    },
+    {
+      "id": 2,
+      "paciente_id": 2,
+      "medico_id": 4,
+      "centro_id": 2,
+      "fecha": "2026-06-04",
+      "hora": "16:00",
+      "estado": "PENDIENTE",
+      "precio": 12000,
+      "motivo": "Consulta odontologica"
+    }
+  ],
+  "documentos": []
+}
