@@ -1,6 +1,11 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "== Salud Chilecito: instalacion Windows =="
+Write-Host "Links oficiales:"
+Write-Host "- Git for Windows: https://gitforwindows.org/"
+Write-Host "- Python 3.12+: https://www.python.org/downloads/windows/"
+Write-Host "- Docker Desktop: https://www.docker.com/products/docker-desktop/"
+Write-Host "- SQL Developer: https://www.oracle.com/database/sqldeveloper/"
 
 function Test-Command($name) {
     return [bool](Get-Command $name -ErrorAction SilentlyContinue)

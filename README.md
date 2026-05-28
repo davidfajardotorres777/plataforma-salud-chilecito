@@ -41,6 +41,28 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 | HTML/CSS/JavaScript | Interfaz web en navegador |
 | pytest | Pruebas automatizadas |
 
+## Requisitos previos
+
+Todo lo necesario para ejecutar el proyecto queda declarado en
+[docs/REQUISITOS.md](docs/REQUISITOS.md).
+
+Windows:
+
+- Python 3.12 o superior: <https://www.python.org/downloads/windows/>
+- Docker Desktop: <https://www.docker.com/products/docker-desktop/>
+- Git for Windows: <https://gitforwindows.org/>
+- SQL Developer: <https://www.oracle.com/database/sqldeveloper/>
+
+Ubuntu:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+sudo usermod -aG docker $USER
+```
+
+`default-jdk` se incluye porque SQL Developer necesita Java en Linux.
+
 ## Estructura
 
 ```text
@@ -95,9 +117,19 @@ docker logs -f oracle_salud_chilecito
 
 4. Crear entorno Python e instalar dependencias.
 
+Windows:
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Ubuntu:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -156,8 +188,11 @@ la demo completa desde Chrome, Edge o Firefox.
 | Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala Git, Python, Docker y dependencias |
 | Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle e inicia la web |
 | Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Ejecuta scripts SQL con SQL*Plus |
+| Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
 
 Guia completa de uso: [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md).
+
+Checklist de requisitos: [docs/REQUISITOS.md](docs/REQUISITOS.md).
 
 ## Modelo de datos
 

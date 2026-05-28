@@ -16,6 +16,13 @@ la parte de Base de Datos II.
 
 ## Windows
 
+Requisitos oficiales:
+
+- Git for Windows: <https://gitforwindows.org/>
+- Python 3.12+: <https://www.python.org/downloads/windows/>
+- Docker Desktop: <https://www.docker.com/products/docker-desktop/>
+- SQL Developer: <https://www.oracle.com/database/sqldeveloper/>
+
 Abrir PowerShell en la carpeta del repo:
 
 ```powershell
@@ -40,6 +47,16 @@ Si no hay SQL*Plus, usar SQL Developer y ejecutar los archivos `sql/01` a
 `sql/07` en orden.
 
 ## Ubuntu
+
+Instalar dependencias del sistema:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+sudo usermod -aG docker $USER
+```
+
+`default-jdk` permite ejecutar SQL Developer en Ubuntu.
 
 Abrir una terminal en la carpeta del repo:
 

@@ -2,10 +2,28 @@
 
 ## Requisitos
 
+- Python 3.12 o superior.
 - Docker Desktop o Docker Engine.
-- Python 3.12.
 - Git.
 - SQL Developer, SQLcl o SQL*Plus para ejecutar scripts Oracle.
+
+Links oficiales y comandos completos: [REQUISITOS.md](REQUISITOS.md).
+
+Windows:
+
+- Git for Windows: <https://gitforwindows.org/>
+- Python: <https://www.python.org/downloads/windows/>
+- Docker Desktop: <https://www.docker.com/products/docker-desktop/>
+- SQL Developer: <https://www.oracle.com/database/sqldeveloper/>
+
+Ubuntu:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+```
+
+`default-jdk` es necesario para SQL Developer en Ubuntu.
 
 ## Instalacion automatica
 
@@ -76,9 +94,19 @@ password admin: oracle
 
 6. Preparar Python.
 
+Windows:
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Ubuntu:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
