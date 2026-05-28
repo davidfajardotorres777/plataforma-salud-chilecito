@@ -1,7 +1,9 @@
 const state = {
   data: null,
   search: "",
-  editingCentroId: null
+  editingCentroId: null,
+  editingPacienteId: null,
+  editingTurnoId: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -9,6 +11,15 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 function text(value) {
   return value === undefined || value === null || value === "" ? "-" : String(value);
+}
+
+function escapeHtml(value) {
+  return text(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 async function api(path, options = {}) {
@@ -82,12 +93,14 @@ function renderTurnos() {
       <td>${text(t.medico?.nombre)}<br><small>${text(t.medico?.especialidad?.nombre)}</small></td>
       <td>${text(t.centro?.nombre)}<br><small>${text(t.centro?.distrito)}</small></td>
       <td><span class="status ${t.estado}">${t.estado}</span></td>
-      <td>
+      <td class="actions-cell">
         <select class="estado-select" data-id="${t.id}">
           ${["PENDIENTE", "CONFIRMADO", "ATENDIDO", "CANCELADO", "AUSENTE"].map((e) =>
             `<option ${e === t.estado ? "selected" : ""}>${e}</option>`
           ).join("")}
         </select>
+        <button class="secondary edit-turno" type="button" data-id="${t.id}">Editar</button>
+        <button class="danger delete-turno" type="button" data-id="${t.id}">Eliminar</button>
       </td>
     </tr>
   `).join("");
@@ -104,6 +117,42 @@ function renderTurnos() {
       await loadDashboard();
     });
   });
+
+  $$(".edit-turno").forEach((button) => {
+    button.addEventListener("click", () => {
+      const turno = state.data.turnos.find((t) => t.id === Number(button.dataset.id));
+      if (!turno) return;
+      const form = $("#turnoForm");
+      const fields = form.elements;
+      state.editingTurnoId = turno.id;
+      $("#turnoFormTitle").textContent = "Editar turno";
+      fields.id.value = turno.id;
+      fields.paciente_id.value = turno.paciente_id;
+      fields.medico_id.value = turno.medico_id;
+      fields.fecha.value = turno.fecha;
+      fields.hora.value = turno.hora;
+      fields.precio.value = turno.precio;
+      fields.estado.value = turno.estado;
+      fields.motivo.value = turno.motivo;
+      fields.paciente_id.focus();
+    });
+  });
+
+  $$(".delete-turno").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const turno = state.data.turnos.find((t) => t.id === Number(button.dataset.id));
+      if (!turno) return;
+      const ok = confirm(`Eliminar el turno de ${turno.paciente?.nombre || "paciente"} del ${turno.fecha} ${turno.hora}?`);
+      if (!ok) return;
+      await api(`/api/turnos/${turno.id}/eliminar`, {
+        method: "POST",
+        body: "{}"
+      });
+      resetTurnoForm();
+      await loadDashboard();
+      showToast("Turno eliminado");
+    });
+  });
 }
 
 function renderPacientes() {
@@ -114,8 +163,27 @@ function renderPacientes() {
     <article class="record">
       <strong>${p.nombre}</strong>
       <span>DNI ${p.dni} - ${p.distrito} - ${p.telefono} - ${p.obra_social}</span>
+      <button class="secondary edit-paciente" type="button" data-id="${p.id}">Editar</button>
     </article>
   `).join("");
+
+  $$(".edit-paciente").forEach((button) => {
+    button.addEventListener("click", () => {
+      const paciente = state.data.pacientes.find((p) => p.id === Number(button.dataset.id));
+      if (!paciente) return;
+      const form = $("#pacienteForm");
+      const fields = form.elements;
+      state.editingPacienteId = paciente.id;
+      $("#pacienteFormTitle").textContent = "Editar paciente";
+      fields.id.value = paciente.id;
+      fields.dni.value = paciente.dni;
+      fields.nombre.value = paciente.nombre;
+      fields.telefono.value = paciente.telefono;
+      fields.distrito.value = paciente.distrito;
+      fields.obra_social.value = paciente.obra_social;
+      fields.dni.focus();
+    });
+  });
 }
 
 function renderCentros() {
@@ -160,9 +228,14 @@ function renderDocumentos() {
   $("#documentosList").innerHTML = rows.length ? rows.map((d) => `
     <article class="record">
       <strong>${d.nombre_archivo}</strong>
-      <span>${d.tipo} - ${text(d.paciente?.nombre)} - ${d.tamano_bytes} bytes</span>
+      <span>${d.tipo} - ${text(d.paciente?.nombre)} - ${text(d.mime_type)} - ${d.tamano_bytes} bytes</span>
+      <button class="secondary view-documento" type="button" data-id="${d.id}">Ver documento</button>
     </article>
   `).join("") : `<article class="record"><strong>Sin documentos cargados</strong><span>Adjuntos locales del paciente</span></article>`;
+
+  $$(".view-documento").forEach((button) => {
+    button.addEventListener("click", () => openDocument(button.dataset.id));
+  });
 }
 
 function formDataToObject(form) {
@@ -213,14 +286,19 @@ function wireEvents() {
 
   $("#pacienteForm").addEventListener("submit", async (event) => {
     event.preventDefault();
-    await api("/api/pacientes", {
+    const payload = formDataToObject(event.target);
+    delete payload.id;
+    const path = state.editingPacienteId ? `/api/pacientes/${state.editingPacienteId}` : "/api/pacientes";
+    await api(path, {
       method: "POST",
-      body: JSON.stringify(formDataToObject(event.target))
+      body: JSON.stringify(payload)
     });
-    event.target.reset();
+    resetPacienteForm();
     await loadDashboard();
     showToast("Paciente guardado");
   });
+
+  $("#cancelPacienteEdit").addEventListener("click", resetPacienteForm);
 
   $("#centroForm").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -240,14 +318,19 @@ function wireEvents() {
 
   $("#turnoForm").addEventListener("submit", async (event) => {
     event.preventDefault();
-    await api("/api/turnos", {
+    const payload = formDataToObject(event.target);
+    delete payload.id;
+    const path = state.editingTurnoId ? `/api/turnos/${state.editingTurnoId}` : "/api/turnos";
+    await api(path, {
       method: "POST",
-      body: JSON.stringify(formDataToObject(event.target))
+      body: JSON.stringify(payload)
     });
-    event.target.reset();
+    resetTurnoForm();
     await loadDashboard();
     showToast("Turno reservado");
   });
+
+  $("#cancelTurnoEdit").addEventListener("click", resetTurnoForm);
 
   $("#documentoForm").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -255,6 +338,7 @@ function wireEvents() {
     const data = formDataToObject(form);
     const file = form.archivo.files[0];
     data.nombre_archivo = file.name;
+    data.mime_type = file.type || "application/octet-stream";
     data.contenido_base64 = await fileToBase64(file);
     delete data.archivo;
     await api("/api/documentos", {
@@ -265,6 +349,26 @@ function wireEvents() {
     await loadDashboard();
     showToast("Documento adjuntado");
   });
+
+  $("#closeDocument").addEventListener("click", () => $("#documentDialog").close());
+}
+
+function resetPacienteForm() {
+  const form = $("#pacienteForm");
+  state.editingPacienteId = null;
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.obra_social.value = "Sin obra social";
+  $("#pacienteFormTitle").textContent = "Paciente";
+}
+
+function resetTurnoForm() {
+  const form = $("#turnoForm");
+  state.editingTurnoId = null;
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.precio.value = 0;
+  $("#turnoFormTitle").textContent = "Nuevo turno";
 }
 
 function resetCentroForm() {
@@ -273,6 +377,31 @@ function resetCentroForm() {
   form.reset();
   form.elements.id.value = "";
   $("#centroFormTitle").textContent = "Centro de salud";
+}
+
+async function openDocument(id) {
+  const doc = await api(`/api/documentos/${id}`);
+  $("#documentTitle").textContent = doc.nombre_archivo;
+  $("#documentMeta").textContent = `${doc.tipo} - ${text(doc.paciente?.nombre)} - ${doc.mime_type} - ${doc.tamano_bytes} bytes`;
+  const preview = $("#documentPreview");
+  const mime = doc.mime_type || "application/octet-stream";
+  if (mime.startsWith("image/")) {
+    preview.innerHTML = `<img src="${doc.data_url}" alt="${escapeHtml(doc.nombre_archivo)}">`;
+  } else if (mime === "application/pdf") {
+    preview.innerHTML = `<iframe title="${escapeHtml(doc.nombre_archivo)}" src="${doc.data_url}"></iframe>`;
+  } else if (mime.startsWith("text/") || mime.includes("json")) {
+    const bytes = Uint8Array.from(atob(doc.contenido_base64), (char) => char.charCodeAt(0));
+    const content = new TextDecoder("utf-8").decode(bytes);
+    preview.innerHTML = `<pre>${escapeHtml(content)}</pre>`;
+  } else {
+    preview.innerHTML = `
+      <div class="empty-preview">
+        <strong>Vista previa no disponible para este tipo de archivo</strong>
+        <a download="${escapeHtml(doc.nombre_archivo)}" href="${doc.data_url}">Descargar archivo</a>
+      </div>
+    `;
+  }
+  $("#documentDialog").showModal();
 }
 
 wireEvents();

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import mimetypes
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -135,6 +136,29 @@ class JsonStore:
             self._write(data)
             return paciente
 
+    def update_patient(self, paciente_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+        required = ("dni", "nombre", "telefono", "distrito")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            paciente = self._find(data["pacientes"], paciente_id)
+            if paciente is None:
+                raise ValueError("El paciente no existe")
+            dni = payload["dni"].strip()
+            if any(p["dni"] == dni and int(p["id"]) != int(paciente_id) for p in data["pacientes"]):
+                raise ValueError("Ya existe otro paciente con ese DNI")
+            paciente.update(
+                {
+                    "dni": dni,
+                    "nombre": payload["nombre"].strip(),
+                    "telefono": payload["telefono"].strip(),
+                    "obra_social": payload.get("obra_social", "Sin obra social").strip(),
+                    "distrito": payload["distrito"].strip(),
+                }
+            )
+            self._write(data)
+            return paciente
+
     def create_turno(self, payload: dict[str, Any]) -> dict[str, Any]:
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo")
         self._require(payload, required)
@@ -158,6 +182,45 @@ class JsonStore:
                 "motivo": payload["motivo"].strip(),
             }
             data["turnos"].append(turno)
+            self._write(data)
+            return self._enrich_turno(data, turno)
+
+    def update_turno(self, turno_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+        required = ("paciente_id", "medico_id", "fecha", "hora", "motivo", "estado")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            turno = self._find(data["turnos"], turno_id)
+            if turno is None:
+                raise ValueError("El turno no existe")
+            medico = self._find(data["medicos"], int(payload["medico_id"]))
+            if medico is None:
+                raise ValueError("El medico seleccionado no existe")
+            paciente = self._find(data["pacientes"], int(payload["paciente_id"]))
+            if paciente is None:
+                raise ValueError("El paciente seleccionado no existe")
+            turno.update(
+                {
+                    "paciente_id": paciente["id"],
+                    "medico_id": medico["id"],
+                    "centro_id": medico["centro_id"],
+                    "fecha": payload["fecha"],
+                    "hora": payload["hora"],
+                    "estado": payload["estado"],
+                    "precio": float(payload.get("precio", 0) or 0),
+                    "motivo": payload["motivo"].strip(),
+                }
+            )
+            self._write(data)
+            return self._enrich_turno(data, turno)
+
+    def delete_turno(self, turno_id: int) -> dict[str, Any]:
+        with self._lock:
+            data = self.read()
+            turno = self._find(data["turnos"], turno_id)
+            if turno is None:
+                raise ValueError("El turno no existe")
+            data["turnos"] = [t for t in data["turnos"] if int(t["id"]) != int(turno_id)]
             self._write(data)
             return self._enrich_turno(data, turno)
 
@@ -187,24 +250,54 @@ class JsonStore:
             if "," in raw:
                 raw = raw.split(",", 1)[1]
             bytes_data = base64.b64decode(raw)
-            stored_name = f"paciente_{paciente['id']}_{self._next_id(data['documentos'])}_{file_name}"
+            doc_id = self._next_id(data["documentos"])
+            stored_name = f"paciente_{paciente['id']}_{doc_id}_{file_name}"
             target = self.uploads_dir / stored_name
-            target.write_bytes(bytes_data)
+            cached_content = None
             try:
-                stored_path = str(target.relative_to(ROOT))
-            except ValueError:
-                stored_path = str(target)
+                target.write_bytes(bytes_data)
+                try:
+                    stored_path = str(target.relative_to(ROOT))
+                except ValueError:
+                    stored_path = str(target)
+            except OSError:
+                stored_path = ""
+                cached_content = raw
             doc = {
-                "id": self._next_id(data["documentos"]),
+                "id": doc_id,
                 "paciente_id": paciente["id"],
                 "tipo": payload["tipo"].strip().upper(),
                 "nombre_archivo": file_name,
+                "mime_type": payload.get("mime_type") or mimetypes.guess_type(file_name)[0] or "application/octet-stream",
                 "ruta": stored_path,
                 "tamano_bytes": len(bytes_data),
             }
+            if cached_content is not None:
+                doc["contenido_base64"] = cached_content
             data["documentos"].append(doc)
             self._write(data)
             return self._enrich_documento(data, doc)
+
+    def get_document(self, documento_id: int) -> dict[str, Any]:
+        data = self.read()
+        doc = self._find(data["documentos"], documento_id)
+        if doc is None:
+            raise ValueError("El documento no existe")
+        item = self._enrich_documento(data, doc)
+        content = doc.get("contenido_base64")
+        if not content:
+            path_value = doc.get("ruta", "")
+            if not path_value:
+                raise ValueError("El documento no tiene contenido disponible")
+            path = Path(path_value)
+            if not path.is_absolute():
+                path = ROOT / path
+            if not path.exists():
+                raise ValueError("No se encontro el archivo guardado")
+            content = base64.b64encode(path.read_bytes()).decode("ascii")
+        item["contenido_base64"] = content
+        item["data_url"] = f"data:{item.get('mime_type', 'application/octet-stream')};base64,{content}"
+        return item
 
     def _write(self, data: dict[str, Any]) -> None:
         try:

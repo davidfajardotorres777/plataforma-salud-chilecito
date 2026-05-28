@@ -67,9 +67,10 @@
           <div class="split-grid">
             <form class="panel form-panel" id="turnoForm">
               <div class="panel-head">
-                <h2>Nuevo turno</h2>
-                <span>Reserva digital</span>
+                <h2 id="turnoFormTitle">Nuevo turno</h2>
+                <span>Reserva y edicion</span>
               </div>
+              <input type="hidden" name="id" id="turnoId">
               <label>Paciente
                 <select name="paciente_id" id="turnoPaciente" required></select>
               </label>
@@ -98,7 +99,10 @@
               <label>Motivo
                 <textarea name="motivo" rows="3" required></textarea>
               </label>
-              <button type="submit">Guardar turno</button>
+              <div class="button-row">
+                <button type="submit">Guardar turno</button>
+                <button class="secondary" id="cancelTurnoEdit" type="button">Nuevo</button>
+              </div>
             </form>
 
             <div class="panel">
@@ -115,7 +119,7 @@
                       <th>Medico</th>
                       <th>Centro</th>
                       <th>Estado</th>
-                      <th></th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="turnosBody"></tbody>
@@ -129,9 +133,10 @@
           <div class="split-grid">
             <form class="panel form-panel" id="pacienteForm">
               <div class="panel-head">
-                <h2>Paciente</h2>
-                <span>Alta rapida</span>
+                <h2 id="pacienteFormTitle">Paciente</h2>
+                <span>Alta y edicion</span>
               </div>
+              <input type="hidden" name="id" id="pacienteId">
               <label>DNI
                 <input name="dni" required maxlength="20">
               </label>
@@ -149,7 +154,10 @@
               <label>Obra social
                 <input name="obra_social" value="Sin obra social">
               </label>
-              <button type="submit">Guardar paciente</button>
+              <div class="button-row">
+                <button type="submit">Guardar paciente</button>
+                <button class="secondary" id="cancelPacienteEdit" type="button">Nuevo</button>
+              </div>
             </form>
             <div class="panel">
               <div class="panel-head">
@@ -241,6 +249,17 @@
         </section>
       </main>
     </div>
+
+    <dialog id="documentDialog" class="document-dialog">
+      <div class="modal-head">
+        <div>
+          <h2 id="documentTitle">Documento</h2>
+          <p id="documentMeta"></p>
+        </div>
+        <button class="secondary" id="closeDocument" type="button">Cerrar</button>
+      </div>
+      <div id="documentPreview" class="document-preview"></div>
+    </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="/static/app.js"></script>

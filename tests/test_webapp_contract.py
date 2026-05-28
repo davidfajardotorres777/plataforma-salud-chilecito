@@ -63,6 +63,68 @@ def test_json_store_creates_patient_turno_and_document():
         assert dashboard["metricas"]["documentos"] == 1
 
 
+def test_json_store_updates_patient_and_turno_then_deletes_turno():
+    with TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        store = JsonStore(
+            runtime_path=base / "runtime.json",
+            seed_path=ROOT / "data" / "demo_seed.json",
+            uploads_dir=base / "uploads",
+        )
+        paciente = store.update_patient(
+            1,
+            {
+                "dni": "40111223",
+                "nombre": "Juan Perez Corregido",
+                "telefono": "3825-999999",
+                "obra_social": "APOS",
+                "distrito": "Chilecito",
+            },
+        )
+        turno = store.update_turno(
+            1,
+            {
+                "paciente_id": paciente["id"],
+                "medico_id": 2,
+                "fecha": "2026-06-11",
+                "hora": "11:00",
+                "estado": "CONFIRMADO",
+                "precio": 0,
+                "motivo": "Horario corregido",
+            },
+        )
+        deleted = store.delete_turno(turno["id"])
+
+        assert paciente["nombre"] == "Juan Perez Corregido"
+        assert turno["hora"] == "11:00"
+        assert deleted["id"] == 1
+        assert all(t["id"] != 1 for t in store.dashboard()["turnos"])
+
+
+def test_json_store_returns_document_preview_content():
+    with TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        store = JsonStore(
+            runtime_path=base / "runtime.json",
+            seed_path=ROOT / "data" / "demo_seed.json",
+            uploads_dir=base / "uploads",
+        )
+        doc = store.save_document(
+            {
+                "paciente_id": 1,
+                "tipo": "ESTUDIO",
+                "nombre_archivo": "estudio.txt",
+                "mime_type": "text/plain",
+                "contenido_base64": base64.b64encode(b"resultado normal").decode("ascii"),
+            }
+        )
+        preview = store.get_document(doc["id"])
+
+        assert preview["mime_type"] == "text/plain"
+        assert preview["contenido_base64"]
+        assert preview["data_url"].startswith("data:text/plain;base64,")
+
+
 def test_json_store_creates_and_updates_centers():
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
@@ -104,5 +166,10 @@ def test_static_browser_app_files_exist():
     assert (static / "app.js").exists()
     assert "Nuevo turno" in (static / "index.html").read_text(encoding="utf-8")
     assert "Guardar centro" in (static / "index.html").read_text(encoding="utf-8")
+    assert "Guardar paciente" in (static / "index.html").read_text(encoding="utf-8")
+    assert "documentDialog" in (static / "index.html").read_text(encoding="utf-8")
     assert "/api/dashboard" in (static / "app.js").read_text(encoding="utf-8")
     assert "/api/centros" in (static / "app.js").read_text(encoding="utf-8")
+    assert "/api/pacientes/" in (static / "app.js").read_text(encoding="utf-8")
+    assert "/api/documentos/" in (static / "app.js").read_text(encoding="utf-8")
+    assert "/eliminar" in (static / "app.js").read_text(encoding="utf-8")

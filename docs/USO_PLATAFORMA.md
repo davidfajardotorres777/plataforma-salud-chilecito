@@ -3,7 +3,8 @@
 La plataforma web permite que el profesor use el proyecto como una aplicacion
 real desde el navegador. Incluye dashboard, alta de pacientes, reserva de
 turnos, cambio de estado, alta/edicion de centros, consulta de medicos y carga
-de documentos.
+de documentos. Tambien permite corregir pacientes, editar/eliminar turnos y ver
+el contenido de los documentos adjuntos.
 
 ## Modos de uso
 
@@ -91,11 +92,14 @@ bash scripts/ubuntu/03_cargar_oracle.sh
 
 ## Uso operativo
 
-1. Entrar a `Turnos` para crear reservas y cambiar estados.
-2. Entrar a `Pacientes` para dar de alta un paciente nuevo.
+1. Entrar a `Turnos` para crear reservas, editar horarios/datos, cambiar
+   estados o eliminar un turno cargado por error.
+2. Entrar a `Pacientes` para dar de alta un paciente nuevo o editar datos si se
+   cargo mal DNI, telefono, obra social o distrito.
 3. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
    de institucion.
-4. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes.
+4. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes y
+   usar `Ver documento` para abrir su informacion, imagen, PDF o texto guardado.
 5. Usar el buscador superior para filtrar registros por paciente, medico,
    centro, DNI, distrito o estado.
 

@@ -28,6 +28,10 @@ class SaludHandler(BaseHTTPRequestHandler):
         if route == "/api/dashboard":
             self._json(HTTPStatus.OK, self.store.dashboard())
             return
+        if route.startswith("/api/documentos/"):
+            documento_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.get_document(documento_id))
+            return
         if route == "/api/health":
             self._json(HTTPStatus.OK, {"status": "OK", "modo": "demo-json"})
             return
@@ -47,12 +51,24 @@ class SaludHandler(BaseHTTPRequestHandler):
             if route == "/api/pacientes":
                 self._json(HTTPStatus.CREATED, self.store.create_patient(payload))
                 return
+            if route.startswith("/api/pacientes/"):
+                paciente_id = int(route.split("/")[3])
+                self._json(HTTPStatus.OK, self.store.update_patient(paciente_id, payload))
+                return
             if route == "/api/turnos":
                 self._json(HTTPStatus.CREATED, self.store.create_turno(payload))
+                return
+            if route.startswith("/api/turnos/") and route.endswith("/eliminar"):
+                turno_id = int(route.split("/")[3])
+                self._json(HTTPStatus.OK, self.store.delete_turno(turno_id))
                 return
             if route.startswith("/api/turnos/") and route.endswith("/estado"):
                 turno_id = int(route.split("/")[3])
                 self._json(HTTPStatus.OK, self.store.update_turno_estado(turno_id, payload["estado"]))
+                return
+            if route.startswith("/api/turnos/"):
+                turno_id = int(route.split("/")[3])
+                self._json(HTTPStatus.OK, self.store.update_turno(turno_id, payload))
                 return
             if route == "/api/documentos":
                 self._json(HTTPStatus.CREATED, self.store.save_document(payload))

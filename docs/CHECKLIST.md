@@ -18,6 +18,9 @@
 - [x] Tests automatizados.
 - [x] Interfaz web funcional en navegador.
 - [x] API local para pacientes, turnos, documentos y dashboard.
+- [x] Edicion de pacientes desde la interfaz.
+- [x] Edicion y eliminacion de turnos desde la agenda.
+- [x] Visualizacion de documentos cargados con metadatos y preview.
 - [x] Modo demo JSON para usar sin Oracle activo.
 - [x] Scripts Windows de instalacion, inicio y carga Oracle.
 - [x] Scripts Ubuntu de instalacion, inicio y carga Oracle.

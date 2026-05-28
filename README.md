@@ -25,6 +25,9 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 - DAO Python con operaciones CRUD y consultas utiles.
 - Interfaz grafica web para centros, pacientes, turnos y documentos.
 - Alta y edicion de centros de salud desde la interfaz grafica.
+- Edicion de pacientes cuando se cargaron datos incorrectos.
+- Edicion y eliminacion de turnos cargados por error.
+- Visualizacion de documentos adjuntos con metadatos y vista previa.
 - API local con almacenamiento JSON de demo para usar la plataforma aunque
   Oracle todavia no este inicializado.
 - Scripts de instalacion y uso para Windows y Ubuntu.
