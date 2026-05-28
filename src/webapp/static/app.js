@@ -1,6 +1,7 @@
 const state = {
   data: null,
-  search: ""
+  search: "",
+  editingCentroId: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -124,12 +125,32 @@ function renderCentros() {
       <article class="center-item">
         <strong>${c.nombre}</strong>
         <span>${c.tipo} - ${c.distrito} - ${c.telefono}</span>
+        <p>${c.direccion}</p>
         <div class="mini-list">
           ${medicos.map((m) => `<p>${m.nombre} - ${m.especialidad?.nombre || "General"}</p>`).join("")}
         </div>
+        <button class="secondary edit-centro" type="button" data-id="${c.id}">Editar</button>
       </article>
     `;
   }).join("");
+
+  $$(".edit-centro").forEach((button) => {
+    button.addEventListener("click", () => {
+      const centro = state.data.centros.find((c) => c.id === Number(button.dataset.id));
+      if (!centro) return;
+      const form = $("#centroForm");
+      const fields = form.elements;
+      state.editingCentroId = centro.id;
+      $("#centroFormTitle").textContent = "Editar centro";
+      fields.id.value = centro.id;
+      fields.nombre.value = centro.nombre;
+      fields.direccion.value = centro.direccion;
+      fields.distrito.value = centro.distrito;
+      fields.telefono.value = centro.telefono;
+      fields.tipo.value = centro.tipo;
+      fields.nombre.focus();
+    });
+  });
 }
 
 function renderDocumentos() {
@@ -201,6 +222,22 @@ function wireEvents() {
     showToast("Paciente guardado");
   });
 
+  $("#centroForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = formDataToObject(event.target);
+    delete payload.id;
+    const path = state.editingCentroId ? `/api/centros/${state.editingCentroId}` : "/api/centros";
+    await api(path, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    resetCentroForm();
+    await loadDashboard();
+    showToast("Centro guardado");
+  });
+
+  $("#cancelCentroEdit").addEventListener("click", resetCentroForm);
+
   $("#turnoForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     await api("/api/turnos", {
@@ -228,6 +265,14 @@ function wireEvents() {
     await loadDashboard();
     showToast("Documento adjuntado");
   });
+}
+
+function resetCentroForm() {
+  const form = $("#centroForm");
+  state.editingCentroId = null;
+  form.reset();
+  form.elements.id.value = "";
+  $("#centroFormTitle").textContent = "Centro de salud";
 }
 
 wireEvents();

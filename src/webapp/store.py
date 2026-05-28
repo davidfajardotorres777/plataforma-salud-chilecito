@@ -79,6 +79,43 @@ class JsonStore:
             "documentos": [self._enrich_documento(data, doc) for doc in data["documentos"]],
         }
 
+    def create_center(self, payload: dict[str, Any]) -> dict[str, Any]:
+        required = ("nombre", "direccion", "distrito", "telefono", "tipo")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            centro = {
+                "id": self._next_id(data["centros"]),
+                "nombre": payload["nombre"].strip(),
+                "direccion": payload["direccion"].strip(),
+                "distrito": payload["distrito"].strip(),
+                "telefono": payload["telefono"].strip(),
+                "tipo": payload["tipo"].strip().upper(),
+            }
+            data["centros"].append(centro)
+            self._write(data)
+            return centro
+
+    def update_center(self, centro_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+        required = ("nombre", "direccion", "distrito", "telefono", "tipo")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            centro = self._find(data["centros"], centro_id)
+            if centro is None:
+                raise ValueError("El centro no existe")
+            centro.update(
+                {
+                    "nombre": payload["nombre"].strip(),
+                    "direccion": payload["direccion"].strip(),
+                    "distrito": payload["distrito"].strip(),
+                    "telefono": payload["telefono"].strip(),
+                    "tipo": payload["tipo"].strip().upper(),
+                }
+            )
+            self._write(data)
+            return centro
+
     def create_patient(self, payload: dict[str, Any]) -> dict[str, Any]:
         required = ("dni", "nombre", "telefono", "distrito")
         self._require(payload, required)

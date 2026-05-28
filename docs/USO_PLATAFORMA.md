@@ -2,7 +2,8 @@
 
 La plataforma web permite que el profesor use el proyecto como una aplicacion
 real desde el navegador. Incluye dashboard, alta de pacientes, reserva de
-turnos, cambio de estado, consulta de centros/medicos y carga de documentos.
+turnos, cambio de estado, alta/edicion de centros, consulta de medicos y carga
+de documentos.
 
 ## Modos de uso
 
@@ -31,20 +32,22 @@ scripts\windows\01_instalar.ps1
 scripts\windows\02_iniciar_plataforma.ps1
 ```
 
+Ese script levanta Docker, intenta preparar Oracle automaticamente y abre la web.
+Si Oracle no llega a iniciar, la plataforma igual queda usable en modo demo JSON.
+
 Abrir en el navegador:
 
 ```text
 http://localhost:8000
 ```
 
-Para cargar Oracle con SQL*Plus:
+Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
 
 ```powershell
 scripts\windows\03_cargar_oracle.ps1
 ```
 
-Si no hay SQL*Plus, usar SQL Developer y ejecutar los archivos `sql/01` a
-`sql/07` en orden.
+SQL Developer queda solo como opcion para mirar tablas y datos.
 
 ## Ubuntu
 
@@ -71,13 +74,16 @@ Luego:
 bash scripts/ubuntu/02_iniciar_plataforma.sh
 ```
 
+Ese script levanta Docker, intenta preparar Oracle automaticamente y abre la web.
+Si Oracle no llega a iniciar, la plataforma igual queda usable en modo demo JSON.
+
 Abrir:
 
 ```text
 http://localhost:8000
 ```
 
-Para cargar Oracle con SQL*Plus:
+Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
 
 ```bash
 bash scripts/ubuntu/03_cargar_oracle.sh
@@ -87,7 +93,8 @@ bash scripts/ubuntu/03_cargar_oracle.sh
 
 1. Entrar a `Turnos` para crear reservas y cambiar estados.
 2. Entrar a `Pacientes` para dar de alta un paciente nuevo.
-3. Entrar a `Centros` para ver centros, distritos, medicos y especialidades.
+3. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
+   de institucion.
 4. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes.
 5. Usar el buscador superior para filtrar registros por paciente, medico,
    centro, DNI, distrito o estado.

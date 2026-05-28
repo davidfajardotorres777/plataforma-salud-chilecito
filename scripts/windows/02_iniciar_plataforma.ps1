@@ -18,5 +18,15 @@ if (-not (Test-Path ".venv")) {
 
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+    Write-Host "Preparando Oracle automaticamente..."
+    try {
+        .\.venv\Scripts\python.exe scripts\setup_oracle.py
+    } catch {
+        Write-Host "No se pudo preparar Oracle automaticamente. La web se inicia igual en modo demo JSON."
+        Write-Host $_
+    }
+}
+
 Start-Process "http://localhost:8000"
 .\.venv\Scripts\python.exe -m src.webapp.server

@@ -37,6 +37,13 @@ class SaludHandler(BaseHTTPRequestHandler):
         route = urlparse(self.path).path
         try:
             payload = self._read_json()
+            if route == "/api/centros":
+                self._json(HTTPStatus.CREATED, self.store.create_center(payload))
+                return
+            if route.startswith("/api/centros/"):
+                centro_id = int(route.split("/")[3])
+                self._json(HTTPStatus.OK, self.store.update_center(centro_id, payload))
+                return
             if route == "/api/pacientes":
                 self._json(HTTPStatus.CREATED, self.store.create_patient(payload))
                 return

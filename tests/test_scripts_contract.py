@@ -11,9 +11,13 @@ def test_windows_scripts_cover_install_start_and_oracle_load():
         assert (scripts / name).exists()
 
     start = (scripts / "02_iniciar_plataforma.ps1").read_text(encoding="utf-8")
+    load = (scripts / "03_cargar_oracle.ps1").read_text(encoding="utf-8")
     assert "docker compose up -d" in start
     assert "src.webapp.server" in start
     assert "http://localhost:8000" in start
+    assert "scripts\\setup_oracle.py" in start
+    assert "scripts\\setup_oracle.py" in load
+    assert "No requiere SQL Developer ni SQL*Plus" in load
 
 
 def test_ubuntu_scripts_cover_install_start_and_oracle_load():
@@ -24,11 +28,15 @@ def test_ubuntu_scripts_cover_install_start_and_oracle_load():
 
     install = (scripts / "01_instalar.sh").read_text(encoding="utf-8")
     start = (scripts / "02_iniciar_plataforma.sh").read_text(encoding="utf-8")
+    load = (scripts / "03_cargar_oracle.sh").read_text(encoding="utf-8")
     assert "default-jdk" in install
     assert "docker.io" in install
     assert "docker-compose-plugin" in install
     assert "docker compose up -d" in start
     assert "src.webapp.server" in start
+    assert "scripts/setup_oracle.py" in start
+    assert "scripts/setup_oracle.py" in load
+    assert "No requiere SQL Developer ni SQL*Plus" in load
 
 
 def test_requirements_document_declares_official_links_and_terminal_commands():
@@ -46,3 +54,11 @@ def test_requirements_checker_script_exists():
     assert "Docker Compose" in script
     assert "default-jdk" in script
     assert "gitforwindows.org" in script
+
+
+def test_oracle_setup_script_replaces_manual_sqlplus_flow():
+    script = (ROOT / "scripts" / "setup_oracle.py").read_text(encoding="utf-8")
+    assert "preparacion automatica Oracle" in script
+    assert "ensure_tablespace" in script
+    assert "run_schema_files" in script
+    assert "No hace falta abrir SQL Developer ni SQL*Plus" in script

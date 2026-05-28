@@ -20,6 +20,11 @@ fi
 . .venv/bin/activate
 pip install -r requirements.txt
 
+if command -v docker >/dev/null 2>&1; then
+  echo "Preparando Oracle automaticamente..."
+  python scripts/setup_oracle.py || echo "No se pudo preparar Oracle automaticamente. La web se inicia igual en modo demo JSON."
+fi
+
 if command -v xdg-open >/dev/null 2>&1; then
   xdg-open http://localhost:8000 >/dev/null 2>&1 || true
 fi

@@ -5,7 +5,8 @@
 - Python 3.12 o superior.
 - Docker Desktop o Docker Engine.
 - Git.
-- SQL Developer, SQLcl o SQL*Plus para ejecutar scripts Oracle.
+- SQL Developer, SQLcl o SQL*Plus son opcionales para inspeccionar Oracle.
+  La carga de base se puede hacer automaticamente con Python.
 
 Links oficiales y comandos completos: [REQUISITOS.md](REQUISITOS.md).
 
@@ -63,7 +64,25 @@ docker ps
 docker logs -f oracle_salud_chilecito
 ```
 
-3. Conectar como administrador.
+3. Cargar Oracle automaticamente.
+
+Windows:
+
+```powershell
+scripts\windows\03_cargar_oracle.ps1
+```
+
+Ubuntu:
+
+```bash
+bash scripts/ubuntu/03_cargar_oracle.sh
+```
+
+Este comando espera el contenedor, crea tablespaces, usuarios, roles, tablas,
+indices, permisos y datos iniciales. No hace falta abrir SQL Developer ni
+SQL*Plus.
+
+4. Datos de conexion, solo si se quiere mirar Oracle con SQL Developer.
 
 Datos por defecto del contenedor:
 
@@ -75,14 +94,16 @@ usuario admin: system
 password admin: oracle
 ```
 
-4. Ejecutar:
+5. Ejecucion manual opcional.
+
+Si el profesor quiere revisar los SQL a mano, puede ejecutar:
 
 ```sql
 @sql/01_tablespaces.sql
 @sql/02_users_roles.sql
 ```
 
-5. Conectar como `salud/salud123@localhost:1521/XEPDB1` y ejecutar:
+Luego conectar como `salud/salud123@localhost:1521/XEPDB1` y ejecutar:
 
 ```sql
 @sql/03_schema.sql

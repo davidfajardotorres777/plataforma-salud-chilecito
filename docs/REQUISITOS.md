@@ -45,6 +45,12 @@ Abrir:
 http://localhost:8000
 ```
 
+Cargar Oracle sin SQL Developer ni SQL*Plus:
+
+```powershell
+scripts\windows\03_cargar_oracle.ps1
+```
+
 ## Ubuntu
 
 Instalar paquetes base:
@@ -84,6 +90,12 @@ Abrir:
 http://localhost:8000
 ```
 
+Cargar Oracle sin SQL Developer ni SQL*Plus:
+
+```bash
+bash scripts/ubuntu/03_cargar_oracle.sh
+```
+
 ## Dependencias Python
 
 El archivo `requirements.txt` declara:
@@ -96,6 +108,9 @@ pytest==8.3.4
 
 La interfaz web no necesita Flask, Django, Node ni npm. Usa librerias estandar
 de Python, HTML, CSS y JavaScript.
+
+La carga automatica de Oracle usa `python-oracledb` en modo thin, por eso no
+requiere instalar Oracle Instant Client ni SQL*Plus.
 
 ## Servicios y puertos
 

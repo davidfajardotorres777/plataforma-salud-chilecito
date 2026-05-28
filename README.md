@@ -24,9 +24,12 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 - Seed SQL con datos locales de Chilecito.
 - DAO Python con operaciones CRUD y consultas utiles.
 - Interfaz grafica web para centros, pacientes, turnos y documentos.
+- Alta y edicion de centros de salud desde la interfaz grafica.
 - API local con almacenamiento JSON de demo para usar la plataforma aunque
   Oracle todavia no este inicializado.
 - Scripts de instalacion y uso para Windows y Ubuntu.
+- Carga automatica de Oracle por Python, sin obligar a usar SQL Developer ni
+  SQL*Plus.
 - Tests de contrato para validar estructura SQL y DAOs sin depender de una base
   activa.
 
@@ -134,17 +137,23 @@ pip install -r requirements.txt
 ```
 
 5. Ejecutar los scripts SQL en orden con SQL Developer o SQL*Plus. Los scripts
-   `01` y `02` se ejecutan con usuario administrador; el resto con el esquema
-   `salud`.
+   tambien pueden cargarse automaticamente sin abrir SQL Developer.
 
-```sql
-@sql/01_tablespaces.sql
-@sql/02_users_roles.sql
-@sql/03_schema.sql
-@sql/04_indexes.sql
-@sql/05_seed.sql
-@sql/06_validate.sql
+Windows:
+
+```powershell
+scripts\windows\03_cargar_oracle.ps1
 ```
+
+Ubuntu:
+
+```bash
+bash scripts/ubuntu/03_cargar_oracle.sh
+```
+
+Ese comando espera Oracle, crea tablespaces, usuarios, roles, tablas, indices y
+datos iniciales. SQL Developer queda como herramienta opcional para mirar la
+base, no como paso obligatorio.
 
 6. Ejecutar demo y tests.
 
@@ -183,11 +192,11 @@ la demo completa desde Chrome, Edge o Firefox.
 | Sistema | Script | Uso |
 |---|---|---|
 | Windows | `scripts/windows/01_instalar.ps1` | Instala Git, Python, Docker y dependencias Python |
-| Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, abre navegador e inicia la web |
-| Windows | `scripts/windows/03_cargar_oracle.ps1` | Ejecuta scripts SQL con SQL*Plus |
+| Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, intenta prepararlo, abre navegador e inicia la web |
+| Windows | `scripts/windows/03_cargar_oracle.ps1` | Carga Oracle automaticamente con Python |
 | Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala Git, Python, Docker y dependencias |
-| Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle e inicia la web |
-| Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Ejecuta scripts SQL con SQL*Plus |
+| Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle, intenta prepararlo e inicia la web |
+| Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Carga Oracle automaticamente con Python |
 | Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
 
 Guia completa de uso: [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md).

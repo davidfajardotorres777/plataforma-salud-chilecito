@@ -51,6 +51,15 @@ button.secondary {
   color: var(--text);
 }
 
+.button-row {
+  display: flex;
+  gap: 10px;
+}
+
+.button-row button {
+  flex: 1;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -343,6 +352,15 @@ th {
 .center-item span {
   color: var(--muted);
   font-size: 13px;
+}
+
+.center-item p {
+  margin: 8px 0 0;
+}
+
+.center-item button {
+  margin-top: 12px;
+  width: 100%;
 }
 
 .center-grid {

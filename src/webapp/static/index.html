@@ -162,12 +162,47 @@
         </section>
 
         <section class="view" id="view-centros">
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Centros y medicos</h2>
-              <span>Red de atencion</span>
+          <div class="split-grid">
+            <form class="panel form-panel" id="centroForm">
+              <div class="panel-head">
+                <h2 id="centroFormTitle">Centro de salud</h2>
+                <span>Alta y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="centroId">
+              <label>Nombre
+                <input name="nombre" required>
+              </label>
+              <label>Direccion
+                <input name="direccion" required>
+              </label>
+              <div class="form-row">
+                <label>Distrito
+                  <input name="distrito" required>
+                </label>
+                <label>Telefono
+                  <input name="telefono" required>
+                </label>
+              </div>
+              <label>Tipo
+                <select name="tipo" required>
+                  <option>PUBLICO</option>
+                  <option>PRIVADO</option>
+                  <option>MIXTO</option>
+                </select>
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar centro</button>
+                <button class="secondary" id="cancelCentroEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Centros y medicos</h2>
+                <span>Red de atencion editable</span>
+              </div>
+              <div id="centrosList" class="center-grid"></div>
             </div>
-            <div id="centrosList" class="center-grid"></div>
           </div>
         </section>
 
