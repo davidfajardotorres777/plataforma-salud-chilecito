@@ -5,6 +5,9 @@
 ```mermaid
 flowchart TD
     A[Usuario o administracion] --> B[Aplicacion Salud Chilecito]
+    A --> H[Bot IA conversacional]
+    H --> I[API local /api/bot]
+    I --> J[JsonStore demo]
     B --> C[DAO Python]
     C --> D[Oracle XE]
     D --> E[(tbs_salud_data)]
@@ -15,6 +18,10 @@ flowchart TD
 ## Decisiones principales
 
 - Oracle es la base principal de la entrega de Base de Datos II.
+- La plataforma grafica y el bot IA son dos entradas separadas del mismo
+  proyecto web local.
+- El bot IA usa reglas locales y el mismo `JsonStore` de la demo para operar sin
+  claves externas ni internet.
 - Los datos transaccionales viven en tablas normalizadas.
 - Los documentos clinicos pueden guardarse como BLOB o por URL externa.
 - Los indices se separan en `tbs_salud_idx` para cumplir el criterio fisico.

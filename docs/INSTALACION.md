@@ -47,6 +47,7 @@ La plataforma queda disponible en:
 
 ```text
 http://localhost:8000
+http://localhost:8000/bot
 ```
 
 ## Pasos
@@ -145,6 +146,10 @@ python -m src.webapp.server
 ```
 
 Abrir `http://localhost:8000` desde Chrome, Edge o Firefox.
+
+Para probar el bot IA conversacional, abrir `http://localhost:8000/bot`.
+No requiere una clave externa ni internet; opera con los mismos datos locales
+que la interfaz grafica.
 
 ## Notas de entrega
 

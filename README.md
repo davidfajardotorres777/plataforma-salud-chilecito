@@ -28,6 +28,8 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 - Edicion de pacientes cuando se cargaron datos incorrectos.
 - Edicion y eliminacion de turnos cargados por error.
 - Visualizacion de documentos adjuntos con metadatos y vista previa.
+- Segunda plataforma conversacional en `/bot`, con un bot IA local que opera
+  pacientes, centros, turnos y documentos por chat.
 - API local con almacenamiento JSON de demo para usar la plataforma aunque
   Oracle todavia no este inicializado.
 - Scripts de instalacion y uso para Windows y Ubuntu.
@@ -45,6 +47,7 @@ pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
 | Python 3.12 | Capa DAO, seed y demo |
 | python-oracledb | Driver oficial Oracle para Python |
 | HTML/CSS/JavaScript | Interfaz web en navegador |
+| Bot IA local | Operacion conversacional sin API externa |
 | pytest | Pruebas automatizadas |
 
 ## Requisitos previos
@@ -190,6 +193,17 @@ centros/medicos y adjuntar documentos de pacientes. Si Oracle no esta listo,
 trabaja con `runtime/salud_chilecito_data.json` para que el profesor pueda usar
 la demo completa desde Chrome, Edge o Firefox.
 
+Tambien se puede abrir la plataforma conversacional:
+
+```text
+http://localhost:8000/bot
+```
+
+Desde ahi el profesor puede escribir ordenes como `listar pacientes`,
+`crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control`,
+`editar paciente 1 telefono 3825-999000`, `eliminar turno 2` o
+`ver documento 1`. El bot modifica los mismos datos que usa la interfaz grafica.
+
 ## Scripts de instalacion
 
 | Sistema | Script | Uso |
@@ -203,6 +217,8 @@ la demo completa desde Chrome, Edge o Firefox.
 | Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
 
 Guia completa de uso: [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md).
+
+Guia del bot IA: [docs/BOT_IA.md](docs/BOT_IA.md).
 
 Checklist de requisitos: [docs/REQUISITOS.md](docs/REQUISITOS.md).
 

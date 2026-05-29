@@ -42,6 +42,12 @@ Abrir en el navegador:
 http://localhost:8000
 ```
 
+Para usar la plataforma conversacional:
+
+```text
+http://localhost:8000/bot
+```
+
 Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
 
 ```powershell
@@ -84,6 +90,12 @@ Abrir:
 http://localhost:8000
 ```
 
+Para usar la plataforma conversacional:
+
+```text
+http://localhost:8000/bot
+```
+
 Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
 
 ```bash
@@ -102,6 +114,26 @@ bash scripts/ubuntu/03_cargar_oracle.sh
    usar `Ver documento` para abrir su informacion, imagen, PDF o texto guardado.
 5. Usar el buscador superior para filtrar registros por paciente, medico,
    centro, DNI, distrito o estado.
+
+## Uso con Bot IA
+
+La segunda plataforma esta en `http://localhost:8000/bot`. Permite operar el
+sistema por chat sin recorrer formularios.
+
+Ejemplos:
+
+```text
+listar pacientes
+crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
+editar paciente 1 telefono 3825-999000
+crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
+editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado
+eliminar turno 2
+crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultado normal
+ver documento 1
+```
+
+Guia completa: [BOT_IA.md](BOT_IA.md).
 
 ## Archivos que se modifican durante la demo
 

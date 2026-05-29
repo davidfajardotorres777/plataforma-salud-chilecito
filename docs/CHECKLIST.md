@@ -21,6 +21,9 @@
 - [x] Edicion de pacientes desde la interfaz.
 - [x] Edicion y eliminacion de turnos desde la agenda.
 - [x] Visualizacion de documentos cargados con metadatos y preview.
+- [x] Segunda plataforma conversacional con Bot IA en `/bot`.
+- [x] Bot capaz de listar, crear y editar pacientes, centros, turnos y documentos.
+- [x] Bot capaz de eliminar turnos cargados por error y ver documentos guardados.
 - [x] Modo demo JSON para usar sin Oracle activo.
 - [x] Scripts Windows de instalacion, inicio y carga Oracle.
 - [x] Scripts Ubuntu de instalacion, inicio y carga Oracle.

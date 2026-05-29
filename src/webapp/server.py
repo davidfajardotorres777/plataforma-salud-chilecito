@@ -6,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+from .bot_agent import BotAgent
 from .store import JsonStore
 
 
@@ -15,11 +16,15 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 class SaludHandler(BaseHTTPRequestHandler):
     store = JsonStore()
+    bot = BotAgent(store)
 
     def do_GET(self) -> None:
         route = urlparse(self.path).path
         if route == "/":
             self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
+            return
+        if route == "/bot":
+            self._serve_file(STATIC_DIR / "bot.html", "text/html; charset=utf-8")
             return
         if route.startswith("/static/"):
             requested = STATIC_DIR / unquote(route.removeprefix("/static/"))
@@ -41,6 +46,9 @@ class SaludHandler(BaseHTTPRequestHandler):
         route = urlparse(self.path).path
         try:
             payload = self._read_json()
+            if route == "/api/bot":
+                self._json(HTTPStatus.OK, self.bot.handle(payload.get("message", "")))
+                return
             if route == "/api/centros":
                 self._json(HTTPStatus.CREATED, self.store.create_center(payload))
                 return
@@ -130,6 +138,7 @@ class SaludHandler(BaseHTTPRequestHandler):
 def run(host: str = "127.0.0.1", port: int = 8000) -> None:
     server = ThreadingHTTPServer((host, port), SaludHandler)
     print(f"Salud Chilecito web: http://{host}:{port}")
+    print(f"Salud Chilecito bot IA: http://{host}:{port}/bot")
     print("Modo demo JSON. Los datos editables quedan en runtime/salud_chilecito_data.json")
     server.serve_forever()
 

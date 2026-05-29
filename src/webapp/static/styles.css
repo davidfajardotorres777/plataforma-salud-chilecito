@@ -138,6 +138,22 @@ button.danger:hover {
   background: #374151;
 }
 
+.bot-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid #34475c;
+  border-radius: 6px;
+  background: #253241;
+  color: white;
+  text-decoration: none;
+}
+
+.bot-link:hover {
+  background: #314257;
+}
+
 .main {
   min-width: 0;
   padding: 24px;
@@ -480,6 +496,218 @@ th {
   gap: 12px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bot-page {
+  min-height: 100vh;
+  background: #eef2f5;
+}
+
+.bot-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.bot-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 22px;
+  background: #17202a;
+  color: #f8fafc;
+}
+
+.bot-brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bot-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.bot-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #34475c;
+  border-radius: 6px;
+  color: #e2e8f0;
+  text-decoration: none;
+}
+
+.bot-nav a:hover,
+.bot-nav a[aria-current="page"] {
+  background: #253241;
+  color: white;
+}
+
+.bot-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  min-height: 0;
+  padding: 18px;
+}
+
+.bot-chat {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.chat-messages {
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chat-message {
+  width: min(760px, 100%);
+  display: grid;
+  gap: 6px;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+}
+
+.chat-message.bot {
+  align-self: flex-start;
+}
+
+.chat-role {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.chat-message.user .chat-role {
+  text-align: right;
+}
+
+.chat-bubble {
+  white-space: pre-wrap;
+  line-height: 1.45;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #f8fafc;
+}
+
+.chat-message.user .chat-bubble {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+
+.suggestions,
+.quick-actions,
+.command-list {
+  display: grid;
+  gap: 8px;
+}
+
+.suggestions {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.suggestions button,
+.quick-actions button,
+.command-list button {
+  min-height: 36px;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: left;
+}
+
+.suggestions button:hover,
+.quick-actions button:hover,
+.command-list button:hover {
+  background: #dce7ee;
+}
+
+.bot-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  background: #fbfcfd;
+}
+
+.bot-form textarea {
+  min-height: 52px;
+  max-height: 150px;
+}
+
+.bot-side {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.examples-panel .command-list button {
+  min-height: 44px;
+}
+
+.bot-document {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+  padding: 12px;
+}
+
+.bot-document img,
+.bot-document iframe {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.bot-document img {
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.bot-document iframe {
+  min-height: 460px;
+}
+
+.bot-document pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.5;
+}
+
 @media (max-width: 920px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -518,6 +746,14 @@ th {
   .split-grid {
     grid-template-columns: 1fr;
   }
+
+  .bot-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-side {
+    order: -1;
+  }
 }
 
 @media (max-width: 560px) {
@@ -531,6 +767,22 @@ th {
 
   .metrics,
   .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bot-topbar,
+  .bot-nav,
+  .bot-form {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bot-layout {
+    padding: 12px;
+  }
+
+  .suggestions {
     grid-template-columns: 1fr;
   }
 }
