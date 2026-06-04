@@ -6,8 +6,11 @@
 flowchart TD
     A[Usuario o administracion] --> B[Aplicacion Salud Chilecito]
     A --> H[Bot IA conversacional]
+    A --> K[Notebook de demostracion]
     H --> I[API local /api/bot]
     I --> J[JsonStore demo]
+    K --> L[DAO Python]
+    L --> D
     B --> C[DAO Python]
     C --> D[Oracle XE]
     D --> E[(tbs_salud_data)]

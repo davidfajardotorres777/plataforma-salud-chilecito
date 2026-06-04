@@ -52,13 +52,17 @@ def main() -> int:
         ok = False
         print("Docker Compose: FALTA - instalar Docker Desktop o docker-compose-plugin")
 
-    if shutil.which("sqlplus"):
-        print("SQL*Plus: OK")
+    if shutil.which("jupyter"):
+        print("Jupyter Notebook: OK")
     else:
-        print("SQL*Plus: opcional - usar SQL Developer si no esta instalado")
+        print("Jupyter Notebook: se instala con pip install -r requirements.txt")
 
-    print("SQL Developer: descargar desde https://www.oracle.com/database/sqldeveloper/")
-    print("Ubuntu requiere default-jdk: sudo apt install -y default-jdk")
+    if shutil.which("sqlplus"):
+        print("SQL*Plus: OK opcional")
+    else:
+        print("SQL*Plus: opcional - no hace falta para ejecutar la entrega")
+
+    print("SQL Developer: opcional para inspeccionar Oracle; no es requisito de uso")
     return 0 if ok else 1
 
 

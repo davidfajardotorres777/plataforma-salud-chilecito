@@ -15,6 +15,7 @@
 - [x] Indices de FK en tablespace separado.
 - [x] Seed SQL con datos de Chilecito.
 - [x] DAO Python con consultas CRUD.
+- [x] Notebook de demostracion para explicar DAO, store local y bot.
 - [x] Tests automatizados.
 - [x] Interfaz web funcional en navegador.
 - [x] API local para pacientes, turnos, documentos y dashboard.
@@ -28,3 +29,4 @@
 - [x] Scripts Windows de instalacion, inicio y carga Oracle.
 - [x] Scripts Ubuntu de instalacion, inicio y carga Oracle.
 - [x] Documentacion de uso operativo para el profesor.
+- [x] README principal con instalacion, DAO, notebook, SQL, web y bot.

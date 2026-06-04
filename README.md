@@ -1,85 +1,92 @@
-# Salud Chilecito - Oracle + Python DAO
+# Salud Chilecito - Oracle, DAO, Notebook y plataforma web
 
-Plataforma de gestion de turnos y datos clinicos para Chilecito, Nonogasta,
-Sanogasta y Vichigasta. Esta version adapta la idea original a una entrega de
-Base de Datos II con Oracle XE, scripts SQL, roles, tablespaces, capa DAO en
-Python, pruebas automatizadas y una interfaz web funcional para operar la
-plataforma desde el navegador.
+Trabajo integrador de Base de Datos II para una plataforma de gestion de turnos,
+pacientes, centros de salud y documentos clinicos del departamento Chilecito.
 
-## Que problema resuelve
+El proyecto esta preparado para que el docente pueda revisarlo de cuatro formas:
 
-En Chilecito muchas personas todavia deben trasladarse y hacer fila temprano
-para averiguar si hay turnos. El sistema propuesto centraliza centros de salud,
-medicos, especialidades, pacientes, agendas y turnos para que cada institucion
-pueda operar digitalmente y el ciudadano tenga informacion clara antes de ir.
+1. **Base Oracle**: scripts SQL con tablespaces, usuarios, roles, tablas,
+   indices, seed y validaciones.
+2. **Capa DAO en Python**: clases `CentroDAO`, `PacienteDAO`, `TurnoDAO`,
+   `MedicoDAO`, `AgendaDAO`, etc.
+3. **Notebook de demostracion**:
+   `notebooks/SaludChilecito_DAO_Demo.ipynb`.
+4. **Plataformas de uso real**:
+   `http://localhost:8000` para interfaz grafica y
+   `http://localhost:8000/bot` para Bot IA local.
 
-## Alcance de la entrega
+> SQL Developer no es obligatorio. La carga de Oracle se hace con Docker y
+> scripts Python. SQL Developer queda solo como opcion para inspeccionar tablas.
 
-- Oracle XE en Docker para levantar un entorno reproducible.
-- Tablespaces separados para datos e indices.
-- Roles de administracion y consulta con usuarios de aplicacion.
-- Esquema relacional para centros, especialidades, medicos, pacientes, agendas,
-  turnos, historial clinico y documentos.
-- Indices sobre claves foraneas y campos de busqueda.
-- Seed SQL con datos locales de Chilecito.
-- DAO Python con operaciones CRUD y consultas utiles.
-- Interfaz grafica web para centros, pacientes, turnos y documentos.
-- Alta y edicion de centros de salud desde la interfaz grafica.
-- Edicion de pacientes cuando se cargaron datos incorrectos.
-- Edicion y eliminacion de turnos cargados por error.
-- Visualizacion de documentos adjuntos con metadatos y vista previa.
-- Segunda plataforma conversacional en `/bot`, con un bot IA local que opera
-  pacientes, centros, turnos y documentos por chat.
-- API local con almacenamiento JSON de demo para usar la plataforma aunque
-  Oracle todavia no este inicializado.
-- Scripts de instalacion y uso para Windows y Ubuntu.
-- Carga automatica de Oracle por Python, sin obligar a usar SQL Developer ni
-  SQL*Plus.
-- Tests de contrato para validar estructura SQL y DAOs sin depender de una base
-  activa.
+## Indice
 
-## Tecnologias
+- [Que resuelve](#que-resuelve)
+- [Que incluye la entrega](#que-incluye-la-entrega)
+- [Comparacion con las referencias](#comparacion-con-las-referencias)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Requisitos](#requisitos)
+- [Instalacion rapida](#instalacion-rapida)
+- [Notebook de demostracion](#notebook-de-demostracion)
+- [Uso del DAO](#uso-del-dao)
+- [Plataforma grafica y Bot IA](#plataforma-grafica-y-bot-ia)
+- [Scripts SQL](#scripts-sql)
+- [Pruebas](#pruebas)
+- [Documentacion](#documentacion)
 
-| Tecnologia | Uso |
-|---|---|
-| Oracle Database XE 21c | Base de datos principal |
-| Docker Compose | Contenedor local reproducible |
-| Python 3.12 | Capa DAO, seed y demo |
-| python-oracledb | Driver oficial Oracle para Python |
-| HTML/CSS/JavaScript | Interfaz web en navegador |
-| Bot IA local | Operacion conversacional sin API externa |
-| pytest | Pruebas automatizadas |
+## Que resuelve
 
-## Requisitos previos
+En Chilecito muchas personas todavia deben trasladarse o hacer fila para saber
+si hay turnos disponibles. Salud Chilecito centraliza:
 
-Todo lo necesario para ejecutar el proyecto queda declarado en
-[docs/REQUISITOS.md](docs/REQUISITOS.md).
+- Centros de salud de Chilecito, Nonogasta, Sanogasta y otros distritos.
+- Medicos y especialidades.
+- Pacientes y datos de contacto.
+- Turnos con estado, precio y motivo.
+- Documentos del paciente, como ordenes, estudios, recetas, imagenes o PDF.
 
-Windows:
+La idea es que el sistema pueda usarse como una plataforma digital real y no
+solo como un conjunto de scripts sueltos.
 
-- Python 3.12 o superior: <https://www.python.org/downloads/windows/>
-- Docker Desktop: <https://www.docker.com/products/docker-desktop/>
-- Git for Windows: <https://gitforwindows.org/>
-- SQL Developer: <https://www.oracle.com/database/sqldeveloper/>
+## Que incluye la entrega
 
-Ubuntu:
+| Parte | Archivo/carpeta | Para que sirve |
+|---|---|---|
+| SQL Oracle | `sql/` y `dbscripts.sql` | Crea tablespaces, usuarios, roles, tablas, indices, datos y validaciones |
+| Docker | `docker-compose.yml` | Levanta Oracle XE localmente |
+| Configuracion | `.env.example` | Declara usuario, password, host, puerto y servicio Oracle |
+| DAO Python | `src/dao/` | Encapsula consultas y operaciones contra Oracle |
+| Modelos | `src/models/` | Dataclasses del dominio de salud |
+| Demo web | `src/webapp/` | Interfaz grafica, API local, Bot IA y store JSON |
+| Notebook | `notebooks/SaludChilecito_DAO_Demo.ipynb` | Recorrido guiado para explicar el proyecto |
+| Scripts | `scripts/windows/` y `scripts/ubuntu/` | Instalacion, inicio y carga automatica en Windows y Ubuntu |
+| Tests | `tests/` | Pruebas de SQL, DAO, scripts, web y bot |
+| Docs | `docs/` | Guias completas de instalacion, requisitos, arquitectura y uso |
 
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
-sudo usermod -aG docker $USER
-```
+## Comparacion con las referencias
 
-`default-jdk` se incluye porque SQL Developer necesita Java en Linux.
+Este repositorio toma lo mejor de las referencias revisadas:
 
-## Estructura
+- Del proyecto del profesor `hdrobins/dao`: la idea principal es la capa DAO,
+  los scripts de base y el uso de notebooks como forma de demostracion.
+- De `valentin-31/SAVIA`: se toma el estilo de entrega clara, con README
+  completo, seed, DAO, notebook y pasos reproducibles.
+- De `kevlarod/UniShare`: se toma la presencia de notebook de demo y archivos
+  de configuracion visibles para ejecutar el proyecto.
+
+La diferencia es que Salud Chilecito esta adaptado a Oracle, Base de Datos II y
+al dominio sanitario de turnos, pacientes, centros y documentos.
+
+## Estructura del repositorio
 
 ```text
 plataforma-salud-chilecito/
-|-- docker-compose.yml
+|-- README.md
 |-- requirements.txt
+|-- docker-compose.yml
 |-- .env.example
 |-- dbscripts.sql
+|-- notebooks/
+|   `-- SaludChilecito_DAO_Demo.ipynb
 |-- sql/
 |   |-- 01_tablespaces.sql
 |   |-- 02_users_roles.sql
@@ -92,45 +99,59 @@ plataforma-salud-chilecito/
 |   |-- config/
 |   |-- dao/
 |   |-- models/
-|   |-- webapp/
 |   |-- services/
-|   `-- main.py
+|   `-- webapp/
 |-- data/
 |   `-- demo_seed.json
-|-- tests/
+|-- scripts/
+|   |-- windows/
+|   `-- ubuntu/
 |-- docs/
-`-- scripts/
+`-- tests/
 ```
+
+## Requisitos
+
+Requisitos obligatorios:
+
+- Git.
+- Python 3.12 o superior.
+- Docker Desktop en Windows o Docker Engine en Ubuntu.
+- Docker Compose.
+
+Dependencias Python declaradas en `requirements.txt`:
+
+```text
+oracledb==2.5.1
+python-dotenv==1.0.1
+pytest==8.3.4
+notebook==7.5.5
+pandas==3.0.2
+```
+
+Herramientas opcionales:
+
+- SQL Developer: solo para mirar tablas o ejecutar SQL manualmente.
+- SQL*Plus: no hace falta para el flujo normal del proyecto.
+
+Guia detallada: [docs/REQUISITOS.md](docs/REQUISITOS.md).
 
 ## Instalacion rapida
 
-1. Clonar el repositorio.
+### 1. Clonar
 
 ```bash
 git clone https://github.com/davidfajardotorres777/plataforma-salud-chilecito.git
 cd plataforma-salud-chilecito
 ```
 
-2. Crear variables de entorno.
-
-```bash
-cp .env.example .env
-```
-
-3. Levantar Oracle.
-
-```bash
-docker compose up -d
-docker logs -f oracle_salud_chilecito
-```
-
-4. Crear entorno Python e instalar dependencias.
+### 2. Crear entorno Python
 
 Windows:
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -142,8 +163,27 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. Ejecutar los scripts SQL en orden con SQL Developer o SQL*Plus. Los scripts
-   tambien pueden cargarse automaticamente sin abrir SQL Developer.
+### 3. Preparar variables
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Ubuntu:
+
+```bash
+cp .env.example .env
+```
+
+### 4. Levantar Oracle
+
+```bash
+docker compose up -d
+```
+
+### 5. Cargar Oracle automaticamente
 
 Windows:
 
@@ -157,18 +197,17 @@ Ubuntu:
 bash scripts/ubuntu/03_cargar_oracle.sh
 ```
 
-Ese comando espera Oracle, crea tablespaces, usuarios, roles, tablas, indices y
-datos iniciales. SQL Developer queda como herramienta opcional para mirar la
-base, no como paso obligatorio.
+Ese paso crea tablespaces, usuarios, roles, tablas, indices y datos iniciales.
+No requiere abrir SQL Developer.
 
-6. Ejecutar demo y tests.
+### 6. Probar DAO y tests
 
 ```bash
 python -m src.main
 pytest -q
 ```
 
-7. Ejecutar la plataforma grafica en navegador.
+### 7. Abrir plataforma web
 
 Windows:
 
@@ -182,86 +221,156 @@ Ubuntu:
 bash scripts/ubuntu/02_iniciar_plataforma.sh
 ```
 
-Luego abrir:
+Abrir:
+
+```text
+http://localhost:8000
+http://localhost:8000/bot
+```
+
+## Notebook de demostracion
+
+El notebook principal esta en:
+
+```text
+notebooks/SaludChilecito_DAO_Demo.ipynb
+```
+
+Ejecutarlo:
+
+```bash
+jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
+```
+
+El notebook muestra:
+
+- Carga del seed local.
+- Vista de datos con pandas.
+- Creacion de paciente y turno usando el store de demo.
+- Uso del Bot IA local.
+- Estructura de la capa DAO.
+- Como conectar con Oracle real usando los scripts.
+
+## Uso del DAO
+
+El DAO es la parte central para la materia. La aplicacion no trabaja con SQL
+disperso en cualquier archivo; las consultas se agrupan por responsabilidad.
+
+Ejemplo:
+
+```python
+from src.config import OracleDatabase
+from src.dao import CentroDAO, MedicoDAO, TurnoDAO
+
+db = OracleDatabase()
+
+centros = CentroDAO(db).listar()
+medicos_cardio = MedicoDAO(db).buscar_por_especialidad("Cardiologia")
+proximos = TurnoDAO(db).listar_proximos(limite=5)
+
+print(centros)
+print(medicos_cardio)
+print(proximos)
+```
+
+DAOs incluidos:
+
+| DAO | Responsabilidad |
+|---|---|
+| `CentroDAO` | Centros de salud por distrito y alta de centros |
+| `EspecialidadDAO` | Catalogo de especialidades |
+| `MedicoDAO` | Medicos, centros y especialidades |
+| `PacienteDAO` | Pacientes, busqueda por DNI y actualizacion de contacto |
+| `AgendaDAO` | Agenda disponible de medicos |
+| `TurnoDAO` | Reserva, listado y cambio de estado de turnos |
+| `HistorialDAO` | Historial clinico del paciente |
+
+## Plataforma grafica y Bot IA
+
+La entrega incluye dos plataformas de uso:
+
+### Panel grafico
 
 ```text
 http://localhost:8000
 ```
 
-La interfaz permite crear pacientes, reservar turnos, cambiar estados, consultar
-centros/medicos y adjuntar documentos de pacientes. Si Oracle no esta listo,
-trabaja con `runtime/salud_chilecito_data.json` para que el profesor pueda usar
-la demo completa desde Chrome, Edge o Firefox.
+Permite:
 
-Tambien se puede abrir la plataforma conversacional:
+- Crear y editar centros.
+- Crear y editar pacientes.
+- Crear, editar, cambiar estado y eliminar turnos.
+- Adjuntar documentos.
+- Ver documentos con metadatos y vista previa.
+
+### Bot IA local
 
 ```text
 http://localhost:8000/bot
 ```
 
-Desde ahi el profesor puede escribir ordenes como `listar pacientes`,
-`crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control`,
-`editar paciente 1 telefono 3825-999000`, `eliminar turno 2` o
-`ver documento 1`. El bot modifica los mismos datos que usa la interfaz grafica.
+Ejemplos de comandos:
 
-## Scripts de instalacion
-
-| Sistema | Script | Uso |
-|---|---|---|
-| Windows | `scripts/windows/01_instalar.ps1` | Instala Git, Python, Docker y dependencias Python |
-| Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, intenta prepararlo, abre navegador e inicia la web |
-| Windows | `scripts/windows/03_cargar_oracle.ps1` | Carga Oracle automaticamente con Python |
-| Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala Git, Python, Docker y dependencias |
-| Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle, intenta prepararlo e inicia la web |
-| Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Carga Oracle automaticamente con Python |
-| Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
-
-Guia completa de uso: [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md).
-
-Guia del bot IA: [docs/BOT_IA.md](docs/BOT_IA.md).
-
-Checklist de requisitos: [docs/REQUISITOS.md](docs/REQUISITOS.md).
-
-## Modelo de datos
-
-```mermaid
-erDiagram
-    CENTRO_SALUD ||--o{ MEDICO : trabaja_en
-    ESPECIALIDAD ||--o{ MEDICO : clasifica
-    CENTRO_SALUD ||--o{ CENTRO_ESPECIALIDAD : ofrece
-    ESPECIALIDAD ||--o{ CENTRO_ESPECIALIDAD : pertenece
-    MEDICO ||--o{ AGENDA_MEDICO : agenda
-    PACIENTE ||--o{ TURNO : reserva
-    MEDICO ||--o{ TURNO : atiende
-    CENTRO_SALUD ||--o{ TURNO : recibe
-    TURNO ||--o{ HISTORIAL_CLINICO : genera
-    PACIENTE ||--o{ DOCUMENTO_PACIENTE : adjunta
+```text
+listar pacientes
+crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
+editar paciente 1 telefono 3825-999000
+crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
+editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado
+eliminar turno 2
+crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultado normal
+ver documento 1
 ```
 
-## Roles
+El bot no usa servicios externos ni claves de API. Es local y opera los mismos
+datos de la plataforma web.
 
-| Rol | Permisos |
+## Scripts SQL
+
+| Orden | Script | Contenido |
+|---|---|---|
+| 1 | `sql/01_tablespaces.sql` | Tablespaces, FRA y configuracion fisica |
+| 2 | `sql/02_users_roles.sql` | Usuario propietario, usuarios de consulta y roles |
+| 3 | `sql/03_schema.sql` | Tablas, claves primarias, foraneas y checks |
+| 4 | `sql/04_indexes.sql` | Indices en tablespace separado |
+| 5 | `sql/05_seed.sql` | Datos iniciales de Chilecito |
+| 6 | `sql/06_validate.sql` | Consultas de validacion |
+| 7 | `sql/07_security_checks.sql` | Validaciones de roles y seguridad |
+
+`dbscripts.sql` funciona como archivo de referencia general, pero el flujo
+ordenado esta en la carpeta `sql/`.
+
+## Pruebas
+
+Ejecutar:
+
+```bash
+pytest -q
+```
+
+Las pruebas verifican:
+
+- Contrato de scripts SQL.
+- Estructura y uso de DAOs.
+- Scripts de instalacion y carga.
+- Plataforma web.
+- Bot IA.
+- Notebook y dependencias de Jupyter.
+
+## Documentacion
+
+| Documento | Contenido |
 |---|---|
-| `rl_salud_admin` | CRUD sobre tablas del sistema |
-| `rl_salud_consulta` | Lectura para reportes y auditoria |
-
-Usuarios incluidos:
-
-- `salud`: esquema propietario.
-- `salud_app_admin`: usuario de aplicacion con rol admin.
-- `salud_consulta_01`, `salud_consulta_02`, `salud_consulta_03`: usuarios de
-  consulta con password life time de 15 dias.
-
-## Comparacion con las referencias
-
-El repositorio sigue la linea del profesor `hdrobins/dao`: SQL principal,
-conexion Python, DAOs y pruebas. Tambien toma de los repos de companeros la
-documentacion de instalacion, seed y scripts de verificacion, pero aplicado a
-tu idea de Salud Chilecito y a una entrega Oracle.
+| [docs/REQUISITOS.md](docs/REQUISITOS.md) | Instalacion completa Windows/Ubuntu |
+| [docs/INSTALACION.md](docs/INSTALACION.md) | Guia paso a paso |
+| [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md) | Uso operativo de la web y el bot |
+| [docs/BOT_IA.md](docs/BOT_IA.md) | Comandos del bot conversacional |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Componentes y decisiones tecnicas |
+| [docs/CHECKLIST.md](docs/CHECKLIST.md) | Checklist de entrega |
 
 ## Autores
 
-## Alesandro David Fajardo
-## Kevin Facundo nuñez
-Ingenieria en Sistemas - Universidad Nacional de Chilecito
+Alesandro David Fajardo  
+Kevin Facundo Nunez  
+Ingenieria en Sistemas - Universidad Nacional de Chilecito  
 Base de Datos II - 2026

@@ -13,7 +13,7 @@ Instalar:
 | Git for Windows | Ultima estable | <https://gitforwindows.org/> |
 | Python | 3.12 o superior | <https://www.python.org/downloads/windows/> |
 | Docker Desktop | Ultima estable | <https://www.docker.com/products/docker-desktop/> |
-| SQL Developer | Ultima estable | <https://www.oracle.com/database/sqldeveloper/> |
+| SQL Developer | Opcional | <https://www.oracle.com/database/sqldeveloper/> |
 | Oracle Instant Client SQL*Plus | Opcional | <https://www.oracle.com/database/technologies/instant-client.html> |
 
 Instalacion con terminal usando `winget`:
@@ -57,14 +57,14 @@ Instalar paquetes base:
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+sudo apt install -y git python3 python3-venv python3-pip docker.io docker-compose-plugin
 sudo usermod -aG docker $USER
 ```
 
 Cerrar sesion y volver a entrar si se agrego el usuario al grupo `docker`.
 
-`default-jdk` es necesario para ejecutar SQL Developer en Ubuntu. Luego se puede
-descargar SQL Developer desde:
+SQL Developer no es obligatorio. Si se quiere usar en Ubuntu solo para
+inspeccionar tablas, instalar Java y descargarlo desde:
 
 ```text
 https://www.oracle.com/database/sqldeveloper/
@@ -104,6 +104,8 @@ El archivo `requirements.txt` declara:
 oracledb==2.5.1
 python-dotenv==1.0.1
 pytest==8.3.4
+notebook==7.5.5
+pandas==3.0.2
 ```
 
 La interfaz web no necesita Flask, Django, Node ni npm. Usa librerias estandar
@@ -111,6 +113,8 @@ de Python, HTML, CSS y JavaScript.
 
 La carga automatica de Oracle usa `python-oracledb` en modo thin, por eso no
 requiere instalar Oracle Instant Client ni SQL*Plus.
+
+El notebook de demostracion usa `notebook` y `pandas`.
 
 ## Servicios y puertos
 

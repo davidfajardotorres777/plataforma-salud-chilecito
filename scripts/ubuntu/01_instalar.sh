@@ -4,7 +4,7 @@ set -euo pipefail
 echo "== Salud Chilecito: instalacion Ubuntu =="
 
 sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+sudo apt install -y git python3 python3-venv python3-pip docker.io docker-compose-plugin
 
 if ! groups "$USER" | grep -q docker; then
   sudo usermod -aG docker "$USER"
@@ -17,5 +17,5 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Instalacion completada."
-echo "Java/default-jdk queda instalado para SQL Developer."
+echo "SQL Developer no es obligatorio. Si lo queres usar para inspeccionar Oracle, instala Java aparte."
 echo "Siguiente paso: bash scripts/ubuntu/02_iniciar_plataforma.sh"

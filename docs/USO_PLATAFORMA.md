@@ -23,7 +23,7 @@ Requisitos oficiales:
 - Git for Windows: <https://gitforwindows.org/>
 - Python 3.12+: <https://www.python.org/downloads/windows/>
 - Docker Desktop: <https://www.docker.com/products/docker-desktop/>
-- SQL Developer: <https://www.oracle.com/database/sqldeveloper/>
+- SQL Developer opcional: <https://www.oracle.com/database/sqldeveloper/>
 
 Abrir PowerShell en la carpeta del repo:
 
@@ -62,11 +62,12 @@ Instalar dependencias del sistema:
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip default-jdk docker.io docker-compose-plugin
+sudo apt install -y git python3 python3-venv python3-pip docker.io docker-compose-plugin
 sudo usermod -aG docker $USER
 ```
 
-`default-jdk` permite ejecutar SQL Developer en Ubuntu.
+SQL Developer no es obligatorio. Si se quiere usar en Ubuntu para inspeccionar
+tablas, instalar Java aparte.
 
 Abrir una terminal en la carpeta del repo:
 
@@ -160,4 +161,10 @@ Ejecutar tests:
 
 ```bash
 pytest -q
+```
+
+Abrir notebook de demostracion:
+
+```bash
+jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
 ```
