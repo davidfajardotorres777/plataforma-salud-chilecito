@@ -57,12 +57,7 @@ def main() -> int:
     else:
         print("Jupyter Notebook: se instala con pip install -r requirements.txt")
 
-    if shutil.which("sqlplus"):
-        print("SQL*Plus: OK opcional")
-    else:
-        print("SQL*Plus: opcional - no hace falta para ejecutar la entrega")
-
-    print("SQL Developer: opcional para inspeccionar Oracle; no es requisito de uso")
+    print("Oracle se prepara con Docker y los scripts del repositorio.")
     return 0 if ok else 1
 
 

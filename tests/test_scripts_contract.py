@@ -17,7 +17,7 @@ def test_windows_scripts_cover_install_start_and_oracle_load():
     assert "http://localhost:8000" in start
     assert "scripts\\setup_oracle.py" in start
     assert "scripts\\setup_oracle.py" in load
-    assert "No requiere SQL Developer ni SQL*Plus" in load
+    assert "prepara toda la base Oracle" in load
 
 
 def test_ubuntu_scripts_cover_install_start_and_oracle_load():
@@ -31,12 +31,11 @@ def test_ubuntu_scripts_cover_install_start_and_oracle_load():
     load = (scripts / "03_cargar_oracle.sh").read_text(encoding="utf-8")
     assert "docker.io" in install
     assert "docker-compose-plugin" in install
-    assert "SQL Developer no es obligatorio" in install
     assert "docker compose up -d" in start
     assert "src.webapp.server" in start
     assert "scripts/setup_oracle.py" in start
     assert "scripts/setup_oracle.py" in load
-    assert "No requiere SQL Developer ni SQL*Plus" in load
+    assert "prepara toda la base Oracle" in load
 
 
 def test_requirements_document_declares_official_links_and_terminal_commands():
@@ -58,12 +57,12 @@ def test_requirements_checker_script_exists():
     assert "gitforwindows.org" in script
 
 
-def test_oracle_setup_script_replaces_manual_sqlplus_flow():
+def test_oracle_setup_script_prepares_database_automatically():
     script = (ROOT / "scripts" / "setup_oracle.py").read_text(encoding="utf-8")
     assert "preparacion automatica Oracle" in script
     assert "ensure_tablespace" in script
     assert "run_schema_files" in script
-    assert "No hace falta abrir SQL Developer ni SQL*Plus" in script
+    assert "Preparando usuarios, roles, tablas, indices y datos iniciales." in script
 
 
 def test_notebook_demo_and_jupyter_dependencies_are_declared():
@@ -79,3 +78,38 @@ def test_notebook_demo_and_jupyter_dependencies_are_declared():
     assert "jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb" in readme
     assert "notebook==7.5.5" in requirements
     assert "pandas==3.0.2" in requirements
+
+
+def test_public_docs_do_not_mention_external_references_or_removed_tools():
+    forbidden = [
+        "SQL " + "Developer",
+        "SQL" + "*Plus",
+        "sql" + "plus",
+        "pro" + "fesor",
+        "pro" + "fe",
+        "doc" + "ente",
+        "refer" + "encias",
+        "hdro" + "bins",
+        "SA" + "VIA",
+        "Uni" + "Share",
+    ]
+    public_files = [
+        ROOT / "README.md",
+        ROOT / "docs" / "REQUISITOS.md",
+        ROOT / "docs" / "INSTALACION.md",
+        ROOT / "docs" / "USO_PLATAFORMA.md",
+        ROOT / "docs" / "ARQUITECTURA.md",
+        ROOT / "docs" / "CHECKLIST.md",
+        ROOT / "scripts" / "check_requirements.py",
+        ROOT / "scripts" / "setup_oracle.py",
+        ROOT / "scripts" / "windows" / "01_instalar.ps1",
+        ROOT / "scripts" / "windows" / "03_cargar_oracle.ps1",
+        ROOT / "scripts" / "ubuntu" / "01_instalar.sh",
+        ROOT / "scripts" / "ubuntu" / "03_cargar_oracle.sh",
+        ROOT / "notebooks" / "SaludChilecito_DAO_Demo.ipynb",
+        ROOT / "dbscripts.sql",
+    ]
+    for path in public_files:
+        text = path.read_text(encoding="utf-8")
+        for word in forbidden:
+            assert word not in text, f"{word} aparece en {path}"

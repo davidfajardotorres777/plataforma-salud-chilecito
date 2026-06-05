@@ -20,7 +20,7 @@ flowchart TD
 
 ## Decisiones principales
 
-- Oracle es la base principal de la entrega de Base de Datos II.
+- Oracle es la base relacional principal del proyecto.
 - La plataforma grafica y el bot IA son dos entradas separadas del mismo
   proyecto web local.
 - El bot IA usa reglas locales y el mismo `JsonStore` de la demo para operar sin
@@ -38,5 +38,5 @@ flowchart TD
 | Coleccion de medicos | Tabla `medico` |
 | Documento paciente | Tabla `paciente` |
 | Agenda embebida por medico | Tabla `agenda_medico` |
-| Turnos con referencias extendidas | Tabla `turno` con FK a paciente, medico y centro |
+| Turnos con datos relacionados | Tabla `turno` con FK a paciente, medico y centro |
 | Adjuntos externos | Tabla `documento_paciente` con BLOB o URL |

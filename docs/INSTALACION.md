@@ -4,28 +4,10 @@
 
 - Python 3.12 o superior.
 - Docker Desktop o Docker Engine.
+- Docker Compose.
 - Git.
-- SQL Developer, SQLcl o SQL*Plus son opcionales para inspeccionar Oracle.
-  La carga de base se puede hacer automaticamente con Python.
 
 Links oficiales y comandos completos: [REQUISITOS.md](REQUISITOS.md).
-
-Windows:
-
-- Git for Windows: <https://gitforwindows.org/>
-- Python: <https://www.python.org/downloads/windows/>
-- Docker Desktop: <https://www.docker.com/products/docker-desktop/>
-- SQL Developer opcional: <https://www.oracle.com/database/sqldeveloper/>
-
-Ubuntu:
-
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip docker.io docker-compose-plugin
-```
-
-Si se quiere usar SQL Developer en Ubuntu, instalar Java aparte. No es necesario
-para ejecutar la entrega.
 
 ## Instalacion automatica
 
@@ -51,7 +33,7 @@ http://localhost:8000
 http://localhost:8000/bot
 ```
 
-## Pasos
+## Instalacion manual
 
 1. Levantar Oracle.
 
@@ -81,47 +63,15 @@ bash scripts/ubuntu/03_cargar_oracle.sh
 ```
 
 Este comando espera el contenedor, crea tablespaces, usuarios, roles, tablas,
-indices, permisos y datos iniciales. No hace falta abrir SQL Developer ni
-SQL*Plus.
+indices, permisos y datos iniciales.
 
-4. Datos de conexion, solo si se quiere mirar Oracle con SQL Developer.
-
-Datos por defecto del contenedor:
-
-```text
-host: localhost
-puerto: 1521
-servicio: XEPDB1
-usuario admin: system
-password admin: oracle
-```
-
-5. Ejecucion manual opcional.
-
-Si el profesor quiere revisar los SQL a mano, puede ejecutar:
-
-```sql
-@sql/01_tablespaces.sql
-@sql/02_users_roles.sql
-```
-
-Luego conectar como `salud/salud123@localhost:1521/XEPDB1` y ejecutar:
-
-```sql
-@sql/03_schema.sql
-@sql/04_indexes.sql
-@sql/05_seed.sql
-@sql/06_validate.sql
-@sql/07_security_checks.sql
-```
-
-6. Preparar Python.
+4. Preparar Python.
 
 Windows:
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -133,14 +83,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-7. Probar DAO.
+5. Probar DAO y tests.
 
 ```bash
 python -m src.main
 pytest -q
 ```
 
-8. Probar interfaz grafica.
+6. Probar interfaz grafica.
 
 ```bash
 python -m src.webapp.server
@@ -148,21 +98,20 @@ python -m src.webapp.server
 
 Abrir `http://localhost:8000` desde Chrome, Edge o Firefox.
 
-Para probar el bot IA conversacional, abrir `http://localhost:8000/bot`.
-No requiere una clave externa ni internet; opera con los mismos datos locales
-que la interfaz grafica.
+Para probar el bot conversacional, abrir `http://localhost:8000/bot`.
 
-9. Probar notebook de demostracion.
+7. Probar notebook de demostracion.
 
 ```bash
 jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
 ```
 
-## Notas de entrega
+## Notas
 
 - `01_tablespaces.sql` incluye parametros de FRA y UNDO.
 - El modo ARCHIVELOG requiere reiniciar la instancia en modo MOUNT, por eso se
   deja documentado dentro del script.
 - Las pruebas automatizadas no necesitan una base activa; validan contrato,
-  estructura y consultas DAO. La ejecucion real contra Oracle se hace con
-  `python -m src.main`.
+  estructura y consultas DAO.
+- El modo demo JSON permite usar la plataforma web aunque Oracle todavia no
+  este cargado.

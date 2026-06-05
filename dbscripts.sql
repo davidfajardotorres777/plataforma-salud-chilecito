@@ -1,4 +1,4 @@
--- Ejecutar este archivo desde SQL*Plus si se desea correr todo el paquete.
+-- Archivo principal para correr el paquete SQL completo.
 -- Los scripts 01 y 02 requieren privilegios de administrador.
 
 @@sql/01_tablespaces.sql

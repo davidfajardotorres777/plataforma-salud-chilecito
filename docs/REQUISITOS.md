@@ -1,8 +1,7 @@
 # Requisitos completos
 
-Este archivo declara todo lo necesario para ejecutar Salud Chilecito en Windows
-y Ubuntu. La idea es que el docente pueda clonar el repo, instalar lo requerido
-y usar la plataforma sin adivinar dependencias.
+Este archivo declara lo necesario para ejecutar Salud Chilecito en Windows y
+Ubuntu sin adivinar dependencias.
 
 ## Windows
 
@@ -13,8 +12,6 @@ Instalar:
 | Git for Windows | Ultima estable | <https://gitforwindows.org/> |
 | Python | 3.12 o superior | <https://www.python.org/downloads/windows/> |
 | Docker Desktop | Ultima estable | <https://www.docker.com/products/docker-desktop/> |
-| SQL Developer | Opcional | <https://www.oracle.com/database/sqldeveloper/> |
-| Oracle Instant Client SQL*Plus | Opcional | <https://www.oracle.com/database/technologies/instant-client.html> |
 
 Instalacion con terminal usando `winget`:
 
@@ -43,9 +40,10 @@ Abrir:
 
 ```text
 http://localhost:8000
+http://localhost:8000/bot
 ```
 
-Cargar Oracle sin SQL Developer ni SQL*Plus:
+Cargar Oracle:
 
 ```powershell
 scripts\windows\03_cargar_oracle.ps1
@@ -62,13 +60,6 @@ sudo usermod -aG docker $USER
 ```
 
 Cerrar sesion y volver a entrar si se agrego el usuario al grupo `docker`.
-
-SQL Developer no es obligatorio. Si se quiere usar en Ubuntu solo para
-inspeccionar tablas, instalar Java y descargarlo desde:
-
-```text
-https://www.oracle.com/database/sqldeveloper/
-```
 
 Preparar entorno Python:
 
@@ -88,9 +79,10 @@ Abrir:
 
 ```text
 http://localhost:8000
+http://localhost:8000/bot
 ```
 
-Cargar Oracle sin SQL Developer ni SQL*Plus:
+Cargar Oracle:
 
 ```bash
 bash scripts/ubuntu/03_cargar_oracle.sh
@@ -111,16 +103,13 @@ pandas==3.0.2
 La interfaz web no necesita Flask, Django, Node ni npm. Usa librerias estandar
 de Python, HTML, CSS y JavaScript.
 
-La carga automatica de Oracle usa `python-oracledb` en modo thin, por eso no
-requiere instalar Oracle Instant Client ni SQL*Plus.
-
 El notebook de demostracion usa `notebook` y `pandas`.
 
 ## Servicios y puertos
 
 | Servicio | Puerto | Uso |
 |---|---|---|
-| Web local | 8000 | Interfaz grafica y API demo |
+| Web local | 8000 | Interfaz grafica, API local y bot |
 | Oracle listener | 1521 | Conexion a Oracle XE |
 
 ## Variables de entorno

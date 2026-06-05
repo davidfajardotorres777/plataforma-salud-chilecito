@@ -1,20 +1,19 @@
-# Uso de la plataforma grafica
+# Uso de la plataforma
 
-La plataforma web permite que el profesor use el proyecto como una aplicacion
-real desde el navegador. Incluye dashboard, alta de pacientes, reserva de
-turnos, cambio de estado, alta/edicion de centros, consulta de medicos y carga
-de documentos. Tambien permite corregir pacientes, editar/eliminar turnos y ver
-el contenido de los documentos adjuntos.
+La plataforma web permite operar Salud Chilecito como una aplicacion real desde
+el navegador. Incluye dashboard, alta y edicion de pacientes, reserva de turnos,
+cambio de estado, gestion de centros, consulta de medicos, carga de documentos
+y vista previa de archivos adjuntos.
 
 ## Modos de uso
 
 | Modo | Cuando usarlo | Datos |
 |---|---|---|
-| Demo web JSON | Para mostrar la plataforma sin preparar Oracle | `runtime/salud_chilecito_data.json` |
-| Oracle BD II | Para evaluar scripts, roles, tablespaces y DAOs | Oracle XE en Docker |
+| Demo web JSON | Para usar la plataforma sin preparar Oracle | `runtime/salud_chilecito_data.json` |
+| Oracle XE | Para usar la base relacional completa | Oracle XE en Docker |
 
 El modo demo se inicia siempre. Oracle puede levantarse en paralelo para validar
-la parte de Base de Datos II.
+la base y el DAO.
 
 ## Windows
 
@@ -23,7 +22,6 @@ Requisitos oficiales:
 - Git for Windows: <https://gitforwindows.org/>
 - Python 3.12+: <https://www.python.org/downloads/windows/>
 - Docker Desktop: <https://www.docker.com/products/docker-desktop/>
-- SQL Developer opcional: <https://www.oracle.com/database/sqldeveloper/>
 
 Abrir PowerShell en la carpeta del repo:
 
@@ -48,13 +46,11 @@ Para usar la plataforma conversacional:
 http://localhost:8000/bot
 ```
 
-Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
+Para cargar Oracle:
 
 ```powershell
 scripts\windows\03_cargar_oracle.ps1
 ```
-
-SQL Developer queda solo como opcion para mirar tablas y datos.
 
 ## Ubuntu
 
@@ -65,9 +61,6 @@ sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip docker.io docker-compose-plugin
 sudo usermod -aG docker $USER
 ```
-
-SQL Developer no es obligatorio. Si se quiere usar en Ubuntu para inspeccionar
-tablas, instalar Java aparte.
 
 Abrir una terminal en la carpeta del repo:
 
@@ -97,7 +90,7 @@ Para usar la plataforma conversacional:
 http://localhost:8000/bot
 ```
 
-Para cargar Oracle automaticamente sin SQL Developer ni SQL*Plus:
+Para cargar Oracle:
 
 ```bash
 bash scripts/ubuntu/03_cargar_oracle.sh

@@ -17,5 +17,4 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Instalacion completada."
-echo "SQL Developer no es obligatorio. Si lo queres usar para inspeccionar Oracle, instala Java aparte."
 echo "Siguiente paso: bash scripts/ubuntu/02_iniciar_plataforma.sh"

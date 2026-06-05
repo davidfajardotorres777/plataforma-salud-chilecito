@@ -233,7 +233,7 @@ def run_schema_files() -> None:
 
 def main() -> int:
     print("== Salud Chilecito: preparacion automatica Oracle ==")
-    print("No hace falta abrir SQL Developer ni SQL*Plus para este paso.")
+    print("Preparando usuarios, roles, tablas, indices y datos iniciales.")
     prepare_admin_objects()
     run_schema_files()
     print("Oracle quedo listo para la entrega.")

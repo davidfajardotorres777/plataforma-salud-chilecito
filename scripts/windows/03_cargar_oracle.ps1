@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "== Salud Chilecito: carga Oracle Windows =="
-Write-Host "Este paso es automatico. No requiere SQL Developer ni SQL*Plus."
+Write-Host "Este paso es automatico y prepara toda la base Oracle."
 
 if (-not (Test-Path ".venv")) {
     python -m venv .venv

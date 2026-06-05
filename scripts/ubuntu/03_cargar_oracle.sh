@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "== Salud Chilecito: carga Oracle Ubuntu =="
-echo "Este paso es automatico. No requiere SQL Developer ni SQL*Plus."
+echo "Este paso es automatico y prepara toda la base Oracle."
 
 if [ ! -d .venv ]; then
   python3 -m venv .venv

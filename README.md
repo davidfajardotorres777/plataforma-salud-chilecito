@@ -1,118 +1,44 @@
-# Salud Chilecito - Oracle, DAO, Notebook y plataforma web
+# Salud Chilecito
 
-Trabajo integrador de Base de Datos II para una plataforma de gestion de turnos,
-pacientes, centros de salud y documentos clinicos del departamento Chilecito.
+Plataforma digital para gestionar centros de salud, pacientes, medicos, turnos,
+historial clinico y documentos asociados a la atencion medica en Chilecito y
+sus distritos cercanos.
 
-El proyecto esta preparado para que el docente pueda revisarlo de cuatro formas:
+El proyecto combina una base Oracle, una capa DAO en Python, scripts de carga,
+un notebook de demostracion, una interfaz web operativa y un bot local para
+usar la plataforma por conversacion.
 
-1. **Base Oracle**: scripts SQL con tablespaces, usuarios, roles, tablas,
-   indices, seed y validaciones.
-2. **Capa DAO en Python**: clases `CentroDAO`, `PacienteDAO`, `TurnoDAO`,
-   `MedicoDAO`, `AgendaDAO`, etc.
-3. **Notebook de demostracion**:
-   `notebooks/SaludChilecito_DAO_Demo.ipynb`.
-4. **Plataformas de uso real**:
-   `http://localhost:8000` para interfaz grafica y
-   `http://localhost:8000/bot` para Bot IA local.
+## Que se puede hacer
 
-> SQL Developer no es obligatorio. La carga de Oracle se hace con Docker y
-> scripts Python. SQL Developer queda solo como opcion para inspeccionar tablas.
+- Registrar y consultar centros de salud.
+- Registrar y corregir datos de pacientes.
+- Consultar medicos y especialidades.
+- Crear, editar, confirmar, cancelar o eliminar turnos.
+- Adjuntar documentos de pacientes.
+- Ver documentos guardados con metadatos y vista previa.
+- Usar una interfaz grafica desde el navegador.
+- Usar una plataforma conversacional con Bot IA local.
+- Ejecutar consultas y operaciones desde la capa DAO.
+- Cargar y validar la base Oracle con comandos automatizados.
 
-## Indice
+## Componentes principales
 
-- [Que resuelve](#que-resuelve)
-- [Que incluye la entrega](#que-incluye-la-entrega)
-- [Comparacion con las referencias](#comparacion-con-las-referencias)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Requisitos](#requisitos)
-- [Instalacion rapida](#instalacion-rapida)
-- [Notebook de demostracion](#notebook-de-demostracion)
-- [Uso del DAO](#uso-del-dao)
-- [Plataforma grafica y Bot IA](#plataforma-grafica-y-bot-ia)
-- [Scripts SQL](#scripts-sql)
-- [Pruebas](#pruebas)
-- [Documentacion](#documentacion)
-
-## Que resuelve
-
-En Chilecito muchas personas todavia deben trasladarse o hacer fila para saber
-si hay turnos disponibles. Salud Chilecito centraliza:
-
-- Centros de salud de Chilecito, Nonogasta, Sanogasta y otros distritos.
-- Medicos y especialidades.
-- Pacientes y datos de contacto.
-- Turnos con estado, precio y motivo.
-- Documentos del paciente, como ordenes, estudios, recetas, imagenes o PDF.
-
-La idea es que el sistema pueda usarse como una plataforma digital real y no
-solo como un conjunto de scripts sueltos.
-
-## Que incluye la entrega
-
-| Parte | Archivo/carpeta | Para que sirve |
+| Componente | Ruta | Descripcion |
 |---|---|---|
-| SQL Oracle | `sql/` y `dbscripts.sql` | Crea tablespaces, usuarios, roles, tablas, indices, datos y validaciones |
-| Docker | `docker-compose.yml` | Levanta Oracle XE localmente |
-| Configuracion | `.env.example` | Declara usuario, password, host, puerto y servicio Oracle |
-| DAO Python | `src/dao/` | Encapsula consultas y operaciones contra Oracle |
+| Base Oracle | `sql/` | Scripts ordenados para tablespaces, usuarios, roles, tablas, indices, seed y validaciones |
+| DAO Python | `src/dao/` | Clases que encapsulan las operaciones contra Oracle |
 | Modelos | `src/models/` | Dataclasses del dominio de salud |
-| Demo web | `src/webapp/` | Interfaz grafica, API local, Bot IA y store JSON |
-| Notebook | `notebooks/SaludChilecito_DAO_Demo.ipynb` | Recorrido guiado para explicar el proyecto |
-| Scripts | `scripts/windows/` y `scripts/ubuntu/` | Instalacion, inicio y carga automatica en Windows y Ubuntu |
-| Tests | `tests/` | Pruebas de SQL, DAO, scripts, web y bot |
-| Docs | `docs/` | Guias completas de instalacion, requisitos, arquitectura y uso |
-
-## Comparacion con las referencias
-
-Este repositorio toma lo mejor de las referencias revisadas:
-
-- Del proyecto del profesor `hdrobins/dao`: la idea principal es la capa DAO,
-  los scripts de base y el uso de notebooks como forma de demostracion.
-- De `valentin-31/SAVIA`: se toma el estilo de entrega clara, con README
-  completo, seed, DAO, notebook y pasos reproducibles.
-- De `kevlarod/UniShare`: se toma la presencia de notebook de demo y archivos
-  de configuracion visibles para ejecutar el proyecto.
-
-La diferencia es que Salud Chilecito esta adaptado a Oracle, Base de Datos II y
-al dominio sanitario de turnos, pacientes, centros y documentos.
-
-## Estructura del repositorio
-
-```text
-plataforma-salud-chilecito/
-|-- README.md
-|-- requirements.txt
-|-- docker-compose.yml
-|-- .env.example
-|-- dbscripts.sql
-|-- notebooks/
-|   `-- SaludChilecito_DAO_Demo.ipynb
-|-- sql/
-|   |-- 01_tablespaces.sql
-|   |-- 02_users_roles.sql
-|   |-- 03_schema.sql
-|   |-- 04_indexes.sql
-|   |-- 05_seed.sql
-|   |-- 06_validate.sql
-|   `-- 07_security_checks.sql
-|-- src/
-|   |-- config/
-|   |-- dao/
-|   |-- models/
-|   |-- services/
-|   `-- webapp/
-|-- data/
-|   `-- demo_seed.json
-|-- scripts/
-|   |-- windows/
-|   `-- ubuntu/
-|-- docs/
-`-- tests/
-```
+| Configuracion | `src/config/` y `.env.example` | Conexion y variables de entorno |
+| Plataforma web | `src/webapp/` | Interfaz grafica, API local, store JSON y Bot IA |
+| Notebook | `notebooks/SaludChilecito_DAO_Demo.ipynb` | Recorrido guiado del proyecto |
+| Datos demo | `data/demo_seed.json` | Datos iniciales para usar la plataforma sin preparar Oracle |
+| Scripts | `scripts/` | Instalacion, inicio, pruebas y carga automatica |
+| Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web, bot y notebook |
+| Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
 ## Requisitos
 
-Requisitos obligatorios:
+Instalar:
 
 - Git.
 - Python 3.12 o superior.
@@ -129,16 +55,9 @@ notebook==7.5.5
 pandas==3.0.2
 ```
 
-Herramientas opcionales:
-
-- SQL Developer: solo para mirar tablas o ejecutar SQL manualmente.
-- SQL*Plus: no hace falta para el flujo normal del proyecto.
-
-Guia detallada: [docs/REQUISITOS.md](docs/REQUISITOS.md).
-
 ## Instalacion rapida
 
-### 1. Clonar
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/davidfajardotorres777/plataforma-salud-chilecito.git
@@ -163,9 +82,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Preparar variables
+### 3. Crear archivo de entorno
 
-Windows PowerShell:
+Windows:
 
 ```powershell
 Copy-Item .env.example .env
@@ -177,13 +96,23 @@ Ubuntu:
 cp .env.example .env
 ```
 
+Valores por defecto:
+
+```text
+DB_USER=salud
+DB_PASSWORD=salud123
+DB_HOST=localhost
+DB_PORT=1521
+DB_SERVICE=XEPDB1
+```
+
 ### 4. Levantar Oracle
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Cargar Oracle automaticamente
+### 5. Cargar la base
 
 Windows:
 
@@ -197,8 +126,8 @@ Ubuntu:
 bash scripts/ubuntu/03_cargar_oracle.sh
 ```
 
-Ese paso crea tablespaces, usuarios, roles, tablas, indices y datos iniciales.
-No requiere abrir SQL Developer.
+Ese comando espera el contenedor, crea la estructura fisica, usuarios, roles,
+tablas, indices, permisos y datos iniciales.
 
 ### 6. Probar DAO y tests
 
@@ -207,7 +136,7 @@ python -m src.main
 pytest -q
 ```
 
-### 7. Abrir plataforma web
+### 7. Abrir la plataforma
 
 Windows:
 
@@ -221,22 +150,34 @@ Ubuntu:
 bash scripts/ubuntu/02_iniciar_plataforma.sh
 ```
 
-Abrir:
+Abrir en el navegador:
 
 ```text
 http://localhost:8000
+```
+
+Abrir el bot:
+
+```text
 http://localhost:8000/bot
 ```
 
-## Notebook de demostracion
+## Uso rapido sin preparar Oracle
 
-El notebook principal esta en:
+La plataforma web tambien funciona en modo demo JSON. Ese modo usa:
 
 ```text
-notebooks/SaludChilecito_DAO_Demo.ipynb
+data/demo_seed.json
+runtime/salud_chilecito_data.json
+runtime/uploads/
 ```
 
-Ejecutarlo:
+Esto permite probar altas, ediciones, turnos, documentos y bot desde el
+navegador aunque la base Oracle todavia no este cargada.
+
+## Notebook de demostracion
+
+Abrir:
 
 ```bash
 jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
@@ -244,17 +185,17 @@ jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
 
 El notebook muestra:
 
-- Carga del seed local.
-- Vista de datos con pandas.
-- Creacion de paciente y turno usando el store de demo.
+- Lectura del seed local.
+- Visualizacion de datos con pandas.
+- Creacion de paciente y turno en modo demo.
 - Uso del Bot IA local.
 - Estructura de la capa DAO.
-- Como conectar con Oracle real usando los scripts.
+- Comandos para conectar la app con Oracle.
 
-## Uso del DAO
+## DAO Python
 
-El DAO es la parte central para la materia. La aplicacion no trabaja con SQL
-disperso en cualquier archivo; las consultas se agrupan por responsabilidad.
+La capa DAO concentra las consultas y operaciones contra Oracle. Esto evita que
+el SQL quede disperso y permite que cada parte del dominio tenga su clase.
 
 Ejemplo:
 
@@ -277,7 +218,7 @@ DAOs incluidos:
 
 | DAO | Responsabilidad |
 |---|---|
-| `CentroDAO` | Centros de salud por distrito y alta de centros |
+| `CentroDAO` | Centros de salud y busqueda por distrito |
 | `EspecialidadDAO` | Catalogo de especialidades |
 | `MedicoDAO` | Medicos, centros y especialidades |
 | `PacienteDAO` | Pacientes, busqueda por DNI y actualizacion de contacto |
@@ -285,34 +226,39 @@ DAOs incluidos:
 | `TurnoDAO` | Reserva, listado y cambio de estado de turnos |
 | `HistorialDAO` | Historial clinico del paciente |
 
-## Plataforma grafica y Bot IA
+## Plataforma web
 
-La entrega incluye dos plataformas de uso:
-
-### Panel grafico
+La interfaz grafica esta disponible en:
 
 ```text
 http://localhost:8000
 ```
 
-Permite:
+Funciones:
 
-- Crear y editar centros.
-- Crear y editar pacientes.
-- Crear, editar, cambiar estado y eliminar turnos.
-- Adjuntar documentos.
-- Ver documentos con metadatos y vista previa.
+- Dashboard con indicadores.
+- Gestion de centros.
+- Gestion de pacientes.
+- Agenda de turnos.
+- Edicion y eliminacion de turnos.
+- Carga y vista previa de documentos.
+- Busqueda general por paciente, medico, centro, DNI, distrito o estado.
 
-### Bot IA local
+## Bot IA local
+
+El bot esta disponible en:
 
 ```text
 http://localhost:8000/bot
 ```
 
-Ejemplos de comandos:
+Ejemplos:
 
 ```text
 listar pacientes
+listar centros
+listar medicos
+listar turnos
 crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
 editar paciente 1 telefono 3825-999000
 crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
@@ -322,23 +268,32 @@ crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultad
 ver documento 1
 ```
 
-El bot no usa servicios externos ni claves de API. Es local y opera los mismos
-datos de la plataforma web.
+El bot funciona localmente y opera sobre los mismos datos que la interfaz web.
 
 ## Scripts SQL
 
 | Orden | Script | Contenido |
 |---|---|---|
-| 1 | `sql/01_tablespaces.sql` | Tablespaces, FRA y configuracion fisica |
-| 2 | `sql/02_users_roles.sql` | Usuario propietario, usuarios de consulta y roles |
+| 1 | `sql/01_tablespaces.sql` | Tablespaces y configuracion fisica |
+| 2 | `sql/02_users_roles.sql` | Usuarios y roles |
 | 3 | `sql/03_schema.sql` | Tablas, claves primarias, foraneas y checks |
-| 4 | `sql/04_indexes.sql` | Indices en tablespace separado |
-| 5 | `sql/05_seed.sql` | Datos iniciales de Chilecito |
+| 4 | `sql/04_indexes.sql` | Indices |
+| 5 | `sql/05_seed.sql` | Datos iniciales |
 | 6 | `sql/06_validate.sql` | Consultas de validacion |
-| 7 | `sql/07_security_checks.sql` | Validaciones de roles y seguridad |
+| 7 | `sql/07_security_checks.sql` | Validaciones de permisos y seguridad |
 
-`dbscripts.sql` funciona como archivo de referencia general, pero el flujo
-ordenado esta en la carpeta `sql/`.
+## Scripts disponibles
+
+| Sistema | Script | Uso |
+|---|---|---|
+| Windows | `scripts/windows/01_instalar.ps1` | Instala herramientas base y dependencias Python |
+| Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, prepara la base e inicia la web |
+| Windows | `scripts/windows/03_cargar_oracle.ps1` | Carga la base Oracle automaticamente |
+| Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala herramientas base y dependencias Python |
+| Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle, prepara la base e inicia la web |
+| Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Carga la base Oracle automaticamente |
+| Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
+| Ambos | `pytest -q` | Ejecuta pruebas |
 
 ## Pruebas
 
@@ -348,29 +303,29 @@ Ejecutar:
 pytest -q
 ```
 
-Las pruebas verifican:
+Las pruebas cubren:
 
 - Contrato de scripts SQL.
-- Estructura y uso de DAOs.
+- Estructura de DAOs.
 - Scripts de instalacion y carga.
 - Plataforma web.
 - Bot IA.
-- Notebook y dependencias de Jupyter.
+- Notebook y dependencias.
 
-## Documentacion
+## Documentacion adicional
 
 | Documento | Contenido |
 |---|---|
-| [docs/REQUISITOS.md](docs/REQUISITOS.md) | Instalacion completa Windows/Ubuntu |
-| [docs/INSTALACION.md](docs/INSTALACION.md) | Guia paso a paso |
-| [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md) | Uso operativo de la web y el bot |
-| [docs/BOT_IA.md](docs/BOT_IA.md) | Comandos del bot conversacional |
-| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Componentes y decisiones tecnicas |
-| [docs/CHECKLIST.md](docs/CHECKLIST.md) | Checklist de entrega |
+| [docs/REQUISITOS.md](docs/REQUISITOS.md) | Requisitos completos |
+| [docs/INSTALACION.md](docs/INSTALACION.md) | Instalacion paso a paso |
+| [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md) | Uso operativo |
+| [docs/BOT_IA.md](docs/BOT_IA.md) | Comandos del bot |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Arquitectura del sistema |
+| [docs/CHECKLIST.md](docs/CHECKLIST.md) | Checklist del proyecto |
 
 ## Autores
 
 Alesandro David Fajardo  
 Kevin Facundo Nunez  
 Ingenieria en Sistemas - Universidad Nacional de Chilecito  
-Base de Datos II - 2026
+2026
