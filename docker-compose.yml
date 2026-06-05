@@ -2,6 +2,7 @@ services:
   oracle:
     image: gvenzl/oracle-xe:21-slim
     container_name: oracle_salud_chilecito
+    shm_size: "1g"
     ports:
       - "1521:1521"
     environment:

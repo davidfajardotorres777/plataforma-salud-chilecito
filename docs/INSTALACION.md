@@ -41,6 +41,13 @@ http://localhost:8000/bot
 docker compose up -d
 ```
 
+Si el contenedor habia fallado antes con `ORA-27104`, recrearlo:
+
+```bash
+docker compose down
+docker compose up -d --force-recreate
+```
+
 2. Esperar hasta que el contenedor este saludable.
 
 ```bash
@@ -85,9 +92,16 @@ pip install -r requirements.txt
 
 5. Probar DAO y tests.
 
+El DAO requiere Oracle activo y cargado:
+
 ```bash
 python -m src.main
-pytest -q
+```
+
+Las pruebas del proyecto se ejecutan aparte:
+
+```bash
+python -m pytest -q
 ```
 
 6. Probar interfaz grafica.
@@ -102,8 +116,22 @@ Para probar el bot conversacional, abrir `http://localhost:8000/bot`.
 
 7. Probar notebook de demostracion.
 
+Windows:
+
+```powershell
+scripts\windows\04_abrir_notebook.ps1
+```
+
+Ubuntu:
+
 ```bash
-jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
+bash scripts/ubuntu/04_abrir_notebook.sh
+```
+
+Comando manual equivalente:
+
+```bash
+python -m notebook --notebook-dir=. notebooks/SaludChilecito_DAO_Demo.ipynb
 ```
 
 ## Notas

@@ -36,7 +36,18 @@ def connect(user: str, password: str, attempts: int = 30, delay: int = 5):
             last_error = exc
             print(f"Oracle no esta listo todavia ({attempt}/{attempts}). Esperando...")
             time.sleep(delay)
-    raise RuntimeError(f"No se pudo conectar a Oracle: {last_error}")
+    raise RuntimeError(
+        "\n".join(
+            [
+                f"No se pudo conectar a Oracle: {last_error}",
+                "Revisa el estado del contenedor con: docker ps -a",
+                "Revisa el log con: docker logs oracle_salud_chilecito",
+                "Si el log muestra ORA-27104, recrea el contenedor con:",
+                "docker compose down",
+                "docker compose up -d --force-recreate",
+            ]
+        )
+    )
 
 
 def error_code(exc: Exception) -> int | None:
@@ -173,8 +184,8 @@ def prepare_admin_objects() -> None:
     admin_password = os.getenv("ORACLE_ADMIN_PASSWORD", "oracle")
     with connect(admin_user, admin_password) as conn:
         cursor = conn.cursor()
-        execute(cursor, "ALTER SYSTEM SET db_recovery_file_dest_size = 3G SCOPE = BOTH", ignore={32017})
-        execute(cursor, "ALTER SYSTEM SET undo_retention = 172800 SCOPE = BOTH", ignore={32017})
+        execute(cursor, "ALTER SYSTEM SET db_recovery_file_dest_size = 3G SCOPE = BOTH", ignore={32017, 65040})
+        execute(cursor, "ALTER SYSTEM SET undo_retention = 172800 SCOPE = BOTH", ignore={32017, 65040})
         ensure_tablespace(cursor, "tbs_salud_data")
         ensure_tablespace(cursor, "tbs_salud_idx")
         ensure_profile(cursor)

@@ -112,6 +112,21 @@ El notebook de demostracion usa `notebook` y `pandas`.
 | Web local | 8000 | Interfaz grafica, API local y bot |
 | Oracle listener | 1521 | Conexion a Oracle XE |
 
+## Oracle en Docker
+
+El contenedor usa memoria compartida declarada en `docker-compose.yml`:
+
+```yaml
+shm_size: "1g"
+```
+
+Si el contenedor falla al iniciar y el log muestra `ORA-27104`, recrearlo:
+
+```bash
+docker compose down
+docker compose up -d --force-recreate
+```
+
 ## Variables de entorno
 
 Copiar `.env.example` a `.env`.
@@ -140,6 +155,7 @@ docker --version
 docker compose version
 pip install -r requirements.txt
 python -m src.webapp.server
+python -m pytest -q
 ```
 
 En Ubuntu, si `python` no existe, usar `python3`.

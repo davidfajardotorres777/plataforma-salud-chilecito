@@ -112,6 +112,14 @@ DB_SERVICE=XEPDB1
 docker compose up -d
 ```
 
+Si el contenedor ya se habia iniciado antes y el log muestra `ORA-27104`,
+recrearlo para aplicar la memoria compartida declarada en `docker-compose.yml`:
+
+```bash
+docker compose down
+docker compose up -d --force-recreate
+```
+
 ### 5. Cargar la base
 
 Windows:
@@ -131,9 +139,17 @@ tablas, indices, permisos y datos iniciales.
 
 ### 6. Probar DAO y tests
 
+El DAO usa Oracle, por eso este comando requiere que el contenedor este iniciado
+y que la carga anterior haya terminado bien:
+
 ```bash
 python -m src.main
-pytest -q
+```
+
+Las pruebas automatizadas pueden ejecutarse con:
+
+```bash
+python -m pytest -q
 ```
 
 ### 7. Abrir la plataforma
@@ -177,10 +193,24 @@ navegador aunque la base Oracle todavia no este cargada.
 
 ## Notebook de demostracion
 
-Abrir:
+Abrir con el script del sistema operativo.
+
+Windows:
+
+```powershell
+scripts\windows\04_abrir_notebook.ps1
+```
+
+Ubuntu:
 
 ```bash
-jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
+bash scripts/ubuntu/04_abrir_notebook.sh
+```
+
+Tambien se puede abrir manualmente desde la raiz del repositorio:
+
+```bash
+python -m notebook --notebook-dir=. notebooks/SaludChilecito_DAO_Demo.ipynb
 ```
 
 El notebook muestra:
@@ -289,18 +319,20 @@ El bot funciona localmente y opera sobre los mismos datos que la interfaz web.
 | Windows | `scripts/windows/01_instalar.ps1` | Instala herramientas base y dependencias Python |
 | Windows | `scripts/windows/02_iniciar_plataforma.ps1` | Levanta Oracle, prepara la base e inicia la web |
 | Windows | `scripts/windows/03_cargar_oracle.ps1` | Carga la base Oracle automaticamente |
+| Windows | `scripts/windows/04_abrir_notebook.ps1` | Abre el notebook de demostracion |
 | Ubuntu | `scripts/ubuntu/01_instalar.sh` | Instala herramientas base y dependencias Python |
 | Ubuntu | `scripts/ubuntu/02_iniciar_plataforma.sh` | Levanta Oracle, prepara la base e inicia la web |
 | Ubuntu | `scripts/ubuntu/03_cargar_oracle.sh` | Carga la base Oracle automaticamente |
+| Ubuntu | `scripts/ubuntu/04_abrir_notebook.sh` | Abre el notebook de demostracion |
 | Ambos | `python scripts/check_requirements.py` | Verifica requisitos locales |
-| Ambos | `pytest -q` | Ejecuta pruebas |
+| Ambos | `python -m pytest -q` | Ejecuta pruebas |
 
 ## Pruebas
 
 Ejecutar:
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 Las pruebas cubren:

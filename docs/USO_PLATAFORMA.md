@@ -153,11 +153,19 @@ Boton "Reiniciar demo"
 Ejecutar tests:
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 Abrir notebook de demostracion:
 
+Windows:
+
+```powershell
+scripts\windows\04_abrir_notebook.ps1
+```
+
+Ubuntu:
+
 ```bash
-jupyter notebook notebooks/SaludChilecito_DAO_Demo.ipynb
+bash scripts/ubuntu/04_abrir_notebook.sh
 ```
