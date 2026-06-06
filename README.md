@@ -36,6 +36,22 @@ usar la plataforma por conversacion.
 | Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web, bot y notebook |
 | Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
+##🗂️ Estructura del proyecto
+plataforma-salud-chilecito/
+├── docker-compose.yml         ← levanta MongoDB + Redis + la app
+├── src/
+│   ├── models/
+│   │   ├── AgendaMedico.js    ← Patrón Bucket
+│   │   └── Turno.js           ← Patrón Extended Reference
+│   ├── services/
+│   │   └── TurnoService.js    ← lógica de negocio + caché Redis
+│   ├── integration/
+│   │   ├── IntegrationGateway.js   ← API Gateway
+│   │   ├── HospitalAdapter.js      ← interfaz abstracta (Adapter Pattern)
+│   │   └── LegacySQLAdapter.js     ← adaptador para hospitales con SQL viejo
+│   └── routes/                ← endpoints REST
+├── seed/                      ← datos de hospitales de Chilecito
+└── README.md
 ## Requisitos
 
 Instalar:
