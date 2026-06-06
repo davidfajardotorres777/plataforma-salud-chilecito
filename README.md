@@ -37,6 +37,7 @@ usar la plataforma por conversacion.
 | Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
 ##🗂️ Estructura del proyecto
+```
 plataforma-salud-chilecito/
 ├── docker-compose.yml         ← levanta MongoDB + Redis + la app
 ├── src/
@@ -52,6 +53,7 @@ plataforma-salud-chilecito/
 │   └── routes/                ← endpoints REST
 ├── seed/                      ← datos de hospitales de Chilecito
 └── README.md
+```
 ## Requisitos
 
 Instalar:
