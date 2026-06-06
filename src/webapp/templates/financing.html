@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financiamiento - Plataforma Salud Chilecito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        /* PLANES DE PRECIOS */
+        .pricing-section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            color: white;
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .pricing-card.popular {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.popular::before {
+            content: "POPULAR";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .plan-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .plan-period {
+            color: #999;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .plan-requests {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .plan-features li {
+            padding: 8px 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-select {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-select:hover {
+            background: #764ba2;
+        }
+        
+        /* SECCIÓN DE PAGO SIMULADO */
+        .payment-section {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .payment-section h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+        }
+        
+        .btn-primary:hover {
+            background: #764ba2;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        /* SECCIÓN DE ESTADO */
+        .status-section {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .status-card {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .status-label {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            color: #333;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+        
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-left: 4px solid #667eea;
+        }
+        
+        .success-code-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .code-btn {
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .code-btn:hover {
+            border-color: #667eea;
+            background: #f7f7f7;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-card.popular {
+                transform: scale(1);
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>💰 Financiamiento API</h1>
+            <p>Accede a la poderosa API del Bot IA de Salud Chilecito</p>
+        </div>
+        
+        <!-- PLANES DE PRECIOS -->
+        <div class="pricing-section">
+            <h2 class="section-title">Planes de Precios en USD</h2>
+            <div id="pricingPlans" class="pricing-grid"></div>
+        </div>
+        
+        <!-- SIMULADOR DE PAGO -->
+        <div class="payment-section">
+            <h2>🔄 Simulador de Pago</h2>
+            
+            <div id="paymentAlert"></div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="subscriptionId">ID de Suscripción</label>
+                    <input type="text" id="subscriptionId" placeholder="Ej: abc123-def456...">
+                </div>
+                <div class="form-group">
+                    <label for="amount">Monto (USD)</label>
+                    <input type="number" id="amount" placeholder="9.99" min="0" step="0.01">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cardNumber">Tarjeta (Últimos 4 dígitos)</label>
+                <input type="text" id="cardNumber" placeholder="4242" maxlength="4">
+            </div>
+            
+            <button class="btn btn-primary" onclick="initiatePayment()">1. Iniciar Pago</button>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 2px solid #eee;">
+            
+            <h3 style="margin-bottom: 15px;">2. Procesar Pago (Simulador)</h3>
+            <p style="color: #666; margin-bottom: 15px;">Selecciona un código de resultado:</p>
+            
+            <div class="form-group">
+                <label for="transactionId">ID de Transacción</label>
+                <input type="text" id="transactionId" placeholder="Se generará automáticamente">
+            </div>
+            
+            <div class="success-code-group">
+                <button class="code-btn" onclick="processPayment('SUCCESS')" style="border-color: #48bb78; color: #48bb78;">✓ SUCCESS</button>
+                <button class="code-btn" onclick="processPayment('FAIL')" style="border-color: #f56565; color: #f56565;">✗ FAIL</button>
+                <button class="code-btn" onclick="processPayment('DECLINED')" style="border-color: #ed8936; color: #ed8936;">✗ DECLINED</button>
+                <button class="code-btn" onclick="processPayment('TIMEOUT')" style="border-color: #a0aec0; color: #a0aec0;">⏱ TIMEOUT</button>
+            </div>
+        </div>
+        
+        <!-- ESTADO DE SUSCRIPCIÓN -->
+        <div class="status-section">
+            <h2>📊 Estado de Suscripción</h2>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <input type="text" id="statusSubscriptionId" placeholder="Ingresa ID de suscripción">
+                <button class="btn btn-primary" onclick="getSubscriptionStatus()" style="margin-top: 10px;">Ver Estado</button>
+            </div>
+            
+            <div id="statusContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/financing';
+        
+        // Cargar planes de precios
+        async function loadPricingPlans() {
+            try {
+                const response = await fetch(`${API_BASE}/plans`);
+                const data = await response.json();
+                
+                const container = document.getElementById('pricingPlans');
+                container.innerHTML = '';
+                
+                const tiers = ['free', 'starter', 'professional', 'enterprise'];
+                
+                tiers.forEach((tier, index) => {
+                    const plan = data.plans[tier];
+                    const isPopular = tier === 'professional';
+                    
+                    const card = document.createElement('div');
+                    card.className = `pricing-card ${isPopular ? 'popular' : ''}`;
+                    card.innerHTML = `
+                        <div class="plan-name">${plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1)}</div>
+                        <div class="plan-price">$${plan.price_usd.toFixed(2)}</div>
+                        <div class="plan-period">por mes</div>
+                        <div class="plan-requests">${plan.requests_limit.toLocaleString()} requests/mes</div>
+                        <ul class="plan-features">
+                            ${plan.features.map(f => `<li>✓ ${f}</li>`).join('')}
+                            <li>Soporte: ${plan.support}</li>
+                        </ul>
+                        <button class="btn btn-select" onclick="selectPlan('${tier}', ${plan.price_usd})">
+                            Seleccionar
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error cargando planes:', error);
+            }
+        }
+        
+        function selectPlan(tier, price) {
+            const subscriptionId = document.getElementById('subscriptionId').value;
+            if (!subscriptionId) {
+                showAlert('Ingresa un ID de suscripción', 'error');
+                return;
+            }
+            
+            document.getElementById('amount').value = price;
+            showAlert(`Plan ${tier.toUpperCase()} seleccionado - $${price.toFixed(2)} USD`, 'info');
+        }
+        
+        async function initiatePayment() {
+            const subscriptionId = document.getElementById('subscriptionId').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const cardNumber = document.getElementById('cardNumber').value;
+            
+            if (!subscriptionId || !amount) {
+                showAlert('Completa los campos requeridos', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/payment/initiate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subscription_id: subscriptionId,
+                        amount_usd: amount,
+                        card_last_four: cardNumber || '4242'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'payment_initiated') {
+                    document.getElementById('transactionId').value = data.transaction_id;
+                    showAlert(`Pago iniciado - ID: ${data.transaction_id}`, 'info');
+                } else {
+                    showAlert(data.message || 'Error al iniciar pago', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function processPayment(code) {
+            const transactionId = document.getElementById('transactionId').value;
+            
+            if (!transactionId) {
+                showAlert('Primero inicia un pago', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/payment/simulate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transaction_id: transactionId,
+                        success_code: code
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'payment_completed') {
+                    showAlert(`✓ ${data.message}`, 'success');
+                } else {
+                    showAlert(`✗ ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function getSubscriptionStatus() {
+            const subscriptionId = document.getElementById('statusSubscriptionId').value;
+            
+            if (!subscriptionId) {
+                showAlert('Ingresa un ID de suscripción', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/subscription/${subscriptionId}/status`);
+                const data = response.json();
+                
+                if (data.subscription_id) {
+                    const html = `
+                        <div class="status-card">
+                            <div class="status-label">Organización</div>
+                            <div class="status-value">${data.organization}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Plan</div>
+                            <div class="status-value">${data.tier.toUpperCase()}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Estado</div>
+                            <div class="status-value">${data.status}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Requests este mes</div>
+                            <div class="status-value">${data.api_requests.used} / ${data.api_requests.limit}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Vencimiento</div>
+                            <div class="status-value">${new Date(data.expires_at).toLocaleDateString()}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Precio mensual</div>
+                            <div class="status-value">$${data.pricing.monthly_price.toFixed(2)} USD</div>
+                        </div>
+                    `;
+                    document.getElementById('statusContent').innerHTML = html;
+                } else {
+                    showAlert('Suscripción no encontrada', 'error');
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('paymentAlert');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertDiv.innerHTML = '', 5000);
+        }
+        
+        // Cargar planes al iniciar
+        window.onload = () => loadPricingPlans();
+    </script>
+</body>
+</html>
