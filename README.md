@@ -36,7 +36,7 @@ usar la plataforma por conversacion.
 | Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web, bot y notebook |
 | Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
-##🗂️ Estructura del proyecto
+## 🗂️ Estructura del proyecto
 ```
 plataforma-salud-chilecito/
 ├── docker-compose.yml         ← levanta MongoDB + Redis + la app
