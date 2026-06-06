@@ -49,7 +49,7 @@ plataforma-salud-chilecito/
 │   ├── integration/
 │   │   ├── IntegrationGateway.js   ← API Gateway
 │   │   ├── HospitalAdapter.js      ← interfaz abstracta (Adapter Pattern)
-│   │   └── LegacySQLAdapter.js     ← adaptador para hospitales con SQL viejo
+│   │   └── LegacySQLAdapter.js     ← adaptador para hospitales con SQL
 │   └── routes/                ← endpoints REST
 ├── seed/                      ← datos de hospitales de Chilecito
 └── README.md
