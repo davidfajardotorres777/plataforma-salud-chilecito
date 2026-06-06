@@ -146,12 +146,6 @@ y que la carga anterior haya terminado bien:
 python -m src.main
 ```
 
-Las pruebas automatizadas pueden ejecutarse con:
-
-```bash
-python -m pytest -q
-```
-
 ### 7. Abrir la plataforma
 
 Windows:
