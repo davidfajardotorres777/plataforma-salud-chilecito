@@ -3,6 +3,7 @@
     {
       "id": 1,
       "nombre": "Hospital Eleazar Herrera Motta",
+      "slug": "hospital-eleazar-herrera-motta",
       "direccion": "Av. La Mexicana 180",
       "distrito": "Chilecito",
       "telefono": "3825-422100",
@@ -11,6 +12,7 @@
     {
       "id": 2,
       "nombre": "Clinica San Nicolas",
+      "slug": "clinica-san-nicolas",
       "direccion": "Castro Barros 260",
       "distrito": "Chilecito",
       "telefono": "3825-430001",
@@ -19,6 +21,7 @@
     {
       "id": 3,
       "nombre": "Centro de Salud Nonogasta",
+      "slug": "centro-nonogasta",
       "direccion": "Ruta 40 y San Martin",
       "distrito": "Nonogasta",
       "telefono": "3825-490120",
@@ -27,6 +30,7 @@
     {
       "id": 4,
       "nombre": "Centro de Salud Sanogasta",
+      "slug": "centro-sanogasta",
       "direccion": "9 de Julio s/n",
       "distrito": "Sanogasta",
       "telefono": "3825-480010",
