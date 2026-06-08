@@ -4,7 +4,7 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlparse, parse_qs
 
 from .bot_agent import BotAgent
 from .store import JsonStore
@@ -18,8 +18,39 @@ class SaludHandler(BaseHTTPRequestHandler):
     store = JsonStore()
     bot = BotAgent(store)
 
+
+def filter_dashboard_by_centro(dashboard: dict, centro_id: int) -> dict:
+    """Return a filtered copy of the dashboard restricted to a single centro id.
+
+    This function is intentionally pure and small so it can be unit-tested.
+    """
+    centro_id = int(centro_id)
+    # shallow copy
+    d = {k: (v[:] if isinstance(v, list) else v) for k, v in dashboard.items()}
+
+    # filter centros
+    d["centros"] = [c for c in dashboard.get("centros", []) if int(c.get("id")) == centro_id]
+
+    # filter medicos by centro
+    medicos = [m for m in dashboard.get("medicos", []) if int(m.get("centro_id", -1)) == centro_id]
+    d["medicos"] = medicos
+
+    # filter pacientes to those referenced by remaining turnos or documents
+    allowed_paciente_ids = {int(t.get("paciente_id")) for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id}
+    allowed_doc_paciente_ids = {int(doc.get("paciente_id")) for doc in dashboard.get("documentos", [])}
+    allowed_paciente_ids |= allowed_doc_paciente_ids
+    d["pacientes"] = [p for p in dashboard.get("pacientes", []) if int(p.get("id", -1)) in allowed_paciente_ids]
+
+    # filter turnos and disponibilidad
+    d["turnos"] = [t for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id]
+    d["disponibilidad"] = [item for item in dashboard.get("disponibilidad", []) if int(item.get("medico", {}).get("centro_id", -1)) == centro_id]
+
+    # tarifas and documentos scoped to centro (keep all tarifas but frontend will use medicos/especialidades)
+    return d
+
     def do_GET(self) -> None:
-        route = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        route = parsed.path
         if route == "/":
             self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
             return
@@ -31,7 +62,18 @@ class SaludHandler(BaseHTTPRequestHandler):
             self._serve_static(requested)
             return
         if route == "/api/dashboard":
-            self._json(HTTPStatus.OK, self.store.dashboard())
+            # support optional filtering by centro_id (hospital-specific view)
+            qs = parse_qs(parsed.query)
+            centro_ids = qs.get("centro_id")
+            dashboard = self.store.dashboard()
+            if centro_ids:
+                try:
+                    centro_id = int(centro_ids[0])
+                except Exception:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id invalido"})
+                    return
+                dashboard = filter_dashboard_by_centro(dashboard, centro_id)
+            self._json(HTTPStatus.OK, dashboard)
             return
         if route.startswith("/api/documentos/"):
             documento_id = int(route.split("/")[3])
