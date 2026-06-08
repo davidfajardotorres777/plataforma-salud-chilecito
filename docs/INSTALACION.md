@@ -63,6 +63,9 @@ Windows:
 .\scripts\windows\03_cargar_oracle.ps1
 ```
 
+En PowerShell el `.\` inicial indica que el script se ejecuta desde la carpeta
+actual del repositorio.
+
 Ubuntu:
 
 ```bash
@@ -102,6 +105,12 @@ Las pruebas del proyecto se ejecutan aparte:
 
 ```bash
 python -m pytest -q
+```
+
+Si el entorno virtual ya esta activado, tambien se puede ejecutar:
+
+```bash
+pytest -q
 ```
 
 6. Probar interfaz grafica.

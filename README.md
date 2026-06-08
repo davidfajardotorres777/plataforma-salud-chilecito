@@ -163,6 +163,9 @@ Windows:
 .\scripts\windows\03_cargar_oracle.ps1
 ```
 
+En PowerShell el `.\` inicial es necesario para ejecutar scripts ubicados en la
+carpeta actual del proyecto.
+
 Ubuntu:
 
 ```bash
@@ -179,6 +182,18 @@ y que la carga anterior haya terminado bien:
 
 ```bash
 python -m src.main
+```
+
+Para ejecutar las pruebas:
+
+```bash
+python -m pytest -q
+```
+
+Si el entorno virtual ya esta activado, tambien se puede usar:
+
+```bash
+pytest -q
 ```
 
 ### 7. Abrir la plataforma
@@ -366,6 +381,12 @@ Ejecutar:
 
 ```bash
 python -m pytest -q
+```
+
+Con el entorno virtual activado tambien funciona:
+
+```bash
+pytest -q
 ```
 
 Las pruebas cubren:
