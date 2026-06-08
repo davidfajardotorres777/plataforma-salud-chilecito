@@ -35,7 +35,9 @@ async function api(path, options = {}) {
 }
 
 async function loadDashboard() {
-  state.data = await api("/api/dashboard");
+  const centroId = localStorage.getItem("salud_centroid") || "";
+  const url = centroId ? `/api/dashboard?centro_id=${centroId}` : "/api/dashboard";
+  state.data = await api(url);
   render();
   $("#apiStatus").textContent = "API local conectada";
 }
@@ -60,6 +62,21 @@ function renderMetrics() {
 }
 
 function fillSelects() {
+  // populate center filter
+  const currentCentro = localStorage.getItem("salud_centroid") || "";
+  const centerSelect = $("#centerFilter");
+  if (centerSelect) {
+    const options = ["<option value=''>Todos los centros</option>", ...state.data.centros.map(c => `<option value="${c.id}" ${String(c.id) === currentCentro ? 'selected' : ''}>${c.nombre}</option>`)]
+      .join("");
+    centerSelect.innerHTML = options;
+    centerSelect.addEventListener("change", async (e) => {
+      const val = e.target.value || "";
+      localStorage.setItem("salud_centroid", String(val));
+      await loadDashboard();
+      showToast("Filtro de centro aplicado");
+    });
+  }
+
   const pacienteOptions = state.data.pacientes
     .map((p) => `<option value="${p.id}">${p.nombre} - DNI ${p.dni}</option>`)
     .join("");
