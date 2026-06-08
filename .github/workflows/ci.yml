@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          . .venv/bin/activate
+          pytest -q -p no:cacheprovider
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install minimal deps
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install pytest
+      - name: Run python -m src.main (smoke)
+        run: |
+          . .venv/bin/activate
+          python -m src.main
