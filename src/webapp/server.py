@@ -48,6 +48,32 @@ def filter_dashboard_by_centro(dashboard: dict, centro_id: int) -> dict:
     # tarifas and documentos scoped to centro (keep all tarifas but frontend will use medicos/especialidades)
     return d
 
+
+def centro_id_for_slug_or_host(dashboard: dict, slug: str | None = None, host: str | None = None) -> int | None:
+    """Resolve a centro_id usando slug (query) o el Host (subdominio).
+
+    - Si slug está presente, busca centro.slug == slug.
+    - Si no, y host está presente, usa el primer label del host como posible slug.
+    Retorna el id (int) o None si no se encuentra.
+    """
+    centros = dashboard.get("centros", [])
+    if slug:
+        s = slug.strip().lower()
+        for c in centros:
+            if str(c.get("slug", "")).lower() == s:
+                return int(c.get("id"))
+        return None
+
+    if host:
+        # strip port
+        host_label = host.split(":")[0].lower()
+        # take leftmost label
+        left = host_label.split(".")[0]
+        for c in centros:
+            if str(c.get("slug", "")).lower() == left:
+                return int(c.get("id"))
+    return None
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         route = parsed.path
