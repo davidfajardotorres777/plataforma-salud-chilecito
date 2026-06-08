@@ -12,11 +12,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_demo_seed_has_required_collections():
     data = json.loads((ROOT / "data" / "demo_seed.json").read_text(encoding="utf-8"))
-    for name in ["centros", "especialidades", "medicos", "pacientes", "turnos", "documentos"]:
+    for name in ["centros", "especialidades", "medicos", "pacientes", "turnos", "documentos", "agendas", "tarifas"]:
         assert name in data
         assert isinstance(data[name], list)
     assert len(data["centros"]) >= 4
     assert len(data["medicos"]) >= 4
+    assert len(data["agendas"]) >= 4
+    assert len(data["tarifas"]) >= 4
 
 
 def test_json_store_creates_patient_turno_and_document():
@@ -59,9 +61,36 @@ def test_json_store_creates_patient_turno_and_document():
         dashboard = store.dashboard()
         assert paciente["dni"] == "50999888"
         assert turno["paciente"]["nombre"] == "Paciente Demo"
+        assert "disponibilidad" in dashboard
         assert doc["tamano_bytes"] == 10
         assert dashboard["metricas"]["pacientes"] == 4
         assert dashboard["metricas"]["documentos"] == 1
+
+
+def test_json_store_exposes_availability_and_estimates_price():
+    with TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        store = JsonStore(
+            runtime_path=base / "runtime.json",
+            seed_path=ROOT / "data" / "demo_seed.json",
+            uploads_dir=base / "uploads",
+        )
+        dashboard = store.dashboard()
+        odontologia = next(item for item in dashboard["disponibilidad"] if item["medico"]["id"] == 4)
+        turno = store.create_turno(
+            {
+                "paciente_id": 1,
+                "medico_id": 4,
+                "fecha": "2026-06-19",
+                "hora": "15:30",
+                "estado": "PENDIENTE",
+                "motivo": "Dolor dental",
+            }
+        )
+
+        assert odontologia["dia_semana"] == "Viernes"
+        assert odontologia["precio_estimado"] == 12000
+        assert turno["precio"] == 12000
 
 
 def test_json_store_updates_patient_and_turno_then_deletes_turno():
@@ -185,6 +214,7 @@ def test_bot_agent_operates_platform_by_conversation():
             f"crear documento paciente {patient_id} tipo ESTUDIO archivo resultado.txt contenido Resultado normal"
         )
         viewed_document = agent.handle(f"ver documento {created_document['documento']['id']}")
+        availability = agent.handle("mostrar horarios disponibles y precios")
 
         assert "Paciente creado" in created_patient["reply"]
         assert updated_patient["paciente"]["telefono"] == "3825-999000"
@@ -193,6 +223,7 @@ def test_bot_agent_operates_platform_by_conversation():
         assert deleted_turno["turno"]["id"] == turno_id
         assert created_document["documento"]["data_url"].startswith("data:text/plain;base64,")
         assert viewed_document["documento"]["nombre_archivo"] == "resultado.txt"
+        assert "Disponibilidad por medico" in availability["reply"]
 
 
 def test_static_browser_app_files_exist():
@@ -208,7 +239,9 @@ def test_static_browser_app_files_exist():
     assert "Abrir Bot IA" in (static / "index.html").read_text(encoding="utf-8")
     assert "Bot IA operativo" in (static / "bot.html").read_text(encoding="utf-8")
     assert "documentDialog" in (static / "index.html").read_text(encoding="utf-8")
+    assert "disponibilidadList" in (static / "index.html").read_text(encoding="utf-8")
     assert "/api/dashboard" in (static / "app.js").read_text(encoding="utf-8")
+    assert "renderDisponibilidad" in (static / "app.js").read_text(encoding="utf-8")
     assert "/api/centros" in (static / "app.js").read_text(encoding="utf-8")
     assert "/api/pacientes/" in (static / "app.js").read_text(encoding="utf-8")
     assert "/api/documentos/" in (static / "app.js").read_text(encoding="utf-8")

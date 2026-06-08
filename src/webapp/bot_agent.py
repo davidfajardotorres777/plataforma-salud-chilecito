@@ -70,6 +70,8 @@ class BotAgent:
                 return self._document_intent(text, normalized)
             if self._mentions(normalized, "turno", "turnos", "agenda"):
                 return self._turno_intent(text, normalized)
+            if self._has_any(normalized, "disponible", "disponibilidad", "horario", "horarios", "precio", "precios", "costo"):
+                return self._list_disponibilidad()
             if self._mentions(normalized, "centro", "centros"):
                 return self._center_intent(text, normalized)
             if self._mentions(normalized, "paciente", "pacientes", "padron"):
@@ -133,6 +135,8 @@ class BotAgent:
         if self._has_any(normalized, "estado"):
             fields = self._extract_fields(text, self.turno_aliases)
             return self._change_turno_state(normalized, fields.get("estado", ""))
+        if self._has_any(normalized, "disponible", "disponibilidad", "horario", "horarios", "precio", "precios", "costo"):
+            return self._list_disponibilidad()
         if self._wants_list(normalized):
             return self._list_turnos()
         return self._reply(
@@ -224,6 +228,23 @@ class BotAgent:
             ),
             ["editar turno 1 fecha 2026-06-21 hora 10:00", "confirmar turno 1", "eliminar turno 2"],
             {"items": turnos},
+        )
+
+    def _list_disponibilidad(self) -> dict[str, Any]:
+        disponibilidad = self.store.dashboard()["disponibilidad"]
+        return self._reply(
+            self._format_rows(
+                "Disponibilidad por medico:",
+                disponibilidad,
+                lambda item: (
+                    f"{item['dia_semana']} {item['hora_inicio']}-{item['hora_fin']} | "
+                    f"{item['medico']['nombre']} | {item['medico']['especialidad']['nombre']} | "
+                    f"{item['medico']['centro']['nombre']} | cupos {item['cupos_libres']}/{item['cupo_diario']} | "
+                    f"precio estimado ${item['precio_estimado']:,.0f}"
+                ),
+            ),
+            ["crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho", "listar medicos"],
+            {"items": disponibilidad},
         )
 
     def _list_documents(self) -> dict[str, Any]:

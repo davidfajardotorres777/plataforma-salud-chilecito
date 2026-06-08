@@ -27,8 +27,8 @@ Abrir PowerShell en la carpeta del repo:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-scripts\windows\01_instalar.ps1
-scripts\windows\02_iniciar_plataforma.ps1
+.\scripts\windows\01_instalar.ps1
+.\scripts\windows\02_iniciar_plataforma.ps1
 ```
 
 Ese script levanta Docker, intenta preparar Oracle automaticamente y abre la web.
@@ -49,7 +49,7 @@ http://localhost:8000/bot
 Para cargar Oracle:
 
 ```powershell
-scripts\windows\03_cargar_oracle.ps1
+.\scripts\windows\03_cargar_oracle.ps1
 ```
 
 ## Ubuntu
@@ -98,15 +98,17 @@ bash scripts/ubuntu/03_cargar_oracle.sh
 
 ## Uso operativo
 
-1. Entrar a `Turnos` para crear reservas, editar horarios/datos, cambiar
-   estados o eliminar un turno cargado por error.
-2. Entrar a `Pacientes` para dar de alta un paciente nuevo o editar datos si se
+1. Entrar a `Turnos` para revisar disponibilidad por medico, dia, horario,
+   cupos y precio estimado.
+2. Crear reservas, editar horarios/datos, cambiar estados o eliminar un turno
+   cargado por error.
+3. Entrar a `Pacientes` para dar de alta un paciente nuevo o editar datos si se
    cargo mal DNI, telefono, obra social o distrito.
-3. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
+4. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
    de institucion.
-4. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes y
+5. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes y
    usar `Ver documento` para abrir su informacion, imagen, PDF o texto guardado.
-5. Usar el buscador superior para filtrar registros por paciente, medico,
+6. Usar el buscador superior para filtrar registros por paciente, medico,
    centro, DNI, distrito o estado.
 
 ## Uso con Bot IA
@@ -118,9 +120,10 @@ Ejemplos:
 
 ```text
 listar pacientes
+mostrar horarios disponibles y precios
 crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
 editar paciente 1 telefono 3825-999000
-crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
+crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho
 editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado
 eliminar turno 2
 crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultado normal
@@ -161,7 +164,7 @@ Abrir notebook de demostracion:
 Windows:
 
 ```powershell
-scripts\windows\04_abrir_notebook.ps1
+.\scripts\windows\04_abrir_notebook.ps1
 ```
 
 Ubuntu:

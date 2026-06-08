@@ -125,5 +125,60 @@
       "motivo": "Consulta odontologica"
     }
   ],
+  "agendas": [
+    {
+      "id": 1,
+      "medico_id": 1,
+      "dia_semana": "Lunes",
+      "hora_inicio": "08:00",
+      "hora_fin": "12:00",
+      "duracion_minutos": 30,
+      "cupo_diario": 8
+    },
+    {
+      "id": 2,
+      "medico_id": 1,
+      "dia_semana": "Miercoles",
+      "hora_inicio": "08:00",
+      "hora_fin": "12:00",
+      "duracion_minutos": 30,
+      "cupo_diario": 8
+    },
+    {
+      "id": 3,
+      "medico_id": 2,
+      "dia_semana": "Martes",
+      "hora_inicio": "09:00",
+      "hora_fin": "13:00",
+      "duracion_minutos": 20,
+      "cupo_diario": 10
+    },
+    {
+      "id": 4,
+      "medico_id": 3,
+      "dia_semana": "Jueves",
+      "hora_inicio": "10:00",
+      "hora_fin": "14:00",
+      "duracion_minutos": 30,
+      "cupo_diario": 8
+    },
+    {
+      "id": 5,
+      "medico_id": 4,
+      "dia_semana": "Viernes",
+      "hora_inicio": "15:00",
+      "hora_fin": "19:00",
+      "duracion_minutos": 30,
+      "cupo_diario": 8
+    }
+  ],
+  "tarifas": [
+    { "especialidad_id": 1, "tipo_centro": "PUBLICO", "precio": 0 },
+    { "especialidad_id": 2, "tipo_centro": "PUBLICO", "precio": 0 },
+    { "especialidad_id": 3, "tipo_centro": "PUBLICO", "precio": 0 },
+    { "especialidad_id": 4, "tipo_centro": "PRIVADO", "precio": 12000 },
+    { "especialidad_id": 5, "tipo_centro": "PRIVADO", "precio": 15000 },
+    { "especialidad_id": 6, "tipo_centro": "PRIVADO", "precio": 14000 }
+  ],
   "documentos": []
 }

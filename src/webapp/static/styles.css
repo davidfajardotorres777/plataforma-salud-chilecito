@@ -284,6 +284,20 @@ textarea {
   gap: 12px;
 }
 
+.availability-panel {
+  grid-column: 1;
+}
+
+.availability-panel + .panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.availability-row span {
+  display: block;
+  margin-top: 3px;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -745,6 +759,12 @@ th {
 
   .split-grid {
     grid-template-columns: 1fr;
+  }
+
+  .availability-panel,
+  .availability-panel + .panel {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .bot-layout {

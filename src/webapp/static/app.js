@@ -43,6 +43,7 @@ async function loadDashboard() {
 function render() {
   renderMetrics();
   fillSelects();
+  renderDisponibilidad();
   renderTurnos();
   renderPacientes();
   renderCentros();
@@ -69,9 +70,12 @@ function fillSelects() {
     .map((m) => {
       const centro = m.centro ? m.centro.nombre : "Sin centro";
       const especialidad = m.especialidad ? m.especialidad.nombre : "Sin especialidad";
-      return `<option value="${m.id}">${m.nombre} - ${especialidad} - ${centro}</option>`;
+      const slot = state.data.disponibilidad?.find((item) => item.medico.id === m.id);
+      const precio = slot ? slot.precio_estimado : 0;
+      return `<option value="${m.id}" data-precio="${precio}">${m.nombre} - ${especialidad} - ${centro}</option>`;
     })
     .join("");
+  updateTurnoEstimatedPrice();
 }
 
 function matchesSearch(...values) {
@@ -153,6 +157,17 @@ function renderTurnos() {
       showToast("Turno eliminado");
     });
   });
+}
+
+function renderDisponibilidad() {
+  const rows = state.data.disponibilidad || [];
+  $("#disponibilidadList").innerHTML = rows.map((item) => `
+    <article class="record availability-row">
+      <strong>${item.dia_semana} ${item.hora_inicio}-${item.hora_fin}</strong>
+      <span>${text(item.medico?.nombre)} - ${text(item.medico?.especialidad?.nombre)} - ${text(item.medico?.centro?.nombre)}</span>
+      <span>Cupos ${item.cupos_libres}/${item.cupo_diario} - Precio estimado $${Number(item.precio_estimado || 0).toLocaleString("es-AR")}</span>
+    </article>
+  `).join("");
 }
 
 function renderPacientes() {
@@ -332,6 +347,8 @@ function wireEvents() {
 
   $("#cancelTurnoEdit").addEventListener("click", resetTurnoForm);
 
+  $("#turnoMedico").addEventListener("change", updateTurnoEstimatedPrice);
+
   $("#documentoForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.target;
@@ -369,6 +386,15 @@ function resetTurnoForm() {
   form.elements.id.value = "";
   form.elements.precio.value = 0;
   $("#turnoFormTitle").textContent = "Nuevo turno";
+  updateTurnoEstimatedPrice();
+}
+
+function updateTurnoEstimatedPrice() {
+  const select = $("#turnoMedico");
+  const selected = select.options[select.selectedIndex];
+  const form = $("#turnoForm");
+  if (!selected || state.editingTurnoId) return;
+  form.elements.precio.value = selected.dataset.precio || 0;
 }
 
 function resetCentroForm() {

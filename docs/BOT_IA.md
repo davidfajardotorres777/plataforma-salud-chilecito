@@ -15,7 +15,7 @@ Abrir PowerShell en la carpeta del repositorio:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-scripts\windows\02_iniciar_plataforma.ps1
+.\scripts\windows\02_iniciar_plataforma.ps1
 ```
 
 Luego abrir:
@@ -68,6 +68,14 @@ listar turnos
 listar documentos
 ```
 
+Consultar disponibilidad y precios:
+
+```text
+mostrar horarios disponibles y precios
+ver disponibilidad de agenda
+que costo tiene la consulta
+```
+
 Crear paciente:
 
 ```text
@@ -95,7 +103,7 @@ editar centro 1 telefono 3825-000111
 Crear turno:
 
 ```text
-crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
+crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho
 ```
 
 Editar turno:

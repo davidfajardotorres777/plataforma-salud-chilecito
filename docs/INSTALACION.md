@@ -15,8 +15,8 @@ Windows PowerShell:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-scripts\windows\01_instalar.ps1
-scripts\windows\02_iniciar_plataforma.ps1
+.\scripts\windows\01_instalar.ps1
+.\scripts\windows\02_iniciar_plataforma.ps1
 ```
 
 Ubuntu:
@@ -60,7 +60,7 @@ docker logs -f oracle_salud_chilecito
 Windows:
 
 ```powershell
-scripts\windows\03_cargar_oracle.ps1
+.\scripts\windows\03_cargar_oracle.ps1
 ```
 
 Ubuntu:
@@ -119,7 +119,7 @@ Para probar el bot conversacional, abrir `http://localhost:8000/bot`.
 Windows:
 
 ```powershell
-scripts\windows\04_abrir_notebook.ps1
+.\scripts\windows\04_abrir_notebook.ps1
 ```
 
 Ubuntu:

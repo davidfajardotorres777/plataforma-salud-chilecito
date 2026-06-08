@@ -33,7 +33,7 @@ Arrancar plataforma:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-scripts\windows\02_iniciar_plataforma.ps1
+.\scripts\windows\02_iniciar_plataforma.ps1
 ```
 
 Abrir:
@@ -46,7 +46,7 @@ http://localhost:8000/bot
 Cargar Oracle:
 
 ```powershell
-scripts\windows\03_cargar_oracle.ps1
+.\scripts\windows\03_cargar_oracle.ps1
 ```
 
 ## Ubuntu

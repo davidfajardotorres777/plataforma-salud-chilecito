@@ -13,7 +13,9 @@ usar la plataforma por conversacion.
 - Registrar y consultar centros de salud.
 - Registrar y corregir datos de pacientes.
 - Consultar medicos y especialidades.
+- Consultar disponibilidad por medico, dia, horario y cupos.
 - Crear, editar, confirmar, cancelar o eliminar turnos.
+- Calcular un precio estimado segun especialidad y tipo de centro.
 - Adjuntar documentos de pacientes.
 - Ver documentos guardados con metadatos y vista previa.
 - Usar una interfaz grafica desde el navegador.
@@ -36,24 +38,39 @@ usar la plataforma por conversacion.
 | Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web, bot y notebook |
 | Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
-## 🗂️ Estructura del proyecto
-```
+## Enfoque del producto
+
+Salud Chilecito esta pensado como un sistema que una institucion de salud puede instalar para administrar su propia atencion. El paciente entra al portal de ese hospital o clinica, ve los medicos disponibles, consulta dias y horarios, elige un turno y deja registrado el motivo de consulta.
+
+La institucion mantiene el control desde el panel operativo:
+
+- Define centros, medicos, especialidades y agenda.
+- Ve cupos disponibles por medico.
+- Registra pacientes y corrige datos cargados con error.
+- Crea, edita, confirma, cancela o elimina turnos.
+- Adjunta documentos clinicos y revisa su contenido.
+- Usa precios estimados por especialidad y tipo de centro.
+- Puede operar desde la interfaz grafica o desde el Bot IA local.
+
+## Estructura del proyecto
+
+```text
 plataforma-salud-chilecito/
-├── docker-compose.yml         ← levanta MongoDB + Redis + la app
-├── src/
-│   ├── models/
-│   │   ├── AgendaMedico.js    ← Patrón Bucket
-│   │   └── Turno.js           ← Patrón Extended Reference
-│   ├── services/
-│   │   └── TurnoService.js    ← lógica de negocio + caché Redis
-│   ├── integration/
-│   │   ├── IntegrationGateway.js   ← API Gateway
-│   │   ├── HospitalAdapter.js      ← interfaz abstracta (Adapter Pattern)
-│   │   └── LegacySQLAdapter.js     ← adaptador para hospitales con SQL
-│   └── routes/                ← endpoints REST
-├── seed/                      ← datos de hospitales de Chilecito
-└── README.md
+|-- docker-compose.yml
+|-- sql/
+|-- src/
+|   |-- config/
+|   |-- dao/
+|   |-- models/
+|   |-- services/
+|   `-- webapp/
+|-- data/demo_seed.json
+|-- notebooks/SaludChilecito_DAO_Demo.ipynb
+|-- scripts/
+|-- tests/
+`-- README.md
 ```
+
 ## Requisitos
 
 Instalar:
@@ -143,7 +160,7 @@ docker compose up -d --force-recreate
 Windows:
 
 ```powershell
-scripts\windows\03_cargar_oracle.ps1
+.\scripts\windows\03_cargar_oracle.ps1
 ```
 
 Ubuntu:
@@ -169,7 +186,7 @@ python -m src.main
 Windows:
 
 ```powershell
-scripts\windows\02_iniciar_plataforma.ps1
+.\scripts\windows\02_iniciar_plataforma.ps1
 ```
 
 Ubuntu:
@@ -210,7 +227,7 @@ Abrir con el script del sistema operativo.
 Windows:
 
 ```powershell
-scripts\windows\04_abrir_notebook.ps1
+.\scripts\windows\04_abrir_notebook.ps1
 ```
 
 Ubuntu:
@@ -250,10 +267,12 @@ db = OracleDatabase()
 centros = CentroDAO(db).listar()
 medicos_cardio = MedicoDAO(db).buscar_por_especialidad("Cardiologia")
 proximos = TurnoDAO(db).listar_proximos(limite=5)
+agenda_cardio = TurnoDAO(db).disponibilidad_por_medico(id_medico=1)
 
 print(centros)
 print(medicos_cardio)
 print(proximos)
+print(agenda_cardio)
 ```
 
 DAOs incluidos:
@@ -282,6 +301,7 @@ Funciones:
 - Gestion de centros.
 - Gestion de pacientes.
 - Agenda de turnos.
+- Disponibilidad por medico con dia, horario, cupos y precio estimado.
 - Edicion y eliminacion de turnos.
 - Carga y vista previa de documentos.
 - Busqueda general por paciente, medico, centro, DNI, distrito o estado.
@@ -300,10 +320,11 @@ Ejemplos:
 listar pacientes
 listar centros
 listar medicos
+mostrar horarios disponibles y precios
 listar turnos
 crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
 editar paciente 1 telefono 3825-999000
-crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control
+crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho
 editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado
 eliminar turno 2
 crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultado normal

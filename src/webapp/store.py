@@ -23,7 +23,16 @@ class JsonStore:
     students use the interface immediately, even before Docker/Oracle is ready.
     """
 
-    collections = ("centros", "especialidades", "medicos", "pacientes", "turnos", "documentos")
+    collections = (
+        "centros",
+        "especialidades",
+        "medicos",
+        "pacientes",
+        "turnos",
+        "documentos",
+        "agendas",
+        "tarifas",
+    )
 
     def __init__(
         self,
@@ -64,6 +73,7 @@ class JsonStore:
     def dashboard(self) -> dict[str, Any]:
         data = self.read()
         enriched_turnos = [self._enrich_turno(data, turno) for turno in data["turnos"]]
+        disponibilidad = self.disponibilidad()
         return {
             "metricas": {
                 "centros": len(data["centros"]),
@@ -71,6 +81,7 @@ class JsonStore:
                 "turnos_pendientes": sum(1 for t in data["turnos"] if t["estado"] == "PENDIENTE"),
                 "turnos_confirmados": sum(1 for t in data["turnos"] if t["estado"] == "CONFIRMADO"),
                 "documentos": len(data["documentos"]),
+                "cupos_disponibles": sum(item["cupos_libres"] for item in disponibilidad),
             },
             "centros": data["centros"],
             "especialidades": data["especialidades"],
@@ -78,6 +89,8 @@ class JsonStore:
             "pacientes": data["pacientes"],
             "turnos": enriched_turnos,
             "documentos": [self._enrich_documento(data, doc) for doc in data["documentos"]],
+            "disponibilidad": disponibilidad,
+            "tarifas": data["tarifas"],
         }
 
     def create_center(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -170,6 +183,9 @@ class JsonStore:
             paciente = self._find(data["pacientes"], int(payload["paciente_id"]))
             if paciente is None:
                 raise ValueError("El paciente seleccionado no existe")
+            precio = payload.get("precio")
+            if precio in (None, ""):
+                precio = self._precio_estimado(data, medico)
             turno = {
                 "id": self._next_id(data["turnos"]),
                 "paciente_id": paciente["id"],
@@ -178,12 +194,33 @@ class JsonStore:
                 "fecha": payload["fecha"],
                 "hora": payload["hora"],
                 "estado": payload.get("estado", "PENDIENTE"),
-                "precio": float(payload.get("precio", 0) or 0),
+                "precio": float(precio or 0),
                 "motivo": payload["motivo"].strip(),
             }
             data["turnos"].append(turno)
             self._write(data)
             return self._enrich_turno(data, turno)
+
+    def disponibilidad(self) -> list[dict[str, Any]]:
+        data = self.read()
+        rows: list[dict[str, Any]] = []
+        for agenda in data["agendas"]:
+            medico = self._find(data["medicos"], int(agenda["medico_id"]))
+            if medico is None:
+                continue
+            tomados = sum(
+                1
+                for turno in data["turnos"]
+                if int(turno["medico_id"]) == int(medico["id"])
+                and turno["estado"] in {"PENDIENTE", "CONFIRMADO"}
+            )
+            item = deepcopy(agenda)
+            item["medico"] = self._enrich_medico(data, medico)
+            item["turnos_tomados"] = tomados
+            item["cupos_libres"] = max(int(agenda["cupo_diario"]) - tomados, 0)
+            item["precio_estimado"] = self._precio_estimado(data, medico)
+            rows.append(item)
+        return rows
 
     def update_turno(self, turno_id: int, payload: dict[str, Any]) -> dict[str, Any]:
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo", "estado")
@@ -345,3 +382,18 @@ class JsonStore:
         item = deepcopy(doc)
         item["paciente"] = self._find(data["pacientes"], doc["paciente_id"])
         return item
+
+    def _precio_estimado(self, data: dict[str, Any], medico: dict[str, Any]) -> float:
+        centro = self._find(data["centros"], int(medico["centro_id"]))
+        if centro is None:
+            return 0
+        tarifa = next(
+            (
+                row
+                for row in data["tarifas"]
+                if int(row["especialidad_id"]) == int(medico["especialidad_id"])
+                and row["tipo_centro"] == centro["tipo"]
+            ),
+            None,
+        )
+        return float(tarifa["precio"]) if tarifa else 0

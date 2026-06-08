@@ -138,7 +138,7 @@ class HuggingFaceBackend(BaseAIBackend):
             'listar_centros': r'(listar|mostrar|ver)\s*(todos\s*)?(los\s*)?centros',
             'listar_turnos': r'(listar|mostrar|ver)\s*(todos\s*)?(los\s*)?turnos|citas',
             'crear_paciente': r'(crear|registrar|nuevo)\s*(paciente|patient)',
-            'crear_turno': r'(crear|agendar|reservar)\s*(turno|cita|appointment)',
+            'crear_turno': r'(crear|agendar|reservar)\s*(nuevo\s*)?(turno|cita|appointment)',
             'buscar': r'(buscar|search|find)\s+(.+)',
             'ayuda': r'(ayuda|help|que\s*puedo\s*hacer|como\s*funciona)',
             'informacion': r'(informaci[óo]n|info|details)\s+(?:sobre\s+)?(.+)',
@@ -188,7 +188,7 @@ class SimpleFallbackBackend(BaseAIBackend):
             'listar_centros': r'(listar|mostrar|ver)\s*(todos\s*)?(los\s*)?centros',
             'listar_turnos': r'(listar|mostrar|ver)\s*(todos\s*)?(los\s*)?turnos|citas',
             'crear_paciente': r'(crear|registrar|nuevo)\s*(paciente|patient)',
-            'crear_turno': r'(crear|agendar|reservar)\s*(turno|cita|appointment)',
+            'crear_turno': r'(crear|agendar|reservar)\s*(nuevo\s*)?(turno|cita|appointment)',
             'ayuda': r'(ayuda|help|que\s*puedo\s*hacer|como\s*funciona)',
             'general_query': r'.*'
         }

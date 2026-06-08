@@ -31,4 +31,4 @@ python -m venv .venv
 .\.venv\Scripts\pip.exe install -r requirements.txt
 
 Write-Host "Instalacion completada."
-Write-Host "Siguiente paso: scripts\windows\02_iniciar_plataforma.ps1"
+Write-Host "Siguiente paso: .\scripts\windows\02_iniciar_plataforma.ps1"
