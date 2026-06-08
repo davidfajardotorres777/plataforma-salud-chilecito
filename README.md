@@ -190,6 +190,13 @@ Para ejecutar las pruebas:
 python -m pytest -q
 ```
 
+Nota: `python -m src.main` intentará conectarse a Oracle si está disponible; si
+no puede conectarse (o falta la librería `python-oracledb`), el comando no
+fallará: el módulo hace fallback al "modo demo JSON" usando `data/demo_seed.json`
+y mostrará información equivalente desde el store local. Esto facilita ejecutar
+comandos de verificación en máquinas de desarrollo sin levantar el contenedor
+Oracle.
+
 Si el entorno virtual ya esta activado, tambien se puede usar:
 
 ```bash
