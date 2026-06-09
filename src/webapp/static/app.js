@@ -124,9 +124,16 @@ function fillSelects() {
       if (medicosEspecialidad.length > 0) {
         $("#turnoMedico").value = medicosEspecialidad[0].id;
         updateTurnoEstimatedPrice();
+        updateHorariosDisponibles();
         showToast(`Especialidad seleccionada: ${medicosEspecialidad[0].especialidad.nombre}`);
       }
     }
+  });
+
+  // Add doctor change listener to update available horarios
+  $("#turnoMedico").addEventListener("change", () => {
+    updateTurnoEstimatedPrice();
+    updateHorariosDisponibles();
   });
 
   $("#turnoMedico").innerHTML = state.data.medicos
@@ -593,6 +600,60 @@ function updateTurnoEstimatedPrice() {
   if (!selected || state.editingTurnoId) return;
   form.elements.precio.value = selected.dataset.precio || 0;
 }
+
+function updateHorariosDisponibles() {
+  const medicoId = $("#turnoMedico").value;
+  const select = $("#turnoHorarioDisponible");
+  
+  if (!medicoId) {
+    select.innerHTML = "<option value=''>Seleccionar horario disponible...</option>";
+    return;
+  }
+
+  const medicoDisponibilidad = state.data.disponibilidad?.filter((item) => item.medico.id === Number(medicoId)) || [];
+  
+  if (medicoDisponibilidad.length === 0) {
+    select.innerHTML = "<option value=''>Sin horarios disponibles</option>";
+    return;
+  }
+
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const fechas = [];
+  for (let i = 0; i < 7; i++) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + i);
+    fechas.push({
+      fecha: fecha.toISOString().split('T')[0],
+      diaSemana: diasSemana[fecha.getDay()]
+    });
+  }
+
+  const horariosOptions = ["<option value=''>Seleccionar horario disponible...</option>"];
+  
+  fechas.forEach((fechaInfo) => {
+    const horariosDia = medicoDisponibilidad.filter((h) => h.dia_semana === fechaInfo.diaSemana);
+    horariosDia.forEach((h) => {
+      if (h.cupos_libres > 0) {
+        horariosOptions.push(
+          `<option value="${fechaInfo.fecha}|${h.hora_inicio}" data-precio="${h.precio_estimado}">${fechaInfo.fecha} (${fechaInfo.diaSemana}) - ${h.hora_inicio} - $${Number(h.precio_estimado || 0).toLocaleString("es-AR")} (${h.cupos_libres} cupos)</option>`
+        );
+      }
+    });
+  });
+
+  select.innerHTML = horariosOptions.join("");
+}
+
+// Add listener to auto-fill fecha and hora when selecting horario disponible
+$("#turnoHorarioDisponible").addEventListener("change", (e) => {
+  const selected = e.target.selectedOptions[0];
+  if (selected && selected.value) {
+    const [fecha, hora] = selected.value.split("|");
+    $("#turnoForm").elements.fecha.value = fecha;
+    $("#turnoForm").elements.hora.value = hora;
+    $("#turnoForm").elements.precio.value = selected.dataset.precio || 0;
+  }
+});
 
 function resetCentroForm() {
   const form = $("#centroForm");
