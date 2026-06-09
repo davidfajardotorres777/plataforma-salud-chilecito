@@ -4,12 +4,44 @@ SaludDAO - Capa de acceso a datos para Plataforma Salud Chilecito
 Concentra todas las operaciones contra Oracle en una sola clase.
 Accesible desde git y desde Jupyter Notebook.
 
-Uso:
+Esta clase implementa el patrón DAO (Data Access Object) para abstraer
+la complejidad de las operaciones de base de datos y proporcionar una
+interfaz limpia y consistente para el dominio de salud.
+
+Características principales:
+- Gestión de centros de salud, médicos, pacientes y turnos
+- Selección por síntomas para derivación automática a especialidades
+- Configuración personalizada por hospital (modelo single-hospital)
+- Cálculo de precios estimados por especialidad y tipo de consulta
+- Disponibilidad de turnos en tiempo real con horarios específicos
+- Integración con sistemas hospitalarios existentes (HIS)
+
+Uso básico:
     from dao import SaludDAO
 
     dao = SaludDAO()
+    
+    # Listar centros
     centros = dao.listar_centros()
+    print(f"Centros: {len(centros)}")
+    
+    # Crear paciente
+    dao.crear_paciente(
+        dni="12345678",
+        nombre="Juan Pérez",
+        telefono="3825-123456",
+        distrito="Chilecito"
+    )
+    
+    # Buscar especialidad por síntoma
+    resultado = dao.buscar_especialidad_por_sintoma("dolor de pecho")
+    print(f"Especialidad recomendada: {resultado['especialidad']}")
+    
     dao.cerrar()
+
+Autor: Alesandro David Fajardo / Kevin Facundo Nunez
+Universidad: Universidad Nacional de Chilecito
+Año: 2026
 """
 
 from contextlib import contextmanager
@@ -19,9 +51,27 @@ from config_vars import get_db_config
 
 
 class SaludDAO:
-    """Interfaz principal contra Oracle para el dominio de salud."""
-
+    """
+    Interfaz principal contra Oracle para el dominio de salud.
+    
+    Esta clase proporciona métodos para realizar todas las operaciones
+    de base de datos necesarias para la plataforma Salud Chilecito,
+    incluyendo gestión de centros, médicos, pacientes, turnos, síntomas,
+    configuración del hospital y más.
+    
+    Atributos:
+        _config: Configuración de conexión a la base de datos
+        _oracledb: Driver de Oracle (cargado bajo demanda)
+        _dsn: Data Source Name para conexión
+    """
+    
     def __init__(self):
+        """
+        Inicializa una nueva instancia del DAO.
+        
+        Carga la configuración de la base de datos desde config_vars
+        y prepara la conexión a Oracle.
+        """
         config = get_db_config()
         self._config = config
         self._oracledb = None
@@ -81,10 +131,34 @@ class SaludDAO:
             return affected
 
     def ping(self) -> str:
+        """
+        Verifica la conexión con la base de datos.
+        
+        Returns:
+            str: "OK" si la conexión funciona, "SIN_RESPUESTA" en caso contrario
+        
+        Ejemplo:
+            dao = SaludDAO()
+            status = dao.ping()
+            print(f"Estado de conexión: {status}")
+        """
         row = self.fetch_one("SELECT 'OK' AS status FROM dual")
         return str(row["status"]) if row else "SIN_RESPUESTA"
 
     def contar(self, tabla: str) -> int:
+        """
+        Cuenta el número de registros en una tabla.
+        
+        Args:
+            tabla: Nombre de la tabla a contar
+        
+        Returns:
+            int: Número de registros en la tabla
+        
+        Ejemplo:
+            total_pacientes = dao.contar("paciente")
+            print(f"Total pacientes: {total_pacientes}")
+        """
         row = self.fetch_one(f"SELECT COUNT(*) AS total FROM {tabla}")
         return int(row["total"]) if row else 0
 
@@ -454,10 +528,24 @@ class SaludDAO:
         )
 
     # ======================================================================
-    # SINTOMAS Y ESPECIALIDADES
+    # SINTOMAS Y ESPECIALIDADES (NUEVO - Modelo Single-Hospital)
     # ======================================================================
 
     def listar_sintomas(self) -> list[dict]:
+        """
+        Lista todos los síntomas disponibles con sus especialidades asociadas.
+        
+        Esta funcionalidad permite que los pacientes seleccionen sus síntomas
+        y el sistema sugiera automáticamente la especialidad adecuada.
+        
+        Returns:
+            list[dict]: Lista de síntomas con información de especialidad
+        
+        Ejemplo:
+            sintomas = dao.listar_sintomas()
+            for s in sintomas:
+                print(f"{s['descripcion']} → {s['especialidad']}")
+        """
         return self.fetch_all(
             """
             SELECT s.id_sintoma, s.descripcion, s.prioridad, 
@@ -470,6 +558,24 @@ class SaludDAO:
         )
 
     def buscar_especialidad_por_sintoma(self, sintoma: str) -> dict | None:
+        """
+        Busca la especialidad recomendada según el síntoma del paciente.
+        
+        Esta funcionalidad es clave para la experiencia de usuario, ya que
+        permite que los pacientes describan sus síntomas en lenguaje natural
+        y el sistema sugiera la especialidad médica adecuada.
+        
+        Args:
+            sintoma: Descripción del síntoma (ej: "dolor de pecho", "fiebre")
+        
+        Returns:
+            dict | None: Información del síntoma y especialidad recomendada
+        
+        Ejemplo:
+            resultado = dao.buscar_especialidad_por_sintoma("dolor de pecho")
+            if resultado:
+                print(f"Para '{sintoma}' se recomienda: {resultado['especialidad']}")
+        """
         return self.fetch_one(
             """
             SELECT s.id_sintoma, s.descripcion, s.prioridad,
@@ -486,6 +592,25 @@ class SaludDAO:
         self, descripcion: str, id_especialidad: int, 
         prioridad: str = "MEDIA", activo: str = "S"
     ) -> int:
+        """
+        Crea un nuevo síntoma asociado a una especialidad.
+        
+        Args:
+            descripcion: Descripción del síntoma
+            id_especialidad: ID de la especialidad asociada
+            prioridad: Prioridad del síntoma (ALTA, MEDIA, BAJA)
+            activo: Estado del síntoma (S/N)
+        
+        Returns:
+            int: Número de filas afectadas
+        
+        Ejemplo:
+            dao.crear_sintoma(
+                descripcion="Dolor abdominal",
+                id_especialidad=5,  # Gastroenterología
+                prioridad="ALTA"
+            )
+        """
         return self.execute(
             """
             INSERT INTO sintoma (descripcion, id_especialidad, prioridad, activo)
@@ -498,10 +623,30 @@ class SaludDAO:
         )
 
     # ======================================================================
-    # CONFIGURACION DEL HOSPITAL
+    # CONFIGURACION DEL HOSPITAL (NUEVO - Modelo Single-Hospital)
     # ======================================================================
 
     def obtener_configuracion_hospital(self, id_configuracion: int = 1) -> dict | None:
+        """
+        Obtiene la configuración personalizada del hospital.
+        
+        Esta funcionalidad permite que cada instancia del sistema tenga su
+        propia identidad visual y políticas, fundamental para el modelo
+        single-hospital donde cada hospital tiene su propia instancia.
+        
+        Args:
+            id_configuracion: ID de la configuración (default: 1)
+        
+        Returns:
+            dict | None: Configuración del hospital con nombre, logo, colores, etc.
+        
+        Ejemplo:
+            config = dao.obtener_configuracion_hospital()
+            if config:
+                print(f"Hospital: {config['nombre_hospital']}")
+                print(f"Mensaje: {config['mensaje_bienvenida']}")
+                print(f"Color primario: {config['color_primario']}")
+        """
         return self.fetch_one(
             """
             SELECT ch.id_configuracion, ch.nombre_hospital, ch.logo_url,
@@ -521,6 +666,30 @@ class SaludDAO:
         color_secundario: str = "#ffffff", mensaje_bienvenida: str | None = None,
         requiere_derivacion: str = "N", tiempo_cancelacion_horas: int = 24
     ) -> int:
+        """
+        Crea o actualiza la configuración personalizada del hospital.
+        
+        Args:
+            nombre_hospital: Nombre del hospital
+            id_centro_principal: ID del centro principal
+            logo_url: URL del logo del hospital
+            color_primario: Color primario para branding (hex)
+            color_secundario: Color secundario para branding (hex)
+            mensaje_bienvenida: Mensaje de bienvenida para pacientes
+            requiere_derivacion: Si requiere derivación (S/N)
+            tiempo_cancelacion_horas: Horas mínimas para cancelación
+        
+        Returns:
+            int: Número de filas afectadas
+        
+        Ejemplo:
+            dao.crear_configuracion_hospital(
+                nombre_hospital="Hospital Eleazar Herrera Motta",
+                id_centro_principal=1,
+                color_primario="#0f766e",
+                mensaje_bienvenida="Bienvenido al sistema de turnos"
+            )
+        """
         return self.execute(
             """
             INSERT INTO configuracion_hospital
@@ -539,10 +708,24 @@ class SaludDAO:
         )
 
     # ======================================================================
-    # TIPOS DE CONSULTA Y PRECIOS
+    # TIPOS DE CONSULTA Y PRECIOS (NUEVO - Modelo Single-Hospital)
     # ======================================================================
 
     def listar_tipos_consulta(self) -> list[dict]:
+        """
+        Lista todos los tipos de consulta disponibles.
+        
+        Los tipos de consulta permiten diferenciar precios y duraciones
+        según la naturaleza de la atención (general, urgencia, seguimiento, etc.).
+        
+        Returns:
+            list[dict]: Lista de tipos de consulta con nombre, descripción y duración
+        
+        Ejemplo:
+            tipos = dao.listar_tipos_consulta()
+            for tipo in tipos:
+                print(f"{tipo['nombre']}: {tipo['duracion_minutos']} min")
+        """
         return self.fetch_all(
             """
             SELECT id_tipo_consulta, nombre, descripcion, duracion_minutos, activo
@@ -555,6 +738,25 @@ class SaludDAO:
     def obtener_precios_por_especialidad(
         self, id_centro: int, id_especialidad: int
     ) -> list[dict]:
+        """
+        Obtiene los rangos de precios por especialidad y tipo de consulta.
+        
+        Esta funcionalidad es fundamental para el modelo single-hospital,
+        ya que permite que cada hospital defina sus propios precios según
+        la especialidad y el tipo de consulta.
+        
+        Args:
+            id_centro: ID del centro/hospital
+            id_especialidad: ID de la especialidad
+        
+        Returns:
+            list[dict]: Lista de precios con rangos mínimo, máximo y estimado
+        
+        Ejemplo:
+            precios = dao.obtener_precios_por_especialidad(centro_id=1, especialidad_id=3)
+            for precio in precios:
+                print(f"{precio['tipo_consulta']['nombre']}: ${precio['precio_estimado']}")
+        """
         return self.fetch_all(
             """
             SELECT pe.id_precio, pe.precio_minimo, pe.precio_maximo, pe.precio_estimado,
@@ -572,6 +774,23 @@ class SaludDAO:
     def obtener_precio_estimado_por_tipo(
         self, id_centro: int, id_especialidad: int, id_tipo_consulta: int
     ) -> dict | None:
+        """
+        Obtiene el precio estimado para una especialidad y tipo de consulta específicos.
+        
+        Args:
+            id_centro: ID del centro/hospital
+            id_especialidad: ID de la especialidad
+            id_tipo_consulta: ID del tipo de consulta
+        
+        Returns:
+            dict | None: Información de precio con mínimo, máximo y estimado
+        
+        Ejemplo:
+            precio = dao.obtener_precio_estimado_por_tipo(1, 3, 1)
+            if precio:
+                print(f"Precio estimado: ${precio['precio_estimado']}")
+                print(f"Rango: ${precio['precio_minimo']} - ${precio['precio_maximo']}")
+        """
         return self.fetch_one(
             """
             SELECT precio_minimo, precio_maximo, precio_estimado
