@@ -97,3 +97,86 @@ Ejemplo nuevo (flujo por síntomas)
 
 3. Obtener horarios disponibles:
    curl "http://localhost:8000/api/horarios-disponibles?medico_id=1&fecha=2026-06-20"
+
+Configuración del hospital (Modelo Single-Hospital)
+
+**Endpoint de configuración**
+- GET `/api/configuracion-hospital` — obtiene la configuración del hospital (nombre, logo, colores, mensaje de bienvenida, políticas de cancelación).
+- POST `/api/configuracion-hospital` — crea o actualiza la configuración del hospital.
+
+**Ejemplo de configuración inicial**
+```json
+{
+  "nombre_hospital": "Hospital Eleazar Herrera Motta",
+  "id_centro_principal": 1,
+  "color_primario": "#0f766e",
+  "color_secundario": "#f59e0b",
+  "logo_url": "/static/logo.svg",
+  "mensaje_bienvenida": "Bienvenido al sistema de turnos del Hospital Eleazar Herrera Motta",
+  "politica_cancelacion": "Los turnos pueden cancelarse hasta 24 horas antes de la cita",
+  "telefono": "3825-422100",
+  "email": "turnos@hospitalchilecito.gov.ar"
+}
+```
+
+**Landing Page del hospital**
+- La landing page (`/landing`) muestra la información personalizada del hospital
+- Los pacientes pueden acceder directamente a `http://hospital-chilecito.com/landing`
+- La página carga automáticamente la configuración del hospital y aplica los colores y branding
+- Muestra síntomas, especialidades, disponibilidad y precios de forma amigable para el paciente
+
+**Tipos de consulta y precios**
+- GET `/api/tipos-consulta` — lista los tipos de consulta disponibles (General, Urgencia, Seguimiento, Estudio Complementario, Primera Consulta).
+- GET `/api/precios-especialidad` — obtiene los rangos de precios por especialidad y tipo de consulta.
+
+**Ejemplo de configuración de precios**
+```json
+{
+  "especialidad_id": 3,
+  "tipo_consulta_id": 1,
+  "precio_min": 5000,
+  "precio_max": 8000,
+  "precio_estimado": 6500
+}
+```
+
+Integración con sistemas existentes del hospital
+
+**Escenario típico**
+El hospital ya tiene un sistema interno de gestión (HIS - Hospital Information System) que maneja:
+- Pacientes y su historial
+- Agendas de médicos
+- Turnos y citas
+- Facturación
+
+**Estrategia de integración recomendada**
+1. **Mantener el HIS como sistema de autoridad**: El HIS sigue siendo el sistema principal para la gestión interna
+2. **Salud Chilecito como capa de presentación**: Salud Chilecito se usa como interfaz para que los pacientes reserven turnos desde casa
+3. **Sincronización bidireccional**: Los turnos creados en Salud Chilecito se sincronizan con el HIS, y viceversa
+
+**Arquitectura de integración**
+```
+Paciente → Salud Chilecito (Web/Bot) → API Salud Chilecito → Adaptador → HIS (Sistema interno)
+```
+
+**Flujo de reserva de turno**
+1. El paciente accede a la landing page del hospital
+2. Selecciona sus síntomas → el sistema sugiere la especialidad
+3. Ve la disponibilidad de médicos y horarios
+4. Reserva el turno en Salud Chilecito
+5. El adaptador sincroniza el turno con el HIS
+6. El HIS confirma el turno y actualiza el estado en Salud Chilecito
+
+**Consideraciones técnicas**
+- Usar el DNI como identificador único de pacientes
+- Mapear los IDs de médicos entre ambos sistemas
+- Implementar un sistema de reconciliación para evitar duplicados
+- Configurar webhooks para sincronización en tiempo real
+- Implementar un sistema de logs para auditar la sincronización
+
+**Seguridad**
+- Implementar autenticación mediante API keys entre el adaptador y Salud Chilecito
+- Usar HTTPS para todas las comunicaciones
+- Encriptar datos sensibles en tránsito
+- Implementar rate limiting para prevenir abuso
+- Mantener logs de auditoría de todas las operaciones de sincronización
