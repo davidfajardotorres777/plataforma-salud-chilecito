@@ -3,7 +3,8 @@ const state = {
   search: "",
   editingCentroId: null,
   editingPacienteId: null,
-  editingTurnoId: null
+  editingTurnoId: null,
+  editingMedicoId: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -98,6 +99,17 @@ function fillSelects() {
     .join("");
   $("#turnoPaciente").innerHTML = pacienteOptions;
   $("#documentoPaciente").innerHTML = pacienteOptions;
+
+  // Populate medico form selects
+  const centroOptions = state.data.centros
+    .map((c) => `<option value="${c.id}">${c.nombre}</option>`)
+    .join("");
+  $("#medicoCentro").innerHTML = centroOptions;
+
+  const especialidadOptions = state.data.especialidades
+    .map((e) => `<option value="${e.id}">${e.nombre}</option>`)
+    .join("");
+  $("#medicoEspecialidad").innerHTML = especialidadOptions;
 
   // Populate symptom dropdown (new for single-hospital model)
   const sintomaOptions = ["<option value=''>Seleccionar síntoma...</option>", ...state.data.sintomas.map(s => `<option value="${s.id}" data-especialidad-id="${s.especialidad_id}">${s.descripcion} - ${s.especialidad ? s.especialidad.nombre : 'N/A'} (Prioridad: ${s.prioridad})</option>`)].join("");
@@ -276,23 +288,30 @@ function renderDisponibilidad() {
 }
 
 function renderPacientes() {
-  // Mostrar todos los pacientes sin filtro por centro
-  // El centro_id se guarda al crear el paciente, pero el filtro no lo usa
+  // Filtrar pacientes por el centro seleccionado
+  const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.pacientes
     .filter((p) => {
-      // Solo filtrar por búsqueda
+      // Filtrar por centro si hay un centro seleccionado
+      if (centroId && p.centro_id && Number(p.centro_id) !== Number(centroId)) {
+        return false;
+      }
+      // Filtrar por búsqueda
       return matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social);
     });
   
   $("#pacientesCount").textContent = `${rows.length} registros`;
-  $("#pacientesList").innerHTML = rows.map((p) => `
+  $("#pacientesList").innerHTML = rows.map((p) => {
+    const centro = state.data.centros.find(c => c.id === Number(p.centro_id));
+    const centroNombre = centro ? centro.nombre : "Sin centro";
+    return `
     <article class="record">
       <strong>${p.nombre}</strong>
       <span>DNI ${p.dni} - ${p.distrito} - ${p.telefono} - ${p.obra_social}</span>
-      <span class="centro-info">Centro ID: ${p.centro_id || "Sin centro"}</span>
+      <span class="centro-info">${centroNombre}</span>
       <button class="secondary edit-paciente" type="button" data-id="${p.id}">Editar</button>
     </article>
-  `).join("");
+  `}).join("");
 
   $$(".edit-paciente").forEach((button) => {
     button.addEventListener("click", () => {
@@ -322,9 +341,14 @@ function renderCentros() {
         <span>${c.tipo} - ${c.distrito} - ${c.telefono}</span>
         <p>${c.direccion}</p>
         <div class="mini-list">
-          ${medicos.map((m) => `<p>${m.nombre} - ${m.especialidad?.nombre || "General"}</p>`).join("")}
+          ${medicos.map((m) => `
+            <p>
+              ${m.nombre} - ${m.especialidad?.nombre || "General"}
+              <button class="secondary edit-medico" type="button" data-id="${m.id}" style="margin-left: 10px; font-size: 12px;">Editar</button>
+            </p>
+          `).join("")}
         </div>
-        <button class="secondary edit-centro" type="button" data-id="${c.id}">Editar</button>
+        <button class="secondary edit-centro" type="button" data-id="${c.id}">Editar centro</button>
       </article>
     `;
   }).join("");
@@ -343,6 +367,23 @@ function renderCentros() {
       fields.distrito.value = centro.distrito;
       fields.telefono.value = centro.telefono;
       fields.tipo.value = centro.tipo;
+      fields.nombre.focus();
+    });
+  });
+
+  $$(".edit-medico").forEach((button) => {
+    button.addEventListener("click", () => {
+      const medico = state.data.medicos.find((m) => m.id === Number(button.dataset.id));
+      if (!medico) return;
+      const form = $("#medicoForm");
+      const fields = form.elements;
+      state.editingMedicoId = medico.id;
+      $("#medicoFormTitle").textContent = "Editar medico";
+      fields.id.value = medico.id;
+      fields.nombre.value = medico.nombre;
+      fields.centro_id.value = medico.centro_id;
+      fields.especialidad_id.value = medico.especialidad_id;
+      fields.telefono.value = medico.telefono;
       fields.nombre.focus();
     });
   });
@@ -469,6 +510,22 @@ function wireEvents() {
     showToast("Centro guardado");
   });
 
+  $("#medicoForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = formDataToObject(event.target);
+    delete payload.id;
+    const path = state.editingMedicoId ? `/api/medicos/${state.editingMedicoId}` : "/api/medicos";
+    await api(path, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    resetMedicoForm();
+    await loadDashboard();
+    showToast("Medico guardado");
+  });
+
+  $("#cancelMedicoEdit").addEventListener("click", resetMedicoForm);
+
   $("#cancelCentroEdit").addEventListener("click", resetCentroForm);
 
   $("#turnoForm").addEventListener("submit", async (event) => {
@@ -543,6 +600,14 @@ function resetCentroForm() {
   form.reset();
   form.elements.id.value = "";
   $("#centroFormTitle").textContent = "Centro de salud";
+}
+
+function resetMedicoForm() {
+  const form = $("#medicoForm");
+  state.editingMedicoId = null;
+  form.reset();
+  form.elements.id.value = "";
+  $("#medicoFormTitle").textContent = "Medico";
 }
 
 async function openDocument(id) {

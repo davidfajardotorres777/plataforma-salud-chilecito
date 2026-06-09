@@ -222,6 +222,30 @@
               </div>
             </form>
 
+            <form class="panel form-panel" id="medicoForm">
+              <div class="panel-head">
+                <h2 id="medicoFormTitle">Medico</h2>
+                <span>Alta y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="medicoId">
+              <label>Nombre completo
+                <input name="nombre" required>
+              </label>
+              <label>Centro
+                <select name="centro_id" id="medicoCentro" required></select>
+              </label>
+              <label>Especialidad
+                <select name="especialidad_id" id="medicoEspecialidad" required></select>
+              </label>
+              <label>Telefono
+                <input name="telefono" required>
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar medico</button>
+                <button class="secondary" id="cancelMedicoEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+
             <div class="panel">
               <div class="panel-head">
                 <h2>Centros y medicos</h2>
