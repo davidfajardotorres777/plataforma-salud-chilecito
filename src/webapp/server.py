@@ -244,6 +244,12 @@ class SaludHandler(BaseHTTPRequestHandler):
             if route == "/api/reset":
                 self._json(HTTPStatus.OK, self.store.reset())
                 return
+            if route == "/api/persistence/status":
+                self._json(HTTPStatus.OK, self.store.get_persistence_status())
+                return
+            if route == "/api/persistence/force-save":
+                self._json(HTTPStatus.OK, self.store.force_save())
+                return
             # Endpoints de autenticación para integración con HIS
             if route == "/api/auth/api-keys":
                 hospital_name = payload.get("hospital_name")

@@ -40,6 +40,22 @@ async function loadDashboard() {
   state.data = await api(url);
   render();
   $("#apiStatus").textContent = "API local conectada";
+  
+  // Verificar estado de persistencia
+  try {
+    const persistenceStatus = await api("/api/persistence/status");
+    if (!persistenceStatus.can_write) {
+      $("#apiStatus").textContent = "API local conectada (Solo memoria)";
+      $("#apiStatus").style.color = "orange";
+      showToast("ADVERTENCIA: Los datos solo se guardan en memoria");
+    } else if (persistenceStatus.using_memory) {
+      $("#apiStatus").textContent = "API local conectada (Modo memoria)";
+      $("#apiStatus").style.color = "orange";
+      showToast("ADVERTENCIA: Error de escritura, usando memoria");
+    }
+  } catch (e) {
+    console.error("Error al verificar persistencia:", e);
+  }
 }
 
 function render() {
@@ -391,6 +407,19 @@ function wireEvents() {
   $("#refreshData").addEventListener("click", async () => {
     await loadDashboard();
     showToast("Datos actualizados");
+  });
+
+  $("#forceSaveData").addEventListener("click", async () => {
+    try {
+      const result = await api("/api/persistence/force-save", { method: "POST", body: "{}" });
+      if (result.success) {
+        showToast("Datos guardados exitosamente");
+      } else {
+        showToast("Error: " + result.message);
+      }
+    } catch (e) {
+      showToast("Error al forzar guardado: " + e.message);
+    }
   });
 
   $("#resetData").addEventListener("click", async () => {

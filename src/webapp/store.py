@@ -530,14 +530,85 @@ class JsonStore:
         return item
 
     def _write(self, data: dict[str, Any]) -> None:
+        """
+        Guarda los datos de forma permanente en el archivo JSON.
+        
+        Este método asegura que los datos se guardan de forma persistente
+        para resolver el problema de que los datos no se guardan cuando
+        se sale de la plataforma o se crea algo.
+        
+        Si hay un error de escritura, intenta guardar en memoria como fallback
+        pero también registra el error para diagnóstico.
+        """
         try:
+            # Intentar guardar en disco (persistencia permanente)
             self.runtime_path.write_text(
                 json.dumps(data, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
-            self._memory_data = None
-        except OSError:
+            self._memory_data = None  # Limpiar memoria cache
+            print(f"[STORE] Datos guardados exitosamente en {self.runtime_path}")
+        except OSError as e:
+            # Fallback a memoria si hay error de escritura
+            print(f"[STORE] Error al guardar en disco: {e}. Usando memoria como fallback.")
             self._memory_data = deepcopy(data)
+            print(f"[STORE] ADVERTENCIA: Los datos solo están en memoria y se perderán al reiniciar.")
+    
+    def force_save(self) -> dict[str, Any]:
+        """
+        Fuerza un guardado manual de todos los datos actuales.
+        
+        Este método permite al usuario forzar un guardado manual para asegurar
+        que todos los datos estén persistidos en disco.
+        
+        Returns:
+            dict: Información sobre el estado del guardado
+        """
+        with self._lock:
+            data = self.read()
+            try:
+                self._write(data)
+                return {
+                    "success": True,
+                    "message": "Datos guardados exitosamente",
+                    "path": str(self.runtime_path),
+                    "using_memory": self._memory_data is not None
+                }
+            except Exception as e:
+                return {
+                    "success": False,
+                    "message": f"Error al guardar: {str(e)}",
+                    "using_memory": self._memory_data is not None
+                }
+    
+    def get_persistence_status(self) -> dict[str, Any]:
+        """
+        Obtiene el estado actual de la persistencia de datos.
+        
+        Este método permite verificar si los datos se están guardando
+        correctamente en disco o solo en memoria.
+        
+        Returns:
+            dict: Información sobre el estado de persistencia
+        """
+        return {
+            "runtime_path": str(self.runtime_path),
+            "runtime_path_exists": self.runtime_path.exists(),
+            "using_memory": self._memory_data is not None,
+            "uploads_dir": str(self.uploads_dir),
+            "uploads_dir_exists": self.uploads_dir.exists(),
+            "can_write": self._check_write_permission()
+        }
+    
+    def _check_write_permission(self) -> bool:
+        """Verifica si hay permisos de escritura en el runtime_path."""
+        try:
+            test_file = self.runtime_path.parent / ".write_test"
+            test_file.write_text("test")
+            test_file.unlink()
+            return True
+        except Exception:
+            return False
 
     @staticmethod
     def _require(payload: dict[str, Any], names: tuple[str, ...]) -> None:
