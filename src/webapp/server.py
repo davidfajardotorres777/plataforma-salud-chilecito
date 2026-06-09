@@ -199,6 +199,9 @@ class SaludHandler(BaseHTTPRequestHandler):
             if route == "/api/pacientes":
                 self._json(HTTPStatus.CREATED, self.store.create_patient(payload))
                 return
+            if route == "/api/pacientes/by-centro":
+                self._json(HTTPStatus.OK, self.store.list_pacientes_by_centro(payload["centro_id"]))
+                return
             if route.startswith("/api/pacientes/"):
                 paciente_id = int(route.split("/")[3])
                 self._json(HTTPStatus.OK, self.store.update_patient(paciente_id, payload))

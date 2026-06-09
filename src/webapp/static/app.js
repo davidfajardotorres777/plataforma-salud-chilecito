@@ -260,13 +260,24 @@ function renderDisponibilidad() {
 }
 
 function renderPacientes() {
+  // Filtrar pacientes por el centro seleccionado
+  const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.pacientes
-    .filter((p) => matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social));
+    .filter((p) => {
+      // Filtrar por centro seleccionado
+      if (centroId && p.centro_id !== Number(centroId)) {
+        return false;
+      }
+      // Filtrar por búsqueda
+      return matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social);
+    });
+  
   $("#pacientesCount").textContent = `${rows.length} registros`;
   $("#pacientesList").innerHTML = rows.map((p) => `
     <article class="record">
       <strong>${p.nombre}</strong>
       <span>DNI ${p.dni} - ${p.distrito} - ${p.telefono} - ${p.obra_social}</span>
+      <span class="centro-info">${p.centro?.nombre || "Sin centro"}</span>
       <button class="secondary edit-paciente" type="button" data-id="${p.id}">Editar</button>
     </article>
   `).join("");
@@ -392,6 +403,21 @@ function wireEvents() {
     event.preventDefault();
     const payload = formDataToObject(event.target);
     delete payload.id;
+    
+    // Agregar centro_id del hospital seleccionado
+    const centroId = localStorage.getItem("salud_centroid");
+    if (centroId) {
+      payload.centro_id = Number(centroId);
+    } else {
+      // Si no hay centro seleccionado, usar el primer centro disponible
+      if (state.data.centros && state.data.centros.length > 0) {
+        payload.centro_id = state.data.centros[0].id;
+      } else {
+        showToast("Error: No hay centros disponibles");
+        return;
+      }
+    }
+    
     const path = state.editingPacienteId ? `/api/pacientes/${state.editingPacienteId}` : "/api/pacientes";
     await api(path, {
       method: "POST",

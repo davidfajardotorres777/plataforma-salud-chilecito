@@ -140,12 +140,36 @@ class JsonStore:
             return centro
 
     def create_patient(self, payload: dict[str, Any]) -> dict[str, Any]:
-        required = ("dni", "nombre", "telefono", "distrito")
+        """
+        Crea un nuevo paciente asociado a un hospital/centro específico.
+        
+        Este método asegura que los pacientes se asocien al hospital correcto
+        para resolver el problema de que los pacientes no se guardan en el
+        lugar respectivo cuando se cambia entre hospitales.
+        
+        Args:
+            payload: Diccionario con dni, nombre, telefono, distrito, centro_id, etc.
+        
+        Returns:
+            dict: El paciente creado
+        
+        Raises:
+            ValueError: Si ya existe un paciente con ese DNI o si el centro no existe
+        """
+        required = ("dni", "nombre", "telefono", "distrito", "centro_id")
         self._require(payload, required)
         with self._lock:
             data = self.read()
-            if any(p["dni"] == payload["dni"] for p in data["pacientes"]):
-                raise ValueError("Ya existe un paciente con ese DNI")
+            
+            # Verificar que el centro existe
+            centro = self._find(data["centros"], int(payload["centro_id"]))
+            if centro is None:
+                raise ValueError("El centro/hospital seleccionado no existe")
+            
+            # Verificar si ya existe un paciente con ese DNI (solo en el mismo centro)
+            if any(p["dni"] == payload["dni"] and int(p.get("centro_id", 0)) == int(payload["centro_id"]) for p in data["pacientes"]):
+                raise ValueError("Ya existe un paciente con ese DNI en este hospital")
+            
             paciente = {
                 "id": self._next_id(data["pacientes"]),
                 "dni": payload["dni"].strip(),
@@ -153,12 +177,26 @@ class JsonStore:
                 "telefono": payload["telefono"].strip(),
                 "obra_social": payload.get("obra_social", "Sin obra social").strip(),
                 "distrito": payload["distrito"].strip(),
+                "centro_id": int(payload["centro_id"]),  # Asociar al centro/hospital
             }
             data["pacientes"].append(paciente)
             self._write(data)
-            return paciente
+            return self._enrich_paciente(data, paciente)
 
     def update_patient(self, paciente_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Actualiza un paciente manteniendo su asociación al centro/hospital.
+        
+        Args:
+            paciente_id: ID del paciente a actualizar
+            payload: Diccionario con dni, nombre, telefono, distrito, etc.
+        
+        Returns:
+            dict: El paciente actualizado
+        
+        Raises:
+            ValueError: Si el paciente no existe o si ya existe otro paciente con ese DNI
+        """
         required = ("dni", "nombre", "telefono", "distrito")
         self._require(payload, required)
         with self._lock:
@@ -167,8 +205,9 @@ class JsonStore:
             if paciente is None:
                 raise ValueError("El paciente no existe")
             dni = payload["dni"].strip()
-            if any(p["dni"] == dni and int(p["id"]) != int(paciente_id) for p in data["pacientes"]):
-                raise ValueError("Ya existe otro paciente con ese DNI")
+            # Verificar duplicado solo en el mismo centro
+            if any(p["dni"] == dni and int(p["id"]) != int(paciente_id) and int(p.get("centro_id", 0)) == int(paciente.get("centro_id", 0)) for p in data["pacientes"]):
+                raise ValueError("Ya existe otro paciente con ese DNI en este hospital")
             paciente.update(
                 {
                     "dni": dni,
@@ -176,10 +215,29 @@ class JsonStore:
                     "telefono": payload["telefono"].strip(),
                     "obra_social": payload.get("obra_social", "Sin obra social").strip(),
                     "distrito": payload["distrito"].strip(),
+                    # Mantener centro_id existente, no permitir cambiar de hospital
                 }
             )
             self._write(data)
-            return paciente
+            return self._enrich_paciente(data, paciente)
+    
+    def list_pacientes_by_centro(self, centro_id: int) -> list[dict[str, Any]]:
+        """
+        Lista todos los pacientes de un hospital/centro específico.
+        
+        Este método es clave para resolver el problema de que los pacientes
+        no se muestran correctamente cuando se cambia entre hospitales.
+        
+        Args:
+            centro_id: ID del centro/hospital
+        
+        Returns:
+            list[dict]: Lista de pacientes del centro con información enriquecida
+        """
+        with self._lock:
+            data = self.read()
+            pacientes = [p for p in data["pacientes"] if int(p.get("centro_id", 0)) == int(centro_id)]
+            return [self._enrich_paciente(data, p) for p in pacientes]
 
     def create_turno(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
@@ -504,6 +562,17 @@ class JsonStore:
         item = deepcopy(medico)
         item["especialidad"] = self._find(data["especialidades"], medico["especialidad_id"])
         item["centro"] = self._find(data["centros"], medico["centro_id"])
+        return item
+
+    def _enrich_paciente(self, data: dict[str, Any], paciente: dict[str, Any]) -> dict[str, Any]:
+        """
+        Enriquece un paciente con información del centro/hospital asociado.
+        
+        Este método es necesario para mostrar información completa del paciente
+        incluyendo el hospital al que pertenece.
+        """
+        item = deepcopy(paciente)
+        item["centro"] = self._find(data["centros"], paciente.get("centro_id", 0))
         return item
 
     def _enrich_turno(self, data: dict[str, Any], turno: dict[str, Any]) -> dict[str, Any]:
