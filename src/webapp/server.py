@@ -8,6 +8,8 @@ from urllib.parse import unquote, urlparse, parse_qs
 
 from .bot_agent import BotAgent
 from .store import JsonStore
+from .auth import api_key_manager, audit_logger
+from .webhooks import webhook_manager, EventTypes
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -230,6 +232,90 @@ class SaludHandler(BaseHTTPRequestHandler):
                 return
             if route == "/api/reset":
                 self._json(HTTPStatus.OK, self.store.reset())
+                return
+            # Endpoints de autenticación para integración con HIS
+            if route == "/api/auth/api-keys":
+                hospital_name = payload.get("hospital_name")
+                hospital_id = payload.get("hospital_id")
+                permissions = payload.get("permissions")
+                if not hospital_name or not hospital_id:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_name y hospital_id"})
+                    return
+                api_key = api_key_manager.generate_key(hospital_name, hospital_id, permissions)
+                audit_logger.log("key_created", api_key, hospital_id, "/api/auth/api-keys", "POST", HTTPStatus.CREATED)
+                self._json(HTTPStatus.CREATED, {"api_key": api_key, "message": "API Key creada exitosamente"})
+                return
+            if route == "/api/auth/api-keys/list":
+                hospital_id = payload.get("hospital_id")
+                keys = api_key_manager.list_keys(hospital_id)
+                self._json(HTTPStatus.OK, {"keys": keys})
+                return
+            if route == "/api/auth/api-keys/revoke":
+                api_key = payload.get("api_key")
+                if not api_key:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
+                    return
+                if api_key_manager.revoke_key(api_key):
+                    audit_logger.log("key_revoked", api_key, 0, "/api/auth/api-keys/revoke", "POST", HTTPStatus.OK)
+                    self._json(HTTPStatus.OK, {"message": "API Key revocada exitosamente"})
+                else:
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "API Key no encontrada"})
+                return
+            if route == "/api/auth/validate":
+                api_key = payload.get("api_key")
+                if not api_key:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
+                    return
+                hospital_info = api_key_manager.validate_key(api_key)
+                if hospital_info:
+                    self._json(HTTPStatus.OK, {"valid": True, "hospital": hospital_info})
+                else:
+                    self._json(HTTPStatus.UNAUTHORIZED, {"valid": False, "error": "API Key inválida o revocada"})
+                return
+            if route == "/api/auth/logs":
+                hospital_id = payload.get("hospital_id")
+                event_type = payload.get("event_type")
+                logs = audit_logger.get_logs(hospital_id, event_type)
+                self._json(HTTPStatus.OK, {"logs": logs})
+                return
+            # Endpoints de webhooks para sincronización bidireccional
+            if route == "/api/webhooks/register":
+                hospital_id = payload.get("hospital_id")
+                url = payload.get("url")
+                events = payload.get("events")
+                secret = payload.get("secret")
+                if not hospital_id or not url or not events:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_id, url o events"})
+                    return
+                webhook_id = webhook_manager.register_webhook(hospital_id, url, events, secret)
+                self._json(HTTPStatus.CREATED, {"webhook_id": webhook_id, "message": "Webhook registrado exitosamente"})
+                return
+            if route == "/api/webhooks/list":
+                hospital_id = payload.get("hospital_id")
+                webhooks = webhook_manager.get_webhooks(hospital_id)
+                self._json(HTTPStatus.OK, {"webhooks": webhooks})
+                return
+            if route == "/api/webhooks/unregister":
+                webhook_id = payload.get("webhook_id")
+                if not webhook_id:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta webhook_id"})
+                    return
+                if webhook_manager.unregister_webhook(webhook_id):
+                    self._json(HTTPStatus.OK, {"message": "Webhook eliminado exitosamente"})
+                else:
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Webhook no encontrado"})
+                return
+            if route == "/api/webhooks/events":
+                self._json(HTTPStatus.OK, {"events": EventTypes.all_events()})
+                return
+            if route == "/api/webhooks/trigger":
+                event_type = payload.get("event_type")
+                data = payload.get("data")
+                if not event_type or not data:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan event_type o data"})
+                    return
+                webhook_manager.trigger_event(event_type, data)
+                self._json(HTTPStatus.OK, {"message": "Evento disparado exitosamente"})
                 return
         except ValueError as exc:
             self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
