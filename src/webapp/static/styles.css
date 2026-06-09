@@ -806,3 +806,48 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* Estilos para nueva visualización de disponibilidad por médico */
+.medico-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.medico-disponibilidad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fecha-disponibilidad {
+  background: var(--surface-2);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.fecha-disponibilidad strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--primary);
+}
+
+.horario-slot {
+  display: flex;
+  gap: 12px;
+  padding: 4px 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.horario-slot span {
+  flex: 1;
+}
+
+.no-disponible {
+  color: var(--muted);
+  font-style: italic;
+}

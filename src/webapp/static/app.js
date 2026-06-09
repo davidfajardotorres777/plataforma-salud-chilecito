@@ -196,13 +196,67 @@ function renderTurnos() {
 
 function renderDisponibilidad() {
   const rows = state.data.disponibilidad || [];
-  $("#disponibilidadList").innerHTML = rows.map((item) => `
-    <article class="record availability-row">
-      <strong>${item.dia_semana} ${item.hora_inicio}-${item.hora_fin}</strong>
-      <span>${text(item.medico?.nombre)} - ${text(item.medico?.especialidad?.nombre)} - ${text(item.medico?.centro?.nombre)}</span>
-      <span>Cupos ${item.cupos_libres}/${item.cupo_diario} - Precio estimado $${Number(item.precio_estimado || 0).toLocaleString("es-AR")}</span>
-    </article>
-  `).join("");
+  
+  // Agrupar disponibilidad por médico
+  const disponibilidadPorMedico = {};
+  rows.forEach((item) => {
+    const medicoId = item.medico?.id || 0;
+    if (!disponibilidadPorMedico[medicoId]) {
+      disponibilidadPorMedico[medicoId] = {
+        medico: item.medico,
+        horarios: []
+      };
+    }
+    disponibilidadPorMedico[medicoId].horarios.push(item);
+  });
+
+  // Generar fechas específicas para los próximos 7 días
+  const fechas = [];
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  for (let i = 0; i < 7; i++) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + i);
+    fechas.push({
+      fecha: fecha.toISOString().split('T')[0],
+      diaSemana: diasSemana[fecha.getDay()]
+    });
+  }
+
+  $("#disponibilidadList").innerHTML = Object.values(disponibilidadPorMedico).map((grupo) => {
+    const medico = grupo.medico;
+    const horarios = grupo.horarios;
+    
+    // Filtrar horarios disponibles para los próximos 7 días
+    const horariosDisponibles = fechas.map((fechaInfo) => {
+      const horariosDia = horarios.filter((h) => h.dia_semana === fechaInfo.diaSemana);
+      if (horariosDia.length === 0) return null;
+      
+      return `
+        <div class="fecha-disponibilidad">
+          <strong>${fechaInfo.fecha} (${fechaInfo.diaSemana})</strong>
+          ${horariosDia.map((h) => `
+            <div class="horario-slot">
+              <span>${h.hora_inicio} - ${h.hora_fin}</span>
+              <span>Cupos: ${h.cupos_libres}/${h.cupo_diario}</span>
+              <span>Precio: $${Number(h.precio_estimado || 0).toLocaleString("es-AR")}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }).filter(Boolean).join("");
+
+    return `
+      <article class="record availability-row">
+        <div class="medico-header">
+          <strong>${text(medico?.nombre)}</strong>
+          <span>${text(medico?.especialidad?.nombre)} - ${text(medico?.centro?.nombre)}</span>
+        </div>
+        <div class="medico-disponibilidad">
+          ${horariosDisponibles || "<span class='no-disponible'>Sin disponibilidad para los próximos 7 días</span>"}
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderPacientes() {
