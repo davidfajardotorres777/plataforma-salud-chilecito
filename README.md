@@ -27,6 +27,9 @@ usar la plataforma por conversacion.
 - Usar una plataforma conversacional con Bot IA local.
 - Ejecutar consultas y operaciones desde la capa DAO.
 - Cargar y validar la base Oracle con comandos automatizados.
+- **Integrarse con sistemas hospitalarios existentes (HIS) mediante API REST**
+- **Sincronizar datos bidireccionalmente con webhooks**
+- **Usar autenticación con API Keys para integraciones seguras**
 
 ## Nuevas funcionalidades (Modelo Single-Hospital)
 
@@ -53,6 +56,60 @@ Cada instancia puede personalizar:
 - Logo y colores
 - Mensaje de bienvenida
 - Políticas de cancelación
+
+## Sistema de Integración con HIS (Hospital Information Systems)
+
+**Problema**: Los hospitales ya tienen sistemas de gestión (HIS) y no quieren reemplazarlos.
+
+**Solución**: Salud Chilecito se integra con los sistemas existentes mediante API REST, no los reemplaza.
+
+### Características del Sistema de Integración
+
+- **API Keys**: Autenticación segura para integraciones entre sistemas
+- **Webhooks**: Sincronización bidireccional en tiempo real
+- **Adaptadores**: Soporte para diferentes tipos de HIS (REST, FHIR)
+- **Logs de auditoría**: Registro de todas las operaciones de integración
+- **Documentación OpenAPI**: API estándar y bien documentada para desarrolladores
+
+### Arquitectura de Integración
+
+```
+Paciente → Salud Chilecito → API REST → Adaptador → HIS (Sistema existente)
+         ←                ←         ←         ←
+```
+
+Salud Chilecito actúa como una **capa de mejora** que se conecta a los sistemas existentes de los hospitales, agregando funcionalidades como:
+- Selección por síntomas con IA
+- Bot conversacional
+- Landing pages personalizadas
+- Visualización mejorada de disponibilidad
+
+### Endpoints de Integración
+
+- `POST /api/auth/api-keys` - Generar API Keys para autenticación
+- `POST /api/auth/validate` - Validar API Keys
+- `POST /api/webhooks/register` - Registrar webhooks para sincronización
+- `POST /api/webhooks/trigger` - Disparar eventos de prueba
+
+### Tipos de Adaptadores
+
+- **REST Adapter**: Para sistemas HIS con API REST estándar
+- **FHIR Adapter**: Para sistemas que implementan el estándar HL7 FHIR
+- **Custom Adapter**: Se pueden crear adaptadores personalizados
+
+### Documentación
+
+- [Arquitectura de Integración](docs/ARQUITECTURA_INTEGRACION.md) - Guía completa de integración
+- [Documentación de API](docs/API_OPENAPI.md) - Referencia completa de la API REST
+- [Ejemplos de Integración](examples/integracion_his.py) - Ejemplos de código
+
+### Ventajas
+
+1. **No reemplaza**: Los hospitales mantienen sus sistemas existentes
+2. **Fácil integración**: API estándar y documentación clara
+3. **Valor agregado**: Funcionalidades que los HIS no tienen (IA, selección por síntomas)
+4. **Flexibilidad**: Se adapta a diferentes sistemas mediante adaptadores
+5. **Costo efectivo**: Menor costo que migrar a un nuevo sistema completo
 
 ## Componentes principales
 
