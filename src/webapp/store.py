@@ -397,3 +397,154 @@ class JsonStore:
             None,
         )
         return float(tarifa["precio"]) if tarifa else 0
+
+    # --- Nuevos helpers para integración -------------------------------------------------
+    def disponibilidad_filtered(
+        self,
+        centro_id: int | None = None,
+        especialidad_id: int | None = None,
+        medico_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Devuelve la disponibilidad filtrada por centro, especialidad o medico.
+
+        Esta función reutiliza la lógica existente de `disponibilidad` y aplica
+        filtros adicionales sobre los items ya enriquecidos.
+        """
+        rows = self.disponibilidad()
+        if centro_id is None and especialidad_id is None and medico_id is None:
+            return rows
+        filtered: list[dict[str, Any]] = []
+        for item in rows:
+            medico = item.get("medico") or {}
+            # centro_id: puede estar en medico['centro_id']
+            if centro_id is not None and int(medico.get("centro_id", -1)) != int(centro_id):
+                continue
+            if especialidad_id is not None and int(medico.get("especialidad_id", -1)) != int(especialidad_id):
+                continue
+            if medico_id is not None and int(medico.get("id", -1)) != int(medico_id):
+                continue
+            filtered.append(item)
+        return filtered
+
+    def create_agenda(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Crear una agenda para un medico (util para integración / import).
+
+        Campos requeridos: medico_id, dia_semana, hora_inicio, hora_fin,
+        duracion_minutos, cupo_diario.
+        """
+        required = ("medico_id", "dia_semana", "hora_inicio", "hora_fin", "duracion_minutos", "cupo_diario")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            medico = self._find(data["medicos"], int(payload["medico_id"]))
+            if medico is None:
+                raise ValueError("El medico seleccionado no existe")
+            agenda = {
+                "id": self._next_id(data["agendas"]),
+                "medico_id": int(payload["medico_id"]),
+                "dia_semana": payload["dia_semana"].strip(),
+                "hora_inicio": payload["hora_inicio"].strip(),
+                "hora_fin": payload["hora_fin"].strip(),
+                "duracion_minutos": int(payload["duracion_minutos"]),
+                "cupo_diario": int(payload["cupo_diario"]),
+            }
+            data["agendas"].append(agenda)
+            self._write(data)
+            return agenda
+
+    def import_agendas(self, agendas: list[dict[str, Any]]) -> dict[str, Any]:
+        """Importa una lista de agendas (batch). Retorna resumen de la operación."""
+        if not isinstance(agendas, list):
+            raise ValueError("Payload de import_agendas debe ser una lista de agendas")
+        created = 0
+        skipped = 0
+        errors: list[str] = []
+        for idx, a in enumerate(agendas, start=1):
+            try:
+                self.create_agenda(a)
+                created += 1
+            except Exception as exc:
+                skipped += 1
+                errors.append(f"fila {idx}: {str(exc)}")
+        return {"created": created, "skipped": skipped, "errors": errors}
+
+    def calcular_precio(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Calcula un precio estimado basado en medico/especialidad/centro y motivo/sintomas.
+
+        Reglas simples (MVP):
+        - Usa la tarifa existente por especialidad/tipo de centro como `base_price`.
+        - Extrae multiplicadores desde palabras clave del `motivo` para ajustar el precio.
+        - Si la tarifa del centro es 0 (publico), intenta sugerir un precio privado si existe.
+        """
+        if not isinstance(payload, dict):
+            raise ValueError("Payload invalido para calcular precio")
+        with self._lock:
+            data = self.read()
+
+            medico = None
+            especialidad_id = payload.get("especialidad_id")
+            centro = None
+
+            if payload.get("medico_id"):
+                medico = self._find(data["medicos"], int(payload["medico_id"]))
+                if medico is None:
+                    raise ValueError("Medico no existe")
+                especialidad_id = int(medico["especialidad_id"])
+                centro = self._find(data["centros"], int(medico["centro_id"]))
+            else:
+                if payload.get("centro_id"):
+                    centro = self._find(data["centros"], int(payload["centro_id"]))
+
+            base = 0.0
+            if medico is not None:
+                base = float(self._precio_estimado(data, medico))
+            elif especialidad_id and centro is not None:
+                tarifa = next((t for t in data["tarifas"] if int(t["especialidad_id"]) == int(especialidad_id) and t["tipo_centro"] == centro["tipo"]), None)
+                base = float(tarifa["precio"]) if tarifa else 0.0
+            else:
+                # intentar sugerir desde tarifas privadas si conocemos la especialidad
+                if especialidad_id:
+                    tarifa_priv = next((t for t in data["tarifas"] if int(t["especialidad_id"]) == int(especialidad_id) and t["tipo_centro"] == "PRIVADO"), None)
+                    base = float(tarifa_priv["precio"]) if tarifa_priv else 0.0
+
+            motivo = (payload.get("motivo") or payload.get("sintomas") or "").strip().lower()
+            # mapa simple de palabras clave a multiplicadores
+            multipliers: list[float] = []
+            if "dolor de pecho" in motivo:
+                multipliers.append(1.6)
+            if "dolor" in motivo:
+                multipliers.append(1.3)
+            if "urg" in motivo or "emerg" in motivo or "urgente" in motivo:
+                multipliers.append(1.5)
+            if "control" in motivo:
+                multipliers.append(1.0)
+            if "consulta" in motivo:
+                multipliers.append(1.0)
+            if "estudio" in motivo or "resultado" in motivo:
+                multipliers.append(1.2)
+
+            multiplier = max(multipliers) if multipliers else 1.0
+
+            suggested_private_base = None
+            if base == 0 and especialidad_id:
+                t = next((r for r in data["tarifas"] if int(r["especialidad_id"]) == int(especialidad_id) and r["tipo_centro"] == "PRIVADO"), None)
+                if t:
+                    suggested_private_base = float(t["precio"])
+
+            estimated = 0.0
+            if base and base > 0:
+                estimated = float(base) * multiplier
+            elif suggested_private_base:
+                estimated = float(suggested_private_base) * multiplier
+
+            range_min = round(max(0.0, estimated * 0.9), 2)
+            range_max = round(estimated * 1.2, 2)
+
+            return {
+                "base_price": float(base),
+                "suggested_private_base": float(suggested_private_base) if suggested_private_base is not None else None,
+                "multiplier": float(multiplier),
+                "estimated_price": round(float(estimated), 2),
+                "range": [range_min, range_max],
+                "motivo": motivo,
+            }

@@ -1,0 +1,8 @@
+medico_id,dia_semana,hora_inicio,hora_fin,duracion_minutos,cupo_diario
+1,Lunes,08:00,12:00,30,8
+1,Miercoles,08:00,12:00,30,8
+1,Viernes,14:00,18:00,30,8
+2,Martes,09:00,13:00,20,10
+2,Jueves,09:00,13:00,20,10
+3,Jueves,10:00,14:00,30,8
+4,Viernes,15:00,19:00,30,8

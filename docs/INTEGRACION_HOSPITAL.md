@@ -7,13 +7,34 @@ Resumen rápido
 
 Endpoints relevantes (modo demo / API local)
 
+**Dashboard y disponibilidad**
+
 - GET `/api/dashboard` — dashboard (acepta `?centro_id=<id>` para filtrar por centro).
+- GET `/api/disponibilidad` — lista agendas y cupos. Filtros opcionales: `?centro_id=<id>&especialidad_id=<id>&medico_id=<id>`.
+
+**Turnos**
+
 - POST `/api/turnos` — crear turno. Payload: `paciente_id`, `medico_id`, `fecha`, `hora`, `motivo`, opcional `precio`.
 - POST `/api/turnos/<id>` — actualizar un turno (mismo payload que crear).
 - POST `/api/turnos/<id>/estado` — cambiar estado: `{ "estado": "CONFIRMADO" }`.
+
+**Pacientes y centros**
+
 - POST `/api/pacientes` — crear paciente.
 - POST `/api/pacientes/<id>` — actualizar paciente.
 - POST `/api/centros` — crear centro (administrativo).
+
+**Agendas (nuevo)**
+
+- POST `/api/agendas` — crear agenda para un medico. Payload: `medico_id`, `dia_semana`, `hora_inicio`, `hora_fin`, `duracion_minutos`, `cupo_diario`.
+- POST `/api/agendas/import` — importar múltiples agendas (batch). Payload: lista de agendas (mismo formato).
+
+**Cálculo de precio (nuevo)**
+
+- POST `/api/calcular_precio` — estimar precio basado en especialidad/medico y motivo/síntomas. Payload: `medico_id` O `especialidad_id`, `motivo` (opcional `centro_id`). Retorna: `base_price`, `multiplier`, `estimated_price`, `range`.
+
+**Documentos**
+
 - POST `/api/documentos` — subir documento (base64 en `contenido_base64`).
 
 Recomendación de integración (patrón)

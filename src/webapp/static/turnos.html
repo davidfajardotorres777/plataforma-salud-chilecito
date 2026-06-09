@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sacar Turno - Salud Chilecito</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/turnos.css">
+  </head>
+  <body>
+    <div class="pub-shell">
+      <header class="pub-header">
+        <img src="/static/logo.svg" alt="Salud Chilecito" class="pub-logo">
+        <div>
+          <h1 id="hospitalName">Salud Chilecito</h1>
+          <p id="hospitalAddress">Cargando informacion...</p>
+        </div>
+      </header>
+
+      <main class="pub-main">
+
+        <div class="pub-steps" id="pubSteps">
+          <div class="pub-step active" data-step="1"><span>1</span> Especialidad</div>
+          <div class="pub-step" data-step="2"><span>2</span> Medico</div>
+          <div class="pub-step" data-step="3"><span>3</span> Dia y Horario</div>
+          <div class="pub-step" data-step="4"><span>4</span> Datos y Confirmar</div>
+        </div>
+
+        <div id="stepEspecialidades" class="pub-panel">
+          <h2>Seleccione una especialidad</h2>
+          <div id="especialidadesGrid" class="pub-card-grid"></div>
+        </div>
+
+        <div id="stepMedicos" class="pub-panel hidden">
+          <button class="pub-back" id="backMedicos" type="button">&larr; Volver</button>
+          <h2>Medicos disponibles</h2>
+          <div id="medicosGrid" class="pub-card-grid"></div>
+        </div>
+
+        <div id="stepHorarios" class="pub-panel hidden">
+          <button class="pub-back" id="backHorarios" type="button">&larr; Volver</button>
+          <h2>Dias y horarios disponibles</h2>
+          <div id="horariosGrid" class="pub-card-grid"></div>
+        </div>
+
+        <div id="stepConfirmar" class="pub-panel hidden">
+          <button class="pub-back" id="backConfirmar" type="button">&larr; Volver</button>
+          <h2>Sus datos y confirmacion</h2>
+          <div class="pub-confirm-layout">
+            <div class="pub-confirm-summary" id="confirmSummary"></div>
+            <form id="confirmForm" class="pub-form">
+              <label>DNI
+                <input name="dni" required maxlength="20" placeholder="Ej: 40111222">
+              </label>
+              <label>Nombre completo
+                <input name="nombre" required placeholder="Ej: Juan Perez">
+              </label>
+              <div class="form-row">
+                <label>Telefono
+                  <input name="telefono" required placeholder="Ej: 3825-600001">
+                </label>
+                <label>Distrito
+                  <input name="distrito" required placeholder="Ej: Chilecito">
+                </label>
+              </div>
+              <label>Obra social
+                <input name="obra_social" placeholder="Ej: APOS (opcional)">
+              </label>
+              <label>Motivo / Sintomas
+                <textarea name="motivo" rows="3" required placeholder="Ej: Dolor de pecho, control cardiologico..."></textarea>
+              </label>
+              <div id="precioEstimado" class="pub-price-box hidden">
+                <span>Precio estimado</span>
+                <strong id="precioValue">$0</strong>
+                <small id="precioRange"></small>
+              </div>
+              <button type="submit" class="pub-btn-confirm">Confirmar turno</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="stepExito" class="pub-panel hidden">
+          <div class="pub-success">
+            <div class="pub-success-icon">&#10003;</div>
+            <h2>Turno reservado</h2>
+            <p id="exitoDetalle"></p>
+            <button id="nuevoTurno" type="button">Sacar otro turno</button>
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="pub-footer">
+        <span>Salud Chilecito &mdash; Plataforma de gestion de turnos</span>
+      </footer>
+    </div>
+
+    <div id="pubToast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/turnos.js"></script>
+  </body>
+</html>

@@ -1,0 +1,371 @@
+/* === Public-facing hospital turnos page === */
+
+.pub-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: #eef2f5;
+}
+
+.pub-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 28px;
+  background: #17202a;
+  color: #f8fafc;
+}
+
+.pub-logo {
+  width: 56px;
+  height: 56px;
+}
+
+.pub-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.pub-header p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.pub-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 18px;
+  width: 100%;
+}
+
+/* Steps indicator */
+.pub-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pub-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #d1d5db;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 200ms, color 200ms;
+}
+
+.pub-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #9ca3af;
+  color: white;
+  font-size: 12px;
+}
+
+.pub-step.active {
+  background: var(--primary);
+  color: white;
+}
+
+.pub-step.active span {
+  background: white;
+  color: var(--primary);
+}
+
+.pub-step.done {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pub-step.done span {
+  background: #166534;
+  color: white;
+}
+
+/* Panel */
+.pub-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.pub-panel.hidden {
+  display: none;
+}
+
+.pub-panel h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+}
+
+.pub-back {
+  background: none;
+  color: var(--primary);
+  min-height: 36px;
+  padding: 0 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.pub-back:hover {
+  background: #f0fdfa;
+}
+
+/* Card grid */
+.pub-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.pub-card {
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color 160ms, box-shadow 160ms, transform 100ms;
+  background: white;
+}
+
+.pub-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.12);
+  transform: translateY(-2px);
+}
+
+.pub-card.selected {
+  border-color: var(--primary);
+  background: #f0fdfa;
+}
+
+.pub-card strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.pub-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pub-card .pub-card-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pub-card .pub-card-cupos {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pub-card .pub-card-cupos.disponibles {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pub-card .pub-card-cupos.pocos {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pub-card .pub-card-cupos.llenos {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pub-card .pub-card-price {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Confirm layout */
+.pub-confirm-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.pub-confirm-summary {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.pub-confirm-summary h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--primary-dark);
+}
+
+.pub-confirm-summary .summary-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #d1fae5;
+  font-size: 14px;
+}
+
+.pub-confirm-summary .summary-line:last-child {
+  border-bottom: none;
+}
+
+.pub-confirm-summary .summary-label {
+  color: var(--muted);
+}
+
+.pub-confirm-summary .summary-value {
+  font-weight: 600;
+}
+
+/* Form */
+.pub-form {
+  display: grid;
+  gap: 12px;
+}
+
+.pub-price-box {
+  background: #f0fdfa;
+  border: 2px solid var(--primary);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+
+.pub-price-box.hidden {
+  display: none;
+}
+
+.pub-price-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.pub-price-box strong {
+  font-size: 32px;
+  color: var(--primary-dark);
+}
+
+.pub-price-box small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pub-btn-confirm {
+  background: var(--primary);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  min-height: 48px;
+}
+
+.pub-btn-confirm:hover {
+  background: var(--primary-dark);
+}
+
+/* Success */
+.pub-success {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.pub-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 40px;
+  margin-bottom: 18px;
+}
+
+.pub-success h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  color: #166534;
+}
+
+.pub-success p {
+  color: var(--muted);
+  margin: 0 0 24px;
+  font-size: 16px;
+}
+
+.pub-success button {
+  font-size: 16px;
+  min-height: 44px;
+}
+
+/* Footer */
+.pub-footer {
+  text-align: center;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .pub-steps {
+    gap: 4px;
+  }
+
+  .pub-step {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .pub-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pub-confirm-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pub-header {
+    padding: 14px 16px;
+  }
+
+  .pub-main {
+    padding: 16px 12px;
+  }
+}
