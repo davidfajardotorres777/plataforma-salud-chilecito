@@ -1,4 +1,4 @@
-# Plataforma conversacional con Bot IA
+# Plataforma conversacional con Bot IA (Modelo Single-Hospital)
 
 El proyecto tiene dos formas de uso:
 
@@ -8,6 +8,10 @@ El proyecto tiene dos formas de uso:
 El bot trabaja sobre los mismos datos de la demo JSON. Si se crea un paciente,
 se edita un turno o se adjunta un documento desde el chat, el cambio tambien se
 ve en el panel grafico.
+
+**Nuevo modelo Single-Hospital**: El sistema ahora incluye funcionalidades para
+selección de especialidades por síntomas, configuración personalizada del hospital,
+y precios por tipo de consulta.
 
 ## Iniciar en Windows
 
@@ -66,6 +70,15 @@ listar centros
 listar medicos
 listar turnos
 listar documentos
+listar sintomas
+```
+
+**NUEVO: Selección por síntomas**
+
+```text
+que especialidad para dolor de pecho
+que doctor para fiebre
+listar sintomas
 ```
 
 Consultar disponibilidad y precios:
@@ -147,3 +160,5 @@ ver documento 1
 - Para cargar imagenes o PDF desde archivos locales, conviene usar el panel
   grafico en `http://localhost:8000`; despues se pueden consultar desde el bot
   con `ver documento ID`.
+- **Nuevo**: El bot ahora puede recomendar especialidades basándose en síntomas
+  descritos por el usuario.

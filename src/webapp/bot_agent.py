@@ -61,11 +61,13 @@ class BotAgent:
                 return self._help()
             if self._has_any(normalized, "hola", "buenas", "buen dia"):
                 return self._reply(
-                    "Hola. Soy el bot IA de Salud Chilecito. Puedo crear, listar, editar y eliminar datos con comandos en lenguaje simple.",
-                    ["listar pacientes", "crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control", "ayuda"],
+                    "Hola. Soy el bot IA de Salud Chilecito. Puedo crear, listar, editar y eliminar datos con comandos en lenguaje simple. Tambien puedo ayudarte a encontrar especialidades por síntomas.",
+                    ["listar pacientes", "crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control", "que especialidad para dolor de pecho", "ayuda"],
                 )
             if self._has_any(normalized, "resumen", "dashboard", "metricas", "estado general"):
                 return self._summary()
+            if self._mentions(normalized, "sintoma", "sintomas", "que especialidad para", "que doctor para"):
+                return self._symptom_intent(text, normalized)
             if self._mentions(normalized, "documento", "documentos"):
                 return self._document_intent(text, normalized)
             if self._mentions(normalized, "turno", "turnos", "agenda"):
@@ -147,6 +149,57 @@ class BotAgent:
                 "editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado",
                 "eliminar turno 2",
             ],
+        )
+
+    def _symptom_intent(self, text: str, normalized: str) -> dict[str, Any]:
+        """Maneja consultas sobre síntomas y especialidades recomendadas"""
+        if self._wants_list(normalized):
+            return self._list_sintomas()
+        
+        # Extraer el síntoma del texto
+        sintoma_text = text
+        # Eliminar palabras comunes para extraer el síntoma
+        for word in ["que", "cual", "para", "especialidad", "doctor", "medico", "necesito", "tengo"]:
+            sintoma_text = sintoma_text.replace(word, "", 1).strip()
+        
+        if not sintoma_text:
+            return self._reply(
+                "Decime que síntoma tienes y te recomendaré la especialidad.",
+                ["dolor de pecho", "fiebre", "dolor de cabeza", "listar sintomas"],
+            )
+        
+        resultado = self.store.buscar_especialidad_por_sintoma(sintoma_text)
+        if resultado:
+            especialidad = resultado["especialidad"]
+            prioridad = resultado["prioridad"]
+            return self._reply(
+                f"Para '{sintoma_text}' te recomiendo: {especialidad['nombre']} (Prioridad: {prioridad}).\n"
+                f"Descripción: {especialidad.get('descripcion', 'Sin descripción')}",
+                [
+                    f"listar medicos",
+                    f"crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo {sintoma_text}",
+                    "listar sintomas",
+                ],
+                {"resultado": resultado},
+            )
+        else:
+            return self._reply(
+                f"No encontré una especialidad específica para '{sintoma_text}'. "
+                "Te recomiendo consultar con Clínica Médica para una evaluación general.",
+                ["listar sintomas", "listar especialidades"],
+            )
+
+    def _list_sintomas(self) -> dict[str, Any]:
+        """Lista todos los síntomas disponibles"""
+        sintomas = self.store.listar_sintomas()
+        return self._reply(
+            self._format_rows(
+                "Síntomas disponibles:",
+                sintomas,
+                lambda s: f"{s['descripcion']} → {s['especialidad']['nombre'] if s.get('especialidad') else 'N/A'} (Prioridad: {s.get('prioridad', 'MEDIA')})",
+            ),
+            ["que especialidad para dolor de pecho", "listar especialidades"],
+            {"items": sintomas},
         )
 
     def _document_intent(self, text: str, normalized: str) -> dict[str, Any]:
@@ -520,7 +573,8 @@ class BotAgent:
                     intro,
                     "Comandos utiles:",
                     "- resumen",
-                    "- listar pacientes / listar centros / listar medicos / listar turnos / listar documentos",
+                    "- listar pacientes / listar centros / listar medicos / listar turnos / listar documentos / listar sintomas",
+                    "- que especialidad para dolor de pecho / que doctor para fiebre",
                     "- crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS",
                     "- editar paciente 1 telefono 3825-999000",
                     "- crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo control",

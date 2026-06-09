@@ -1,7 +1,8 @@
 # Salud Chilecito
 
-Plataforma digital para gestionar centros de salud, pacientes, medicos, turnos, historial clinico y documentos asociados a la atencion medica en Chilecito y sus distritos cercanos.
+Sistema de gestión de turnos y pacientes diseñado para ser implementado en hospitales y clínicas individuales. Cada hospital tiene su propia instancia del sistema, permitiendo a los pacientes reservar turnos online seleccionando sus síntomas para encontrar el especialista adecuado, ver disponibilidad en tiempo real y conocer los precios estimados.
 
+**Modelo de negocio:** Sistema vendido a hospitales/clínicas (single-hospital instance)  
 **Autor:** Alesandro David Fajardo / Kevin Facundo Nunez  
 **Universidad:** Universidad Nacional de Chilecito  
 **Ano:** 2026
@@ -172,6 +173,17 @@ dao.cerrar()
 | | `disponibilidad_por_medico(id)` | Cupos disponibles por medico |
 | **Historial** | `listar_historial_por_paciente(id)` | Historial clinico del paciente |
 | | `registrar_historial(...)` | Registra un nuevo registro clinico |
+| **Síntomas (NUEVO)** | `listar_sintomas()` | Lista todos los síntomas con sus especialidades |
+| | `buscar_especialidad_por_sintoma(sintoma)` | Busca especialidad recomendada por síntoma |
+| | `crear_sintoma(...)` | Crea un nuevo síntoma |
+| **Configuración Hospital (NUEVO)** | `obtener_configuracion_hospital(id)` | Obtiene configuración del hospital |
+| | `crear_configuracion_hospital(...)` | Configura una instancia de hospital |
+| **Precios (NUEVO)** | `listar_tipos_consulta()` | Lista tipos de consulta |
+| | `obtener_precios_por_especialidad(centro, especialidad)` | Precios por especialidad |
+| | `obtener_precio_estimado_por_tipo(...)` | Precio estimado por tipo de consulta |
+| **Disponibilidad Mejorada (NUEVO)** | `obtener_turnos_disponibles_por_medico(medico, dias)` | Turnos disponibles por médico |
+| | `obtener_medicos_disponibles_por_especialidad(...)` | Médicos disponibles por especialidad |
+| | `obtener_horarios_disponibles(medico, fecha)` | Horarios específicos disponibles |
 
 ---
 
@@ -189,6 +201,64 @@ El notebook `newDemo.ipynb` muestra:
 8. Precio estimado por especialidad y centro
 9. Operaciones CRUD de ejemplo
 10. Estructura de tablas, columnas, constraints e indices de Oracle
+
+---
+
+## Nuevas funcionalidades (Single-Hospital Model)
+
+### Selección por síntomas
+Los pacientes pueden seleccionar sus síntomas y el sistema sugiere automáticamente la especialidad adecuada:
+- Dolor de pecho → Cardiología
+- Dolor de muelas → Odontología
+- Fiebre en niños → Pediatría
+
+### Precios por tipo de consulta
+Cada especialidad tiene rangos de precios según el tipo de consulta:
+- Consulta General
+- Consulta de Urgencia
+- Consulta de Seguimiento
+- Estudio Complementario
+- Primera Consulta
+
+### Disponibilidad en tiempo real
+Visualización de horarios disponibles por médico y fecha específica.
+
+### Configuración personalizada por hospital
+Cada instancia puede personalizar:
+- Nombre del hospital
+- Logo y colores
+- Mensaje de bienvenida
+- Políticas de cancelación
+
+---
+
+## Instalación para un hospital específico
+
+Para implementar este sistema en un hospital:
+
+1. **Configurar la instancia del hospital**
+   ```python
+   from dao import SaludDAO
+   dao = SaludDAO()
+   dao.crear_configuracion_hospital(
+       nombre_hospital="Hospital Mi Hospital",
+       id_centro_principal=1,
+       color_primario="#0066cc",
+       mensaje_bienvenida="Bienvenido al sistema de turnos"
+   )
+   ```
+
+2. **Cargar síntomas específicos del hospital**
+   ```python
+   dao.crear_sintoma("Dolor de pecho", id_especialidad=3, prioridad="ALTA")
+   ```
+
+3. **Configurar precios por especialidad**
+   ```python
+   # Ver docs/INTEGRACION_HOSPITAL.md para más detalles
+   ```
+
+Para más información sobre integración con sistemas existentes del hospital, ver `docs/INTEGRACION_HOSPITAL.md`.
 
 ---
 

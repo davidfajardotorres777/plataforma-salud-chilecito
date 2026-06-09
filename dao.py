@@ -454,6 +454,238 @@ class SaludDAO:
         )
 
     # ======================================================================
+    # SINTOMAS Y ESPECIALIDADES
+    # ======================================================================
+
+    def listar_sintomas(self) -> list[dict]:
+        return self.fetch_all(
+            """
+            SELECT s.id_sintoma, s.descripcion, s.prioridad, 
+                   e.nombre AS especialidad, e.id_especialidad
+            FROM sintoma s
+            JOIN especialidad e ON e.id_especialidad = s.id_especialidad
+            WHERE s.activo = 'S' AND e.activa = 'S'
+            ORDER BY s.prioridad DESC, e.nombre, s.descripcion
+            """
+        )
+
+    def buscar_especialidad_por_sintoma(self, sintoma: str) -> dict | None:
+        return self.fetch_one(
+            """
+            SELECT s.id_sintoma, s.descripcion, s.prioridad,
+                   e.id_especialidad, e.nombre AS especialidad
+            FROM sintoma s
+            JOIN especialidad e ON e.id_especialidad = s.id_especialidad
+            WHERE UPPER(s.descripcion) LIKE '%' || UPPER(:sintoma) || '%'
+              AND s.activo = 'S' AND e.activa = 'S'
+            """,
+            {"sintoma": sintoma},
+        )
+
+    def crear_sintoma(
+        self, descripcion: str, id_especialidad: int, 
+        prioridad: str = "MEDIA", activo: str = "S"
+    ) -> int:
+        return self.execute(
+            """
+            INSERT INTO sintoma (descripcion, id_especialidad, prioridad, activo)
+            VALUES (:descripcion, :id_especialidad, :prioridad, :activo)
+            """,
+            {
+                "descripcion": descripcion, "id_especialidad": id_especialidad,
+                "prioridad": prioridad, "activo": activo,
+            },
+        )
+
+    # ======================================================================
+    # CONFIGURACION DEL HOSPITAL
+    # ======================================================================
+
+    def obtener_configuracion_hospital(self, id_configuracion: int = 1) -> dict | None:
+        return self.fetch_one(
+            """
+            SELECT ch.id_configuracion, ch.nombre_hospital, ch.logo_url,
+                   ch.color_primario, ch.color_secundario, ch.mensaje_bienvenida,
+                   ch.requiere_derivacion, ch.tiempo_cancelacion_horas,
+                   c.nombre AS centro_principal, c.direccion, c.telefono
+            FROM configuracion_hospital ch
+            JOIN centro_salud c ON c.id_centro = ch.id_centro_principal
+            WHERE ch.id_configuracion = :id_configuracion
+            """,
+            {"id_configuracion": id_configuracion},
+        )
+
+    def crear_configuracion_hospital(
+        self, nombre_hospital: str, id_centro_principal: int,
+        logo_url: str | None = None, color_primario: str = "#0066cc",
+        color_secundario: str = "#ffffff", mensaje_bienvenida: str | None = None,
+        requiere_derivacion: str = "N", tiempo_cancelacion_horas: int = 24
+    ) -> int:
+        return self.execute(
+            """
+            INSERT INTO configuracion_hospital
+              (nombre_hospital, id_centro_principal, logo_url, color_primario,
+               color_secundario, mensaje_bienvenida, requiere_derivacion, tiempo_cancelacion_horas)
+            VALUES
+              (:nombre_hospital, :id_centro_principal, :logo_url, :color_primario,
+               :color_secundario, :mensaje_bienvenida, :requiere_derivacion, :tiempo_cancelacion_horas)
+            """,
+            {
+                "nombre_hospital": nombre_hospital, "id_centro_principal": id_centro_principal,
+                "logo_url": logo_url, "color_primario": color_primario,
+                "color_secundario": color_secundario, "mensaje_bienvenida": mensaje_bienvenida,
+                "requiere_derivacion": requiere_derivacion, "tiempo_cancelacion_horas": tiempo_cancelacion_horas,
+            },
+        )
+
+    # ======================================================================
+    # TIPOS DE CONSULTA Y PRECIOS
+    # ======================================================================
+
+    def listar_tipos_consulta(self) -> list[dict]:
+        return self.fetch_all(
+            """
+            SELECT id_tipo_consulta, nombre, descripcion, duracion_minutos, activo
+            FROM tipo_consulta
+            WHERE activo = 'S'
+            ORDER BY nombre
+            """
+        )
+
+    def obtener_precios_por_especialidad(
+        self, id_centro: int, id_especialidad: int
+    ) -> list[dict]:
+        return self.fetch_all(
+            """
+            SELECT pe.id_precio, pe.precio_minimo, pe.precio_maximo, pe.precio_estimado,
+                   tc.nombre AS tipo_consulta, tc.descripcion, tc.duracion_minutos
+            FROM precio_especialidad pe
+            JOIN tipo_consulta tc ON tc.id_tipo_consulta = pe.id_tipo_consulta
+            WHERE pe.id_centro = :id_centro 
+              AND pe.id_especialidad = :id_especialidad
+              AND pe.activo = 'S' AND tc.activo = 'S'
+            ORDER BY tc.nombre
+            """,
+            {"id_centro": id_centro, "id_especialidad": id_especialidad},
+        )
+
+    def obtener_precio_estimado_por_tipo(
+        self, id_centro: int, id_especialidad: int, id_tipo_consulta: int
+    ) -> dict | None:
+        return self.fetch_one(
+            """
+            SELECT precio_minimo, precio_maximo, precio_estimado
+            FROM precio_especialidad
+            WHERE id_centro = :id_centro 
+              AND id_especialidad = :id_especialidad
+              AND id_tipo_consulta = :id_tipo_consulta
+              AND activo = 'S'
+            """,
+            {
+                "id_centro": id_centro, "id_especialidad": id_especialidad,
+                "id_tipo_consulta": id_tipo_consulta,
+            },
+        )
+
+    # ======================================================================
+    # DISPONIBILIDAD DE TURNOS (MEJORADA)
+    # ======================================================================
+
+    def obtener_turnos_disponibles_por_medico(
+        self, id_medico: int, dias: int = 7
+    ) -> list[dict]:
+        return self.fetch_all(
+            """
+            WITH fechas_disponibles AS (
+                SELECT TRUNC(SYSDATE) + LEVEL AS fecha
+                FROM dual
+                CONNECT BY LEVEL <= :dias
+            ),
+            slots_agenda AS (
+                SELECT fd.fecha,
+                       a.dia_semana,
+                       a.hora_inicio,
+                       a.hora_fin,
+                       a.duracion_minutos,
+                       a.cupo_diario
+                FROM fechas_disponibles fd
+                JOIN agenda_medico a ON 
+                    TO_CHAR(fd.fecha, 'DY', 'NLS_DATE_LANGUAGE=SPANISH') = a.dia_semana
+                WHERE a.id_medico = :id_medico
+            )
+            SELECT sa.fecha,
+                   sa.dia_semana,
+                   sa.hora_inicio,
+                   sa.hora_fin,
+                   sa.duracion_minutos,
+                   sa.cupo_diario,
+                   sa.cupo_diario - COUNT(t.id_turno) AS cupos_disponibles
+            FROM slots_agenda sa
+            LEFT JOIN turno t ON 
+                t.id_medico = :id_medico
+                AND TRUNC(t.fecha_turno) = sa.fecha
+                AND t.estado IN ('PENDIENTE', 'CONFIRMADO')
+            GROUP BY sa.fecha, sa.dia_semana, sa.hora_inicio, sa.hora_fin,
+                     sa.duracion_minutos, sa.cupo_diario
+            HAVING sa.cupo_diario - COUNT(t.id_turno) > 0
+            ORDER BY sa.fecha, sa.hora_inicio
+            """,
+            {"id_medico": id_medico, "dias": dias},
+        )
+
+    def obtener_medicos_disponibles_por_especialidad(
+        self, id_centro: int, id_especialidad: int, dias: int = 7
+    ) -> list[dict]:
+        return self.fetch_all(
+            """
+            SELECT DISTINCT m.id_medico, m.nombre, m.matricula, m.telefono, m.email,
+                   e.nombre AS especialidad
+            FROM medico m
+            JOIN especialidad e ON e.id_especialidad = m.id_especialidad
+            JOIN agenda_medico a ON a.id_medico = m.id_medico
+            WHERE m.id_centro = :id_centro
+              AND m.id_especialidad = :id_especialidad
+              AND m.activo = 'S'
+              AND e.activa = 'S'
+            ORDER BY m.nombre
+            """,
+            {"id_centro": id_centro, "id_especialidad": id_especialidad},
+        )
+
+    def obtener_horarios_disponibles(
+        self, id_medico: int, fecha: str
+    ) -> list[dict]:
+        return self.fetch_all(
+            """
+            WITH slots AS (
+                SELECT TO_DATE(:fecha || ' ' || a.hora_inicio, 'YYYY-MM-DD HH24:MI') + 
+                       (LEVEL - 1) * (a.duracion_minutos / 1440) AS slot_inicio,
+                       TO_DATE(:fecha || ' ' || a.hora_inicio, 'YYYY-MM-DD HH24:MI') + 
+                       LEVEL * (a.duracion_minutos / 1440) AS slot_fin
+                FROM agenda_medico a
+                CROSS JOIN (
+                    SELECT LEVEL FROM dual 
+                    CONNECT BY LEVEL <= (a.cupo_diario)
+                )
+                WHERE a.id_medico = :id_medico
+                  AND TO_CHAR(TO_DATE(:fecha, 'YYYY-MM-DD'), 'DY', 'NLS_DATE_LANGUAGE=SPANISH') = a.dia_semana
+            )
+            SELECT TO_CHAR(s.slot_inicio, 'HH24:MI') AS hora,
+                   TO_CHAR(s.slot_fin, 'HH24:MI') AS hora_fin,
+                   s.slot_inicio AS fecha_hora
+            FROM slots s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM turno t
+                WHERE t.id_medico = :id_medico
+                  AND t.fecha_turno BETWEEN s.slot_inicio AND s.slot_fin
+                  AND t.estado IN ('PENDIENTE', 'CONFIRMADO')
+            )
+            ORDER BY s.slot_inicio
+            """,
+            {"id_medico": id_medico, "fecha": fecha},
+        )
+
+    # ======================================================================
     # CIERRE
     # ======================================================================
 

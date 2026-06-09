@@ -127,6 +127,43 @@ class SaludHandler(BaseHTTPRequestHandler):
             self._json(HTTPStatus.OK, {"status": "OK", "modo": "demo-json"})
             return
 
+        # --- Nuevos endpoints para modelo Single-Hospital ---
+        if route == "/api/sintomas":
+            self._json(HTTPStatus.OK, self.store.listar_sintomas())
+            return
+
+        if route == "/api/buscar-especialidad-por-sintoma":
+            qs = parse_qs(parsed.query)
+            sintoma = qs.get("sintoma", [None])[0]
+            if not sintoma:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "sintoma requerido"})
+                return
+            resultado = self.store.buscar_especialidad_por_sintoma(sintoma)
+            self._json(HTTPStatus.OK, resultado or {"error": "No se encontró especialidad para el síntoma"})
+            return
+
+        if route == "/api/configuracion-hospital":
+            self._json(HTTPStatus.OK, self.store.obtener_configuracion_hospital())
+            return
+
+        if route == "/api/tipos-consulta":
+            self._json(HTTPStatus.OK, self.store.listar_tipos_consulta())
+            return
+
+        if route == "/api/precios-especialidad":
+            qs = parse_qs(parsed.query)
+            centro_id = qs.get("centro_id", [None])[0]
+            especialidad_id = qs.get("especialidad_id", [None])[0]
+            if not centro_id or not especialidad_id:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id y especialidad_id requeridos"})
+                return
+            try:
+                precios = self.store.obtener_precios_por_especialidad(int(centro_id), int(especialidad_id))
+                self._json(HTTPStatus.OK, precios)
+            except Exception as exc:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+            return
+
         # --- Ruta publica: /<slug> → pagina de turnos del hospital ---
         slug = route.strip("/")
         if slug and not route.startswith("/api/"):

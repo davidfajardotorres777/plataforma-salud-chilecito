@@ -1,9 +1,10 @@
-Integración con sistemas internos del hospital
+Integración con sistemas internos del hospital (Modelo Single-Hospital)
 
 Resumen rápido
 
 - Objetivo: explicar cómo integrar un sistema de gestión de turnos (externo o interno) con Salud Chilecito.
 - Alcance: intercambio de agendas y turnos, sincronización de pacientes y documentos, recomendaciones de seguridad.
+- **Nuevo modelo**: Cada hospital tiene su propia instancia del sistema. Los pacientes acceden directamente al sistema del hospital (ej: hospital-chilecito.com).
 
 Endpoints relevantes (modo demo / API local)
 
@@ -32,6 +33,17 @@ Endpoints relevantes (modo demo / API local)
 **Cálculo de precio (nuevo)**
 
 - POST `/api/calcular_precio` — estimar precio basado en especialidad/medico y motivo/síntomas. Payload: `medico_id` O `especialidad_id`, `motivo` (opcional `centro_id`). Retorna: `base_price`, `multiplier`, `estimated_price`, `range`.
+
+**Selección por síntomas (nuevo)**
+
+- GET `/api/sintomas` — lista todos los síntomas disponibles con sus especialidades asociadas.
+- POST `/api/buscar-especialidad-por-sintoma` — busca la especialidad recomendada según el síntoma. Payload: `sintoma` (texto). Retorna: `especialidad`, `prioridad`, `id_especialidad`.
+- GET `/api/precios-especialidad` — obtiene rangos de precios por especialidad y tipo de consulta. Filtros: `centro_id`, `especialidad_id`.
+
+**Disponibilidad mejorada (nuevo)**
+
+- GET `/api/turnos-disponibles` — lista turnos disponibles por médico en los próximos N días. Filtros: `medico_id`, `dias` (default 7).
+- GET `/api/horarios-disponibles` — lista horarios específicos disponibles para un médico en una fecha. Filtros: `medico_id`, `fecha` (YYYY-MM-DD).
 
 **Documentos**
 
@@ -67,7 +79,21 @@ Checklist de integración
 - [ ] Probar creación de pacientes y turnos con llamadas a la API local.
 - [ ] Implementar autenticación para el adaptador.
 - [ ] Monitorizar logs y crear alertas en caso de desincronización.
+- [ ] Configurar síntomas y mapeo a especialidades para el hospital específico.
+- [ ] Configurar rangos de precios por especialidad y tipo de consulta.
+- [ ] Configurar la apariencia del sistema (logo, colores, mensaje de bienvenida).
 
 Ejemplo rápido (crear turno via curl)
 
 curl -X POST "http://localhost:8000/api/turnos" -H "Content-Type: application/json" -d '{"paciente_id":1,"medico_id":1,"fecha":"2026-06-20","hora":"09:30","motivo":"Dolor de pecho"}'
+
+Ejemplo nuevo (flujo por síntomas)
+
+1. Buscar especialidad por síntoma:
+   curl -X POST "http://localhost:8000/api/buscar-especialidad-por-sintoma" -H "Content-Type: application/json" -d '{"sintoma":"dolor de pecho"}'
+
+2. Obtener precios por especialidad:
+   curl "http://localhost:8000/api/precios-especialidad?centro_id=1&especialidad_id=3"
+
+3. Obtener horarios disponibles:
+   curl "http://localhost:8000/api/horarios-disponibles?medico_id=1&fecha=2026-06-20"

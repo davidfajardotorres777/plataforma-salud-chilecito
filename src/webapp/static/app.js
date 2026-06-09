@@ -83,6 +83,24 @@ function fillSelects() {
   $("#turnoPaciente").innerHTML = pacienteOptions;
   $("#documentoPaciente").innerHTML = pacienteOptions;
 
+  // Populate symptom dropdown (new for single-hospital model)
+  const sintomaOptions = ["<option value=''>Seleccionar síntoma...</option>", ...state.data.sintomas.map(s => `<option value="${s.id}" data-especialidad-id="${s.especialidad_id}">${s.descripcion} - ${s.especialidad ? s.especialidad.nombre : 'N/A'} (Prioridad: ${s.prioridad})</option>`)].join("");
+  $("#turnoSintoma").innerHTML = sintomaOptions;
+  
+  // Add symptom change listener to auto-select doctor
+  $("#turnoSintoma").addEventListener("change", (e) => {
+    const selectedOption = e.target.selectedOptions[0];
+    if (selectedOption && selectedOption.value) {
+      const especialidadId = parseInt(selectedOption.dataset.especialidadId);
+      const medicosEspecialidad = state.data.medicos.filter(m => m.especialidad && m.especialidad.id === especialidadId);
+      if (medicosEspecialidad.length > 0) {
+        $("#turnoMedico").value = medicosEspecialidad[0].id;
+        updateTurnoEstimatedPrice();
+        showToast(`Especialidad seleccionada: ${medicosEspecialidad[0].especialidad.nombre}`);
+      }
+    }
+  });
+
   $("#turnoMedico").innerHTML = state.data.medicos
     .map((m) => {
       const centro = m.centro ? m.centro.nombre : "Sin centro";

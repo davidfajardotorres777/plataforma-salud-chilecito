@@ -184,5 +184,46 @@
     { "especialidad_id": 5, "tipo_centro": "PRIVADO", "precio": 15000 },
     { "especialidad_id": 6, "tipo_centro": "PRIVADO", "precio": 14000 }
   ],
-  "documentos": []
+  "documentos": [],
+  "sintomas": [
+    { "id": 1, "descripcion": "Dolor de pecho", "especialidad_id": 3, "prioridad": "ALTA", "activo": true },
+    { "id": 2, "descripcion": "Dolor de muelas", "especialidad_id": 4, "prioridad": "MEDIA", "activo": true },
+    { "id": 3, "descripcion": "Fiebre en niños", "especialidad_id": 2, "prioridad": "ALTA", "activo": true },
+    { "id": 4, "descripcion": "Dolor de cabeza", "especialidad_id": 1, "prioridad": "MEDIA", "activo": true },
+    { "id": 5, "descripcion": "Dolor abdominal", "especialidad_id": 1, "prioridad": "ALTA", "activo": true },
+    { "id": 6, "descripcion": "Fractura o trauma", "especialidad_id": 6, "prioridad": "ALTA", "activo": true },
+    { "id": 7, "descripcion": "Problemas ginecológicos", "especialidad_id": 5, "prioridad": "MEDIA", "activo": true },
+    { "id": 8, "descripcion": "Tos persistente", "especialidad_id": 1, "prioridad": "MEDIA", "activo": true }
+  ],
+  "configuracion_hospital": [
+    {
+      "id": 1,
+      "nombre_hospital": "Hospital Eleazar Herrera Motta",
+      "centro_principal_id": 1,
+      "logo_url": "",
+      "color_primario": "#0066cc",
+      "color_secundario": "#004499",
+      "mensaje_bienvenida": "Bienvenido al sistema de turnos del Hospital Eleazar Herrera Motta",
+      "politica_cancelacion": "Los turnos pueden cancelarse con 24 horas de antelación",
+      "telefono_contacto": "3825-422100",
+      "email_contacto": "turnos@hospitalchilecito.gov.ar"
+    }
+  ],
+  "tipos_consulta": [
+    { "id": 1, "nombre": "Consulta General", "descripcion": "Consulta médica estándar", "duracion_minutos": 30 },
+    { "id": 2, "nombre": "Consulta de Urgencia", "descripcion": "Atención de urgencia médica", "duracion_minutos": 20 },
+    { "id": 3, "nombre": "Consulta de Seguimiento", "descripcion": "Control de tratamiento", "duracion_minutos": 20 },
+    { "id": 4, "nombre": "Estudio Complementario", "descripcion": "Interpretación de estudios", "duracion_minutos": 15 },
+    { "id": 5, "nombre": "Primera Consulta", "descripcion": "Evaluación inicial del paciente", "duracion_minutos": 45 }
+  ],
+  "precios_especialidad": [
+    { "id": 1, "centro_id": 1, "especialidad_id": 1, "tipo_consulta_id": 1, "precio_minimo": 0, "precio_maximo": 0, "precio_estimado": 0 },
+    { "id": 2, "centro_id": 1, "especialidad_id": 2, "tipo_consulta_id": 1, "precio_minimo": 0, "precio_maximo": 0, "precio_estimado": 0 },
+    { "id": 3, "centro_id": 1, "especialidad_id": 3, "tipo_consulta_id": 1, "precio_minimo": 0, "precio_maximo": 0, "precio_estimado": 0 },
+    { "id": 4, "centro_id": 2, "especialidad_id": 4, "tipo_consulta_id": 1, "precio_minimo": 10000, "precio_maximo": 15000, "precio_estimado": 12000 },
+    { "id": 5, "centro_id": 2, "especialidad_id": 5, "tipo_consulta_id": 1, "precio_minimo": 12000, "precio_maximo": 18000, "precio_estimado": 15000 },
+    { "id": 6, "centro_id": 2, "especialidad_id": 6, "tipo_consulta_id": 1, "precio_minimo": 11000, "precio_maximo": 17000, "precio_estimado": 14000 },
+    { "id": 7, "centro_id": 2, "especialidad_id": 4, "tipo_consulta_id": 2, "precio_minimo": 15000, "precio_maximo": 20000, "precio_estimado": 18000 },
+    { "id": 8, "centro_id": 2, "especialidad_id": 5, "tipo_consulta_id": 2, "precio_minimo": 18000, "precio_maximo": 25000, "precio_estimado": 22000 }
+  ]
 }

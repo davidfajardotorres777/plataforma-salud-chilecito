@@ -32,6 +32,10 @@ class JsonStore:
         "documentos",
         "agendas",
         "tarifas",
+        "sintomas",
+        "configuracion_hospital",
+        "tipos_consulta",
+        "precios_especialidad",
     )
 
     def __init__(
@@ -74,6 +78,7 @@ class JsonStore:
         data = self.read()
         enriched_turnos = [self._enrich_turno(data, turno) for turno in data["turnos"]]
         disponibilidad = self.disponibilidad()
+        config = data.get("configuracion_hospital", [{}])[0] if data.get("configuracion_hospital") else {}
         return {
             "metricas": {
                 "centros": len(data["centros"]),
@@ -91,6 +96,10 @@ class JsonStore:
             "documentos": [self._enrich_documento(data, doc) for doc in data["documentos"]],
             "disponibilidad": disponibilidad,
             "tarifas": data["tarifas"],
+            "sintomas": data.get("sintomas", []),
+            "configuracion_hospital": config,
+            "tipos_consulta": data.get("tipos_consulta", []),
+            "precios_especialidad": data.get("precios_especialidad", []),
         }
 
     def create_center(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -548,3 +557,59 @@ class JsonStore:
                 "range": [range_min, range_max],
                 "motivo": motivo,
             }
+
+    # --- Nuevos métodos para modelo Single-Hospital -----------------------------------------
+    
+    def listar_sintomas(self) -> list[dict[str, Any]]:
+        """Lista todos los síntomas con sus especialidades asociadas"""
+        data = self.read()
+        sintomas = []
+        for s in data.get("sintomas", []):
+            especialidad = self._find(data["especialidades"], s.get("especialidad_id", -1))
+            item = deepcopy(s)
+            item["especialidad"] = especialidad
+            sintomas.append(item)
+        return sintomas
+    
+    def buscar_especialidad_por_sintoma(self, sintoma: str) -> dict[str, Any] | None:
+        """Busca la especialidad recomendada según el síntoma"""
+        data = self.read()
+        sintoma_lower = sintoma.lower()
+        for s in data.get("sintomas", []):
+            if sintoma_lower in s.get("descripcion", "").lower():
+                especialidad = self._find(data["especialidades"], s.get("especialidad_id", -1))
+                if especialidad:
+                    return {
+                        "sintoma": s,
+                        "especialidad": especialidad,
+                        "prioridad": s.get("prioridad", "MEDIA")
+                    }
+        return None
+    
+    def obtener_configuracion_hospital(self) -> dict[str, Any]:
+        """Obtiene la configuración del hospital"""
+        data = self.read()
+        configs = data.get("configuracion_hospital", [])
+        if configs:
+            config = configs[0]
+            centro = self._find(data["centros"], config.get("centro_principal_id", -1))
+            item = deepcopy(config)
+            item["centro_principal"] = centro
+            return item
+        return {}
+    
+    def listar_tipos_consulta(self) -> list[dict[str, Any]]:
+        """Lista todos los tipos de consulta"""
+        return self.read().get("tipos_consulta", [])
+    
+    def obtener_precios_por_especialidad(self, centro_id: int, especialidad_id: int) -> list[dict[str, Any]]:
+        """Obtiene precios por especialidad y centro"""
+        data = self.read()
+        precios = []
+        for p in data.get("precios_especialidad", []):
+            if int(p.get("centro_id", -1)) == int(centro_id) and int(p.get("especialidad_id", -1)) == int(especialidad_id):
+                tipo = self._find(data["tipos_consulta"], p.get("tipo_consulta_id", -1))
+                item = deepcopy(p)
+                item["tipo_consulta"] = tipo
+                precios.append(item)
+        return precios

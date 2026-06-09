@@ -1,9 +1,15 @@
-# Uso de la plataforma
+# Uso de la plataforma (Modelo Single-Hospital)
 
 La plataforma web permite operar Salud Chilecito como una aplicacion real desde
 el navegador. Incluye dashboard, alta y edicion de pacientes, reserva de turnos,
 cambio de estado, gestion de centros, consulta de medicos, carga de documentos
 y vista previa de archivos adjuntos.
+
+**Nuevo modelo Single-Hospital**: El sistema ahora incluye:
+- Selección de especialidades por síntomas
+- Configuración personalizada del hospital (logo, colores, mensaje de bienvenida)
+- Precios por tipo de consulta y especialidad
+- Disponibilidad mejorada con horarios específicos
 
 ## Modos de uso
 
@@ -100,15 +106,17 @@ bash scripts/ubuntu/03_cargar_oracle.sh
 
 1. Entrar a `Turnos` para revisar disponibilidad por medico, dia, horario,
    cupos y precio estimado.
-2. Crear reservas, editar horarios/datos, cambiar estados o eliminar un turno
+2. **NUEVO**: Al crear un turno, seleccionar un síntoma para autocompletar la
+   especialidad y médico recomendado.
+3. Crear reservas, editar horarios/datos, cambiar estados o eliminar un turno
    cargado por error.
-3. Entrar a `Pacientes` para dar de alta un paciente nuevo o editar datos si se
+4. Entrar a `Pacientes` para dar de alta un paciente nuevo o editar datos si se
    cargo mal DNI, telefono, obra social o distrito.
-4. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
+5. Entrar a `Centros` para crear o editar centros, distritos, telefonos y tipo
    de institucion.
-5. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes y
+6. Entrar a `Documentos` para adjuntar ordenes, estudios, recetas o imagenes y
    usar `Ver documento` para abrir su informacion, imagen, PDF o texto guardado.
-6. Usar el buscador superior para filtrar registros por paciente, medico,
+7. Usar el buscador superior para filtrar registros por paciente, medico,
    centro, DNI, distrito o estado.
 
 ## Uso con Bot IA
@@ -121,6 +129,9 @@ Ejemplos:
 ```text
 listar pacientes
 mostrar horarios disponibles y precios
+listar sintomas
+que especialidad para dolor de pecho
+que doctor para fiebre
 crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
 editar paciente 1 telefono 3825-999000
 crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho

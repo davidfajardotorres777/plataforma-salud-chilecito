@@ -5,6 +5,8 @@ from .turno import Turno
 from .agenda import AgendaMedico
 from .especialidad import Especialidad
 from .historial import HistorialClinico
+from .sintoma import Sintoma
+from .configuracion_hospital import ConfiguracionHospital
 
 __all__ = [
     "Paciente",
@@ -14,4 +16,6 @@ __all__ = [
     "AgendaMedico",
     "Especialidad",
     "HistorialClinico",
+    "Sintoma",
+    "ConfiguracionHospital",
 ]
