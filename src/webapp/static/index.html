@@ -21,6 +21,7 @@
           <button class="nav-tab" data-view="pacientes">Pacientes</button>
           <button class="nav-tab" data-view="centros">Centros</button>
           <button class="nav-tab" data-view="documentos">Documentos</button>
+          <button class="nav-tab" data-view="integracion">Integración HIS</button>
         </nav>
         <a class="bot-link" href="/bot">Abrir Bot IA</a>
         <div class="sync-box">
@@ -293,6 +294,83 @@
                 <span id="documentosCount">0 archivos</span>
               </div>
               <div id="documentosList" class="records"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-integracion">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Integración con Sistema HIS del Hospital</h2>
+              <span>Configuración y estado de integración</span>
+            </div>
+            <div class="integration-info">
+              <h3>¿Cómo funciona la integración?</h3>
+              <p>Esta plataforma se <strong>integra con el sistema HIS existente del hospital</strong>, no lo reemplaza. Funciona como una capa complementaria que mejora la gestión de turnos sin interrumpir las operaciones actuales.</p>
+              
+              <h4>Métodos de Integración Disponibles:</h4>
+              <ul>
+                <li><strong>API REST</strong>: Sincronización en tiempo real con el sistema del hospital</li>
+                <li><strong>Webhooks</strong>: Notificaciones automáticas de eventos</li>
+                <li><strong>Exportación/Importación</strong>: Para sistemas sin API</li>
+                <li><strong>Manual</strong>: Para fase piloto y pruebas</li>
+              </ul>
+
+              <h4>Flujo de Datos:</h4>
+              <div class="data-flow">
+                <div class="flow-step">
+                  <strong>1. Sistema HIS del Hospital</strong>
+                  <p>Gestión de pacientes, historia clínica, facturación</p>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <strong>2. Plataforma Salud Chilecito</strong>
+                  <p>Gestión inteligente de turnos, triaje por síntomas</p>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <strong>3. Base de Datos Oracle</strong>
+                  <p>Persistencia de datos, historial de turnos</p>
+                </div>
+              </div>
+
+              <h4>Beneficios de la Integración:</h4>
+              <ul>
+                <li>✓ No requiere cambiar el sistema actual del hospital</li>
+                <li>✓ Sincronización bidireccional de datos</li>
+                <li>✓ Seguridad con encriptación SSL/TLS</li>
+                <li>✓ Implementación gradual y sin riesgo</li>
+                <li>✓ Soporte para múltiples centros de salud</li>
+              </ul>
+
+              <h4>Estado de Integración:</h4>
+              <div class="integration-status">
+                <div class="status-item">
+                  <span class="status-label">Conexión API:</span>
+                  <span class="status-value pending">No configurado</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Webhooks:</span>
+                  <span class="status-value pending">No configurado</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Sincronización:</span>
+                  <span class="status-value pending">No activa</span>
+                </div>
+              </div>
+
+              <h4>Próximos Pasos para Implementación:</h4>
+              <ol>
+                <li>Contactar al departamento de TI del hospital</li>
+                <li>Obtener documentación de API del sistema HIS</li>
+                <li>Configurar API keys y webhooks</li>
+                <li>Realizar pruebas de integración</li>
+                <li>Iniciar fase piloto en un centro</li>
+              </ol>
+
+              <div class="integration-note">
+                <strong>Nota:</strong> Para más información sobre la implementación, consulte el documento "PRESENTACION_VENTA_HOSPITALES.md" en el repositorio.
+              </div>
             </div>
           </div>
         </section>

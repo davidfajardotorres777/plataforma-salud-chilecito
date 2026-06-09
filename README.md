@@ -63,6 +63,68 @@ Cada instancia puede personalizar:
 
 **Solución**: Salud Chilecito se integra con los sistemas existentes mediante API REST, no los reemplaza.
 
+### ¿Cómo funciona la integración?
+
+Esta plataforma es **COMPLEMENTARIA** al sistema existente del hospital, no lo reemplaza. Funciona como una capa de inteligencia que mejora la gestión de turnos sin interrumpir las operaciones actuales.
+
+#### Arquitectura de Integración
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SISTEMA ACTUAL DEL HOSPITAL               │
+│  (Sistema HIS existente - Hospital Information System)       │
+│  - Gestión de pacientes                                      │
+│  - Historia clínica                                          │
+│  - Facturación                                               │
+│  - Administración                                            │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          │ API REST / Webhooks
+                          │
+┌─────────────────────────▼───────────────────────────────────┐
+│              PLATAFORMA SALUD CHILECITO (Nuestra)            │
+│  - Gestión de turnos inteligente                             │
+│  - Selección por síntomas                                    │
+│  - Multi-hospital (centros múltiples)                        │
+│  - Asignación automática de especialistas                    │
+│  - Disponibilidad en tiempo real                             │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          │ Sincronización bidireccional
+                          │
+┌─────────────────────────▼───────────────────────────────────┐
+│                    BASE DE DATOS ORACLE                      │
+│  - Datos persistentes                                        │
+│  - Historial de turnos                                       │
+│  - Configuración de hospitales                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Métodos de Integración Disponibles
+
+#### 1. **Integración vía API REST (Recomendada)**
+- El hospital proporciona acceso a su API existente
+- Nuestra plataforma se conecta para:
+  - Sincronizar datos de pacientes
+  - Exportar turnos al sistema del hospital
+  - Obtener disponibilidad de médicos
+- **Beneficio**: Sincronización en tiempo real
+
+#### 2. **Integración vía Webhooks**
+- El hospital envía notificaciones a nuestra plataforma
+- Eventos: nuevo paciente, cancelación de turno, cambio de disponibilidad
+- **Beneficio**: Actualizaciones automáticas sin consultas constantes
+
+#### 3. **Integración vía Exportación/Importación**
+- Exportación periódica de datos (CSV, JSON, XML)
+- Importación de turnos desde nuestra plataforma
+- **Beneficio**: No requiere acceso directo al sistema
+
+#### 4. **Integración Manual (Fase Piloto)**
+- Ingreso manual de datos para probar el sistema
+- Migración gradual de datos
+- **Beneficio**: Bajo riesgo, permite validar el sistema
+
 ### Características del Sistema de Integración
 
 - **API Keys**: Autenticación segura para integraciones entre sistemas
@@ -70,19 +132,6 @@ Cada instancia puede personalizar:
 - **Adaptadores**: Soporte para diferentes tipos de HIS (REST, FHIR)
 - **Logs de auditoría**: Registro de todas las operaciones de integración
 - **Documentación OpenAPI**: API estándar y bien documentada para desarrolladores
-
-### Arquitectura de Integración
-
-```
-Paciente → Salud Chilecito → API REST → Adaptador → HIS (Sistema existente)
-         ←                ←         ←         ←
-```
-
-Salud Chilecito actúa como una **capa de mejora** que se conecta a los sistemas existentes de los hospitales, agregando funcionalidades como:
-- Selección por síntomas con IA
-- Bot conversacional
-- Landing pages personalizadas
-- Visualización mejorada de disponibilidad
 
 ### Endpoints de Integración
 
@@ -97,19 +146,68 @@ Salud Chilecito actúa como una **capa de mejora** que se conecta a los sistemas
 - **FHIR Adapter**: Para sistemas que implementan el estándar HL7 FHIR
 - **Custom Adapter**: Se pueden crear adaptadores personalizados
 
-### Documentación
+### Flujo de Implementación
 
-- [Arquitectura de Integración](docs/ARQUITECTURA_INTEGRACION.md) - Guía completa de integración
-- [Documentación de API](docs/API_OPENAPI.md) - Referencia completa de la API REST
-- [Ejemplos de Integración](examples/integracion_his.py) - Ejemplos de código
+1. **Evaluación y Diagnóstico (1-2 semanas)**
+   - Análisis del sistema HIS del hospital
+   - Identificación de puntos de integración
+   - Evaluación de capacidades de API
 
-### Ventajas
+2. **Configuración Técnica (2-3 semanas)**
+   - Configuración de la plataforma
+   - Integración técnica (API keys, webhooks)
+   - Pruebas de conexión
+
+3. **Migración de Datos (1-2 semanas)**
+   - Importación de datos históricos
+   - Validación de datos
+   - Aprobación del hospital
+
+4. **Capacitación (1 semana)**
+   - Capacitación del personal
+   - Documentación
+   - Soporte técnico
+
+5. **Piloto (2-4 semanas)**
+   - Implementación en un centro
+   - Monitoreo de errores
+   - Ajustes basados en feedback
+
+6. **Despliegue Completo (1-2 semanas)**
+   - Expansión a todos los centros
+   - Soporte intensivo
+   - Monitoreo continuo
+
+### Beneficios de la Integración
 
 1. **No reemplaza**: Los hospitales mantienen sus sistemas existentes
 2. **Fácil integración**: API estándar y documentación clara
 3. **Valor agregado**: Funcionalidades que los HIS no tienen (IA, selección por síntomas)
 4. **Flexibilidad**: Se adapta a diferentes sistemas mediante adaptadores
 5. **Costo efectivo**: Menor costo que migrar a un nuevo sistema completo
+6. **Seguridad**: Encriptación SSL/TLS, autenticación con API keys
+7. **Escalabilidad**: Soporte para múltiples centros de salud
+
+### Documentación
+
+- [Arquitectura de Integración](docs/ARQUITECTURA_INTEGRACION.md) - Guía completa de integración
+- [Documentación de API](docs/API_OPENAPI.md) - Referencia completa de la API REST
+- [Ejemplos de Integración](examples/integracion_his.py) - Ejemplos de código
+- [Presentación para Hospitales](PRESENTACION_VENTA_HOSPITALES.md) - Guía de venta e implementación
+
+### Preguntas Frecuentes
+
+**¿Necesitan cambiar su sistema actual?**
+No. Nuestra plataforma se integra con el sistema existente del hospital.
+
+**¿Es seguro?**
+Sí. Utilizamos encriptación de datos (SSL/TLS), autenticación vía API keys, y cumplimos con normas de seguridad de datos.
+
+**¿Cuánto tiempo toma la implementación?**
+6-12 semanas dependiendo del tamaño del hospital y la complejidad de la integración.
+
+**¿Pueden probar antes de comprar?**
+Sí. Ofrecemos demo de 30 días y piloto gratuito en un centro.
 
 ## Componentes principales
 
