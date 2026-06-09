@@ -276,15 +276,11 @@ function renderDisponibilidad() {
 }
 
 function renderPacientes() {
-  // Filtrar pacientes por el centro seleccionado
-  const centroId = localStorage.getItem("salud_centroid");
+  // Mostrar todos los pacientes sin filtro por centro
+  // El centro_id se guarda al crear el paciente, pero el filtro no lo usa
   const rows = state.data.pacientes
     .filter((p) => {
-      // Solo filtrar por centro si hay un centro seleccionado y el paciente tiene centro_id
-      if (centroId && p.centro_id && p.centro_id !== Number(centroId)) {
-        return false;
-      }
-      // Filtrar por búsqueda
+      // Solo filtrar por búsqueda
       return matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social);
     });
   
@@ -293,7 +289,7 @@ function renderPacientes() {
     <article class="record">
       <strong>${p.nombre}</strong>
       <span>DNI ${p.dni} - ${p.distrito} - ${p.telefono} - ${p.obra_social}</span>
-      <span class="centro-info">${p.centro?.nombre || "Sin centro"}</span>
+      <span class="centro-info">Centro ID: ${p.centro_id || "Sin centro"}</span>
       <button class="secondary edit-paciente" type="button" data-id="${p.id}">Editar</button>
     </article>
   `).join("");
