@@ -31,22 +31,6 @@ usar la plataforma por conversacion.
 - **Sincronizar datos bidireccionalmente con webhooks**
 - **Usar autenticación con API Keys para integraciones seguras**
 
-## Nuevas funcionalidades (Modelo Single-Hospital)
-
-### Selección por síntomas
-Los pacientes pueden seleccionar sus síntomas y el sistema sugiere automáticamente la especialidad adecuada:
-- Dolor de pecho → Cardiología
-- Dolor de muelas → Odontología
-- Fiebre en niños → Pediatría
-
-### Precios por tipo de consulta
-Cada especialidad tiene rangos de precios según el tipo de consulta:
-- Consulta General
-- Consulta de Urgencia
-- Consulta de Seguimiento
-- Estudio Complementario
-- Primera Consulta
-
 ### Disponibilidad en tiempo real
 Visualización de horarios disponibles por médico y fecha específica.
 
