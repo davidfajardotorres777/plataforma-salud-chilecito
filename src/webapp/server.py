@@ -206,6 +206,14 @@ class SaludHandler(BaseHTTPRequestHandler):
             if route == "/api/turnos":
                 self._json(HTTPStatus.CREATED, self.store.create_turno(payload))
                 return
+            if route == "/api/turnos/verificar-disponibilidad":
+                self._json(HTTPStatus.OK, self.store.verificar_disponibilidad_especifica(
+                    payload["medico_id"], payload["fecha"], payload["hora"]
+                ))
+                return
+            if route == "/api/turnos/crear-fisico":
+                self._json(HTTPStatus.CREATED, self.store.create_turno_fisico(payload))
+                return
             if route == "/api/agendas":
                 self._json(HTTPStatus.CREATED, self.store.create_agenda(payload))
                 return

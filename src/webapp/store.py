@@ -182,6 +182,22 @@ class JsonStore:
             return paciente
 
     def create_turno(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Crea un nuevo turno con validación de disponibilidad en tiempo real.
+        
+        Este método implementa el sistema de sincronización entre turnos virtuales
+        y físicos, similar a un sistema de venta de boletos de avión: cuando alguien
+        reserva un turno, el cupo se bloquea inmediatamente para evitar double-booking.
+        
+        Args:
+            payload: Diccionario con paciente_id, medico_id, fecha, hora, motivo, etc.
+        
+        Returns:
+            dict: El turno creado con información enriquecida
+        
+        Raises:
+            ValueError: Si no hay disponibilidad o si el médico/paciente no existe
+        """
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo")
         self._require(payload, required)
         with self._lock:
@@ -192,6 +208,15 @@ class JsonStore:
             paciente = self._find(data["pacientes"], int(payload["paciente_id"]))
             if paciente is None:
                 raise ValueError("El paciente seleccionado no existe")
+            
+            # Validar disponibilidad en tiempo real (sincronización virtual/físico)
+            if not self._verificar_disponibilidad_turno(data, medico["id"], payload["fecha"], payload["hora"]):
+                raise ValueError("No hay disponibilidad para este médico en la fecha y hora seleccionada. El horario ya está reservado.")
+            
+            # Verificar si el paciente ya tiene un turno en el mismo horario
+            if self._verificar_turno_duplicado_paciente(data, paciente["id"], payload["fecha"], payload["hora"]):
+                raise ValueError("El paciente ya tiene un turno reservado en esta fecha y hora.")
+            
             precio = payload.get("precio")
             if precio in (None, ""):
                 precio = self._precio_estimado(data, medico)
@@ -205,10 +230,58 @@ class JsonStore:
                 "estado": payload.get("estado", "PENDIENTE"),
                 "precio": float(precio or 0),
                 "motivo": payload["motivo"].strip(),
+                "origen": payload.get("origen", "VIRTUAL"),  # VIRTUAL o FISICO
+                "fecha_creacion": self._now(),
             }
             data["turnos"].append(turno)
             self._write(data)
             return self._enrich_turno(data, turno)
+    
+    def _verificar_disponibilidad_turno(self, data: dict, medico_id: int, fecha: str, hora: str) -> bool:
+        """
+        Verifica si hay disponibilidad para un médico en una fecha y hora específicas.
+        
+        Esta es la función clave para la sincronización entre turnos virtuales y físicos.
+        Valida que no exista un turno en el mismo horario, independientemente del origen.
+        
+        Args:
+            data: Datos del sistema
+            medico_id: ID del médico
+            fecha: Fecha del turno (YYYY-MM-DD)
+            hora: Hora del turno (HH:MM)
+        
+        Returns:
+            bool: True si hay disponibilidad, False si no
+        """
+        # Buscar turnos existentes en el mismo horario
+        for turno in data["turnos"]:
+            if (int(turno["medico_id"]) == int(medico_id) 
+                and turno["fecha"] == fecha 
+                and turno["hora"] == hora
+                and turno["estado"] in {"PENDIENTE", "CONFIRMADO"}):
+                return False  # No hay disponibilidad, el horario está ocupado
+        return True  # Hay disponibilidad
+    
+    def _verificar_turno_duplicado_paciente(self, data: dict, paciente_id: int, fecha: str, hora: str) -> bool:
+        """
+        Verifica si el paciente ya tiene un turno en la misma fecha y hora.
+        
+        Args:
+            data: Datos del sistema
+            paciente_id: ID del paciente
+            fecha: Fecha del turno
+            hora: Hora del turno
+        
+        Returns:
+            bool: True si ya tiene un turno, False si no
+        """
+        for turno in data["turnos"]:
+            if (int(turno["paciente_id"]) == int(paciente_id) 
+                and turno["fecha"] == fecha 
+                and turno["hora"] == hora
+                and turno["estado"] in {"PENDIENTE", "CONFIRMADO"}):
+                return True
+        return False
 
     def disponibilidad(self) -> list[dict[str, Any]]:
         data = self.read()
@@ -230,6 +303,59 @@ class JsonStore:
             item["precio_estimado"] = self._precio_estimado(data, medico)
             rows.append(item)
         return rows
+    
+    def verificar_disponibilidad_especifica(self, medico_id: int, fecha: str, hora: str) -> dict[str, Any]:
+        """
+        Verifica si hay disponibilidad específica para un médico en una fecha y hora.
+        
+        Este método es usado por el personal del hospital para verificar si un horario
+        está disponible antes de hacer una reserva física.
+        
+        Args:
+            medico_id: ID del médico
+            fecha: Fecha del turno (YYYY-MM-DD)
+            hora: Hora del turno (HH:MM)
+        
+        Returns:
+            dict: Información de disponibilidad con mensaje
+        """
+        with self._lock:
+            data = self.read()
+            medico = self._find(data["medicos"], int(medico_id))
+            if medico is None:
+                return {"disponible": False, "mensaje": "El médico no existe"}
+            
+            disponible = self._verificar_disponibilidad_turno(data, medico["id"], fecha, hora)
+            if disponible:
+                return {
+                    "disponible": True,
+                    "mensaje": "El horario está disponible",
+                    "medico": self._enrich_medico(data, medico)
+                }
+            else:
+                return {
+                    "disponible": False,
+                    "mensaje": "El horario ya está reservado por otro paciente"
+                }
+    
+    def create_turno_fisico(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Crea un turno desde una reserva física en el hospital.
+        
+        Este método es usado por el personal del hospital cuando un paciente
+        se presenta presencialmente y quiere reservar un turno.
+        
+        Args:
+            payload: Diccionario con paciente_id, medico_id, fecha, hora, motivo, etc.
+        
+        Returns:
+            dict: El turno creado
+        
+        Raises:
+            ValueError: Si no hay disponibilidad o si el médico/paciente no existe
+        """
+        payload["origen"] = "FISICO"  # Marcar como reserva física
+        return self.create_turno(payload)
 
     def update_turno(self, turno_id: int, payload: dict[str, Any]) -> dict[str, Any]:
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo", "estado")
