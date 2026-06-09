@@ -280,8 +280,8 @@ function renderPacientes() {
   const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.pacientes
     .filter((p) => {
-      // Filtrar por centro seleccionado
-      if (centroId && p.centro_id !== Number(centroId)) {
+      // Solo filtrar por centro si hay un centro seleccionado y el paciente tiene centro_id
+      if (centroId && p.centro_id && p.centro_id !== Number(centroId)) {
         return false;
       }
       // Filtrar por búsqueda
