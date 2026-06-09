@@ -23,3 +23,9 @@ logs/
 docs/capturas/
 runtime/
 *.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Docker volumes
+docker_data/
