@@ -851,3 +851,181 @@ th {
   color: var(--muted);
   font-style: italic;
 }
+
+/* Estilos para Landing Page de Hospital */
+.landing-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.landing-header {
+  background: var(--surface);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 30px;
+}
+
+.hospital-branding {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hospital-logo img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+}
+
+.hospital-info h1 {
+  margin: 0 0 10px 0;
+  color: var(--primary);
+  font-size: 28px;
+}
+
+.hospital-info p {
+  margin: 5px 0;
+  color: var(--muted);
+}
+
+.hospital-contact {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.landing-main {
+  display: grid;
+  gap: 30px;
+}
+
+.landing-main section {
+  background: var(--surface);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.landing-main h2 {
+  margin: 0 0 15px 0;
+  color: var(--primary);
+}
+
+.landing-main p {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.symptom-grid,
+.specialty-grid,
+.availability-grid,
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.symptom-card,
+.specialty-card,
+.availability-card,
+.pricing-card {
+  background: var(--surface-2);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.symptom-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.symptom-card h3,
+.specialty-card h3,
+.availability-card h3,
+.pricing-card h3 {
+  margin: 0 0 10px 0;
+  color: var(--text);
+}
+
+.symptom-card p,
+.specialty-card p,
+.availability-card p,
+.pricing-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.select-symptom-btn {
+  margin-top: 15px;
+  width: 100%;
+}
+
+.time-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.time-slot {
+  background: var(--surface);
+  padding: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.cupos {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.price {
+  font-size: 14px;
+  color: var(--success);
+  font-weight: bold;
+}
+
+.cta-section {
+  text-align: center;
+  padding: 40px;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.cta-button:hover {
+  background: var(--primary-dark);
+}
+
+.landing-footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+  .hospital-branding {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .symptom-grid,
+  .specialty-grid,
+  .availability-grid,
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}

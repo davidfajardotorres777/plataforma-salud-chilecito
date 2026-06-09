@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Salud Chilecito - Sistema de Turnos</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="landing-container">
+      <header class="landing-header">
+        <div class="hospital-branding">
+          <div class="hospital-logo">
+            <img src="/static/logo.svg" alt="Logo Hospital">
+          </div>
+          <div class="hospital-info">
+            <h1 id="hospitalName">Hospital Eleazar Herrera Motta</h1>
+            <p id="hospitalWelcome">Bienvenido al sistema de turnos</p>
+            <p class="hospital-contact">
+              <span id="hospitalPhone">3825-422100</span> | 
+              <span id="hospitalEmail">turnos@hospitalchilecito.gov.ar</span>
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <main class="landing-main">
+        <section class="symptom-selection">
+          <h2>¿Qué síntoma tienes?</h2>
+          <p>Selecciona tu síntoma para encontrar el especialista adecuado</p>
+          <div id="symptomList" class="symptom-grid"></div>
+        </section>
+
+        <section class="specialties-section">
+          <h2>Especialidades Disponibles</h2>
+          <div id="specialtyList" class="specialty-grid"></div>
+        </section>
+
+        <section class="availability-section">
+          <h2>Disponibilidad de Turnos</h2>
+          <p>Próximos 7 días</p>
+          <div id="availabilityList" class="availability-grid"></div>
+        </section>
+
+        <section class="pricing-section">
+          <h2>Precios por Consulta</h2>
+          <div id="pricingList" class="pricing-grid"></div>
+        </section>
+
+        <section class="cta-section">
+          <h2>Reserva tu turno ahora</h2>
+          <p>Selecciona un síntoma arriba o ingresa directamente al sistema</p>
+          <a href="/static/index.html" class="cta-button">Ir al sistema completo</a>
+        </section>
+      </main>
+
+      <footer class="landing-footer">
+        <p>&copy; 2026 Hospital Eleazar Herrera Motta - Sistema de Gestión de Turnos</p>
+        <p>Desarrollado por Salud Chilecito</p>
+      </footer>
+    </div>
+
+    <script src="/static/landing.js"></script>
+  </body>
+</html>

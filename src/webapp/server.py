@@ -68,6 +68,9 @@ class SaludHandler(BaseHTTPRequestHandler):
         if route == "/bot":
             self._serve_file(STATIC_DIR / "bot.html", "text/html; charset=utf-8")
             return
+        if route == "/landing":
+            self._serve_file(STATIC_DIR / "landing.html", "text/html; charset=utf-8")
+            return
         if route.startswith(STATIC_PREFIX):
             requested = STATIC_DIR / unquote(route.removeprefix(STATIC_PREFIX))
             self._serve_static(requested)
