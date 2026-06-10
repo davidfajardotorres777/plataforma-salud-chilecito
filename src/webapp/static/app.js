@@ -156,8 +156,19 @@ function matchesSearch(...values) {
 }
 
 function renderTurnos() {
+  // Filtrar turnos por el centro seleccionado
+  const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.turnos
-    .filter((t) => matchesSearch(t.paciente?.nombre, t.medico?.nombre, t.centro?.nombre, t.estado))
+    .filter((t) => {
+      // Si hay un centro seleccionado, solo mostrar turnos de ese centro
+      if (centroId) {
+        if (!t.centro_id || Number(t.centro_id) !== Number(centroId)) {
+          return false;
+        }
+      }
+      // Filtrar por búsqueda
+      return matchesSearch(t.paciente?.nombre, t.medico?.nombre, t.centro?.nombre, t.estado);
+    })
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`));
 
   $("#turnosCount").textContent = `${rows.length} registros`;
