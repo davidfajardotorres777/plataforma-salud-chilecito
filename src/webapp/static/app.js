@@ -104,6 +104,24 @@ function fillSelects() {
     const selectedOption = e.target.selectedOptions[0];
     if (selectedOption && selectedOption.value) {
       const especialidadId = parseInt(selectedOption.dataset.especialidadId);
+      const edadPaciente = parseInt($("#turnoEdadPaciente").value) || 0;
+      
+      // Si el paciente es menor de 10 años, derivar a pediatra
+      if (edadPaciente > 0 && edadPaciente < 10) {
+        const pediatraEspecialidad = state.data.especialidades.find(e => e.nombre.toLowerCase() === "pediatria");
+        if (pediatraEspecialidad) {
+          const medicosPediatria = state.data.medicos.filter(m => m.especialidad && m.especialidad.id === pediatraEspecialidad.id);
+          if (medicosPediatria.length > 0) {
+            $("#turnoMedico").value = medicosPediatria[0].id;
+            updateTurnoEstimatedPrice();
+            updateHorariosDisponibles();
+            showToast(`Paciente menor de 10 años: Derivado a Pediatría`);
+            return;
+          }
+        }
+      }
+      
+      // Para pacientes mayores de 10 años o sin edad especificada, usar la especialidad del síntoma
       const medicosEspecialidad = state.data.medicos.filter(m => m.especialidad && m.especialidad.id === especialidadId);
       if (medicosEspecialidad.length > 0) {
         $("#turnoMedico").value = medicosEspecialidad[0].id;
