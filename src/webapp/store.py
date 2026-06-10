@@ -239,6 +239,92 @@ class JsonStore:
             pacientes = [p for p in data["pacientes"] if int(p.get("centro_id", 0)) == int(centro_id)]
             return [self._enrich_paciente(data, p) for p in pacientes]
 
+    def create_medico(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Crea un nuevo médico asociado a un hospital/centro específico.
+        
+        Este método asegura que los médicos se asocien al hospital correcto
+        para resolver el problema de que los médicos no se guardan en el
+        lugar respectivo cuando se cambia entre hospitales.
+        
+        Args:
+            payload: Diccionario con nombre, centro_id, especialidad_id, telefono, etc.
+        
+        Returns:
+            dict: El médico creado
+        
+        Raises:
+            ValueError: Si el centro o especialidad no existe
+        """
+        required = ("nombre", "centro_id", "especialidad_id", "telefono")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            
+            # Verificar que el centro existe
+            centro = self._find(data["centros"], int(payload["centro_id"]))
+            if centro is None:
+                raise ValueError("El centro/hospital seleccionado no existe")
+            
+            # Verificar que la especialidad existe
+            especialidad = self._find(data["especialidades"], int(payload["especialidad_id"]))
+            if especialidad is None:
+                raise ValueError("La especialidad seleccionada no existe")
+            
+            medico = {
+                "id": self._next_id(data["medicos"]),
+                "nombre": payload["nombre"].strip(),
+                "centro_id": int(payload["centro_id"]),
+                "especialidad_id": int(payload["especialidad_id"]),
+                "telefono": payload["telefono"].strip(),
+            }
+            data["medicos"].append(medico)
+            self._write(data)
+            return self._enrich_medico(data, medico)
+
+    def update_medico(self, medico_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Actualiza un médico manteniendo su asociación al centro/hospital.
+        
+        Args:
+            medico_id: ID del médico a actualizar
+            payload: Diccionario con nombre, centro_id, especialidad_id, telefono, etc.
+        
+        Returns:
+            dict: El médico actualizado
+        
+        Raises:
+            ValueError: Si el médico no existe o si el centro/especialidad no existe
+        """
+        required = ("nombre", "centro_id", "especialidad_id", "telefono")
+        self._require(payload, required)
+        with self._lock:
+            data = self.read()
+            medico = self._find(data["medicos"], medico_id)
+            if medico is None:
+                raise ValueError("El médico no existe")
+            
+            # Verificar que el centro existe
+            centro = self._find(data["centros"], int(payload["centro_id"]))
+            if centro is None:
+                raise ValueError("El centro/hospital seleccionado no existe")
+            
+            # Verificar que la especialidad existe
+            especialidad = self._find(data["especialidades"], int(payload["especialidad_id"]))
+            if especialidad is None:
+                raise ValueError("La especialidad seleccionada no existe")
+            
+            medico.update(
+                {
+                    "nombre": payload["nombre"].strip(),
+                    "centro_id": int(payload["centro_id"]),
+                    "especialidad_id": int(payload["especialidad_id"]),
+                    "telefono": payload["telefono"].strip(),
+                }
+            )
+            self._write(data)
+            return self._enrich_medico(data, medico)
+
     def create_turno(self, payload: dict[str, Any]) -> dict[str, Any]:
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo")
         self._require(payload, required)
