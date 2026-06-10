@@ -542,6 +542,16 @@ function wireEvents() {
     event.preventDefault();
     const payload = formDataToObject(event.target);
     delete payload.id;
+    // Agregar centro_id del localStorage
+    const centroId = localStorage.getItem("salud_centroid");
+    if (centroId) {
+      payload.centro_id = Number(centroId);
+    } else if (state.data.centros && state.data.centros.length > 0) {
+      payload.centro_id = state.data.centros[0].id;
+    } else {
+      showToast("Error: No hay centros disponibles");
+      return;
+    }
     const path = state.editingTurnoId ? `/api/turnos/${state.editingTurnoId}` : "/api/turnos";
     await api(path, {
       method: "POST",
