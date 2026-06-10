@@ -146,6 +146,7 @@ function fillSelects() {
     })
     .join("");
   updateTurnoEstimatedPrice();
+  updateHorariosDisponibles(); // Inicializar horarios disponibles al cargar
 }
 
 function matchesSearch(...values) {
