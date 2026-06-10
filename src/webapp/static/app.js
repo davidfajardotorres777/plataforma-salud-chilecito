@@ -299,9 +299,11 @@ function renderPacientes() {
   const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.pacientes
     .filter((p) => {
-      // Filtrar por centro si hay un centro seleccionado
-      if (centroId && p.centro_id && Number(p.centro_id) !== Number(centroId)) {
-        return false;
+      // Si hay un centro seleccionado, solo mostrar pacientes de ese centro
+      if (centroId) {
+        if (!p.centro_id || Number(p.centro_id) !== Number(centroId)) {
+          return false;
+        }
       }
       // Filtrar por búsqueda
       return matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social);
