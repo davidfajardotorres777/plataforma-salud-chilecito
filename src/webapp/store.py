@@ -79,6 +79,14 @@ class JsonStore:
         enriched_turnos = [self._enrich_turno(data, turno) for turno in data["turnos"]]
         disponibilidad = self.disponibilidad()
         config = data.get("configuracion_hospital", [{}])[0] if data.get("configuracion_hospital") else {}
+        # Enrich síntomas with especialidad
+        enriched_sintomas = []
+        for s in data.get("sintomas", []):
+            especialidad = self._find(data["especialidades"], s.get("especialidad_id"))
+            enriched_s = s.copy()
+            if especialidad:
+                enriched_s["especialidad"] = especialidad
+            enriched_sintomas.append(enriched_s)
         return {
             "metricas": {
                 "centros": len(data["centros"]),
@@ -96,7 +104,7 @@ class JsonStore:
             "documentos": [self._enrich_documento(data, doc) for doc in data["documentos"]],
             "disponibilidad": disponibilidad,
             "tarifas": data["tarifas"],
-            "sintomas": data.get("sintomas", []),
+            "sintomas": enriched_sintomas,
             "configuracion_hospital": config,
             "tipos_consulta": data.get("tipos_consulta", []),
             "precios_especialidad": data.get("precios_especialidad", []),
