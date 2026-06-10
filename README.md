@@ -5,8 +5,7 @@ historial clinico y documentos asociados a la atencion medica en Chilecito y
 sus distritos cercanos.
 
 El proyecto combina una base Oracle, una capa DAO en Python, scripts de carga,
-un notebook de demostracion, una interfaz web operativa y un bot local para
-usar la plataforma por conversacion.
+un notebook de demostracion y una interfaz web operativa.
 
 **Modelo de negocio**: Sistema vendido a hospitales/clínicas (single-hospital instance)  
 **Autor**: Alesandro David Fajardo / Kevin Facundo Nunez  
@@ -24,7 +23,6 @@ usar la plataforma por conversacion.
 - Adjuntar documentos de pacientes.
 - Ver documentos guardados con metadatos y vista previa.
 - Usar una interfaz grafica desde el navegador.
-- Usar una plataforma conversacional con Bot IA local.
 - Ejecutar consultas y operaciones desde la capa DAO.
 - Cargar y validar la base Oracle con comandos automatizados.
 - **Integrarse con sistemas hospitalarios existentes (HIS) mediante API REST**
@@ -100,11 +98,11 @@ Esta plataforma es **COMPLEMENTARIA** al sistema existente del hospital, no lo r
 | DAO Python | `src/dao/` | Clases que encapsulan las operaciones contra Oracle |
 | Modelos | `src/models/` | Dataclasses del dominio de salud |
 | Configuracion | `src/config/` y `.env.example` | Conexion y variables de entorno |
-| Plataforma web | `src/webapp/` | Interfaz grafica, API local, store JSON y Bot IA |
+| Plataforma web | `src/webapp/` | Interfaz grafica, API local y store JSON |
 | Notebook | `notebooks/SaludChilecito_DAO_Demo.ipynb` | Recorrido guiado del proyecto |
 | Datos demo | `data/demo_seed.json` | Datos iniciales para usar la plataforma sin preparar Oracle |
 | Scripts | `scripts/` | Instalacion, inicio, pruebas y carga automatica |
-| Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web, bot y notebook |
+| Pruebas | `tests/` | Validaciones del SQL, DAO, scripts, web y notebook |
 | Documentacion | `docs/` | Guias de instalacion, arquitectura, uso y checklist |
 
 ## Enfoque del producto
@@ -119,7 +117,7 @@ La institucion mantiene el control desde el panel operativo:
 - Crea, edita, confirma, cancela o elimina turnos.
 - Adjunta documentos clinicos y revisa su contenido.
 - Usa precios estimados por especialidad y tipo de centro.
-- Puede operar desde la interfaz grafica o desde el Bot IA local.
+- Puede operar desde la interfaz grafica.
 
 ## Estructura del proyecto
 
@@ -285,12 +283,6 @@ Abrir en el navegador:
 http://localhost:8000
 ```
 
-Abrir el bot:
-
-```text
-http://localhost:8000/bot
-```
-
 ## Uso rapido sin preparar Oracle
 
 La plataforma web tambien funciona en modo demo JSON. Ese modo usa:
@@ -301,7 +293,7 @@ runtime/salud_chilecito_data.json
 runtime/uploads/
 ```
 
-Esto permite probar altas, ediciones, turnos, documentos y bot desde el
+Esto permite probar altas, ediciones, turnos y documentos desde el
 navegador aunque la base Oracle todavia no este cargada.
 
 ## Instalación para un hospital específico
@@ -359,7 +351,6 @@ El notebook muestra:
 - Lectura del seed local.
 - Visualizacion de datos con pandas.
 - Creacion de paciente y turno en modo demo.
-- Uso del Bot IA local.
 - Estructura de la capa DAO.
 - Comandos para conectar la app con Oracle.
 
@@ -434,36 +425,6 @@ Funciones:
 - Carga y vista previa de documentos.
 - Busqueda general por paciente, medico, centro, DNI, distrito o estado.
 
-## Bot IA local
-
-El bot esta disponible en:
-
-```text
-http://localhost:8000/bot
-```
-
-Ejemplos:
-
-```text
-listar pacientes
-listar centros
-listar medicos
-mostrar horarios disponibles y precios
-listar turnos
-listar sintomas
-que especialidad para dolor de pecho
-que doctor para fiebre
-crear paciente nombre Ana Diaz dni 50111222 telefono 3825-111222 distrito Chilecito obra social APOS
-editar paciente 1 telefono 3825-999000
-crear turno paciente 1 medico 1 fecha 2026-06-20 hora 09:30 motivo dolor de pecho
-editar turno 1 fecha 2026-06-21 hora 10:00 motivo control reprogramado
-eliminar turno 2
-crear documento paciente 1 tipo ESTUDIO archivo resultado.txt contenido Resultado normal
-ver documento 1
-```
-
-El bot funciona localmente y opera sobre los mismos datos que la interfaz web.
-
 ## Scripts SQL
 
 | Orden | Script | Contenido |
@@ -513,7 +474,6 @@ Las pruebas cubren:
 - Estructura de DAOs.
 - Scripts de instalacion y carga.
 - Plataforma web.
-- Bot IA.
 - Notebook y dependencias.
 
 ## Documentacion adicional
@@ -523,7 +483,6 @@ Las pruebas cubren:
 | [docs/REQUISITOS.md](docs/REQUISITOS.md) | Requisitos completos |
 | [docs/INSTALACION.md](docs/INSTALACION.md) | Instalacion paso a paso |
 | [docs/USO_PLATAFORMA.md](docs/USO_PLATAFORMA.md) | Uso operativo |
-| [docs/BOT_IA.md](docs/BOT_IA.md) | Comandos del bot |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Arquitectura del sistema |
 | [docs/CHECKLIST.md](docs/CHECKLIST.md) | Checklist del proyecto |
 | [docs/INTEGRACION_HOSPITAL.md](docs/INTEGRACION_HOSPITAL.md) | Integración con sistemas internos del hospital (Modelo Single-Hospital) |
