@@ -23,7 +23,6 @@
           <button class="nav-tab" data-view="documentos">Documentos</button>
           <button class="nav-tab" data-view="integracion">Integración HIS</button>
         </nav>
-        <a class="bot-link" href="/bot">Abrir Bot IA</a>
         <div class="sync-box">
           <span id="apiStatus">Conectando...</span>
           <button id="forceSaveData" type="button" title="Forzar guardado manual">Guardar</button>
@@ -247,6 +246,36 @@
               </label>
               <label>Telefono
                 <input name="telefono" required>
+              </label>
+              <div class="panel-head" style="margin-top: 20px;">
+                <h3>Horarios de trabajo</h3>
+                <span>Días y horarios de atención</span>
+              </div>
+              <label>Día de la semana
+                <select name="dia_semana" id="medicoDia">
+                  <option value="">Seleccionar día...</option>
+                  <option value="Lunes">Lunes</option>
+                  <option value="Martes">Martes</option>
+                  <option value="Miércoles">Miércoles</option>
+                  <option value="Jueves">Jueves</option>
+                  <option value="Viernes">Viernes</option>
+                  <option value="Sábado">Sábado</option>
+                  <option value="Domingo">Domingo</option>
+                </select>
+              </label>
+              <div class="form-row">
+                <label>Hora inicio
+                  <input name="hora_inicio" type="time" id="medicoHoraInicio">
+                </label>
+                <label>Hora fin
+                  <input name="hora_fin" type="time" id="medicoHoraFin">
+                </label>
+              </div>
+              <label>Duración consulta (minutos)
+                <input name="duracion_minutos" type="number" value="30" min="15" step="5">
+              </label>
+              <label>Cupo diario
+                <input name="cupo_diario" type="number" value="8" min="1">
               </label>
               <div class="button-row">
                 <button type="submit">Guardar medico</button>

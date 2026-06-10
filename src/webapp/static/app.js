@@ -508,10 +508,27 @@ function wireEvents() {
       return;
     }
     const path = state.editingMedicoId ? `/api/medicos/${state.editingMedicoId}` : "/api/medicos";
-    await api(path, {
+    const medico = await api(path, {
       method: "POST",
       body: JSON.stringify(payload)
     });
+    
+    // Si se especificaron horarios de trabajo, crear una agenda
+    if (payload.dia_semana && payload.hora_inicio && payload.hora_fin) {
+      const agendaPayload = {
+        medico_id: medico.id,
+        dia_semana: payload.dia_semana,
+        hora_inicio: payload.hora_inicio,
+        hora_fin: payload.hora_fin,
+        duracion_minutos: parseInt(payload.duracion_minutos) || 30,
+        cupo_diario: parseInt(payload.cupo_diario) || 8
+      };
+      await api("/api/agendas", {
+        method: "POST",
+        body: JSON.stringify(agendaPayload)
+      });
+    }
+    
     resetMedicoForm();
     await loadDashboard();
     showToast("Medico guardado");
