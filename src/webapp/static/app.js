@@ -136,7 +136,13 @@ function fillSelects() {
     updateHorariosDisponibles();
   });
 
-  $("#turnoMedico").innerHTML = state.data.medicos
+  // Filtrar médicos por centro seleccionado
+  const centroId = localStorage.getItem("salud_centroid");
+  const medicosFiltrados = centroId 
+    ? state.data.medicos.filter((m) => m.centro_id === Number(centroId))
+    : state.data.medicos;
+  
+  $("#turnoMedico").innerHTML = medicosFiltrados
     .map((m) => {
       const centro = m.centro ? m.centro.nombre : "Sin centro";
       const especialidad = m.especialidad ? m.especialidad.nombre : "Sin especialidad";
