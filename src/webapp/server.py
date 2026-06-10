@@ -379,7 +379,6 @@ class SaludHandler(BaseHTTPRequestHandler):
 def run(host: str = "127.0.0.1", port: int = 8000) -> None:
     server = ThreadingHTTPServer((host, port), SaludHandler)
     print(f"Salud Chilecito web: http://{host}:{port}")
-    print(f"Salud Chilecito bot IA: http://{host}:{port}/bot")
     print("Modo demo JSON. Los datos editables quedan en runtime/salud_chilecito_data.json")
     server.serve_forever()
 
