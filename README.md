@@ -251,18 +251,6 @@ y que la carga anterior haya terminado bien:
 python -m src.main
 ```
 
-Para ejecutar las pruebas:
-
-```bash
-python -m pytest -q
-```
-
-Si el entorno virtual ya esta activado, tambien se puede usar:
-
-```bash
-pytest -q
-```
-
 ### 7. Abrir la plataforma
 
 Windows:
