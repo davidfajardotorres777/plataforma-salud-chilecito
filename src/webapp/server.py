@@ -6,7 +6,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
 
-from .bot_agent import BotAgent
 from .store import JsonStore
 from .auth import api_key_manager, audit_logger
 from .webhooks import webhook_manager, EventTypes
@@ -23,10 +22,8 @@ def filter_dashboard_by_centro(dashboard: dict, centro_id: int) -> dict:
     d["centros"] = [c for c in dashboard.get("centros", []) if int(c.get("id")) == centro_id]
     medicos = [m for m in dashboard.get("medicos", []) if int(m.get("centro_id", -1)) == centro_id]
     d["medicos"] = medicos
-    allowed_paciente_ids = {int(t.get("paciente_id")) for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id}
-    allowed_doc_paciente_ids = {int(doc.get("paciente_id")) for doc in dashboard.get("documentos", [])}
-    allowed_paciente_ids |= allowed_doc_paciente_ids
-    d["pacientes"] = [p for p in dashboard.get("pacientes", []) if int(p.get("id", -1)) in allowed_paciente_ids]
+    # Filtrar pacientes por centro_id directamente
+    d["pacientes"] = [p for p in dashboard.get("pacientes", []) if int(p.get("centro_id", -1)) == centro_id]
     d["turnos"] = [t for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id]
     d["disponibilidad"] = [item for item in dashboard.get("disponibilidad", []) if int(item.get("medico", {}).get("centro_id", -1)) == centro_id]
     return d
@@ -51,13 +48,12 @@ def centro_id_for_slug_or_host(dashboard: dict, slug: str | None = None, host: s
 
 
 # Slugs de archivos estaticos conocidos (evita conflicto con /<slug>)
-STATIC_ROUTES = {"/", "/bot", "/favicon.ico"}
+STATIC_ROUTES = {"/", "/favicon.ico"}
 STATIC_PREFIX = "/static/"
 
 
 class SaludHandler(BaseHTTPRequestHandler):
     store = JsonStore()
-    bot = BotAgent(store)
 
     # --- GET ---
     def do_GET(self) -> None:
@@ -66,9 +62,6 @@ class SaludHandler(BaseHTTPRequestHandler):
 
         if route == "/":
             self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
-            return
-        if route == "/bot":
-            self._serve_file(STATIC_DIR / "bot.html", "text/html; charset=utf-8")
             return
         if route == "/landing":
             self._serve_file(STATIC_DIR / "landing.html", "text/html; charset=utf-8")
@@ -186,9 +179,6 @@ class SaludHandler(BaseHTTPRequestHandler):
         try:
             payload = self._read_json()
 
-            if route == "/api/bot":
-                self._json(HTTPStatus.OK, self.bot.handle(payload.get("message", "")))
-                return
             if route == "/api/centros":
                 self._json(HTTPStatus.CREATED, self.store.create_center(payload))
                 return
