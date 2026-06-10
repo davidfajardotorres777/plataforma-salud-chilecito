@@ -278,11 +278,13 @@ class JsonStore:
             precio = payload.get("precio")
             if precio in (None, ""):
                 precio = self._precio_estimado(data, medico)
+            # Usar centro_id del payload si está presente, sino usar el del médico
+            centro_id = payload.get("centro_id") or medico["centro_id"]
             turno = {
                 "id": self._next_id(data["turnos"]),
                 "paciente_id": paciente["id"],
                 "medico_id": medico["id"],
-                "centro_id": medico["centro_id"],
+                "centro_id": int(centro_id),
                 "fecha": payload["fecha"],
                 "hora": payload["hora"],
                 "estado": payload.get("estado", "PENDIENTE"),
