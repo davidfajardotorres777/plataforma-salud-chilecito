@@ -23,8 +23,10 @@ def filter_dashboard_by_centro(dashboard: dict, centro_id: int) -> dict:
     d["centros"] = [c for c in dashboard.get("centros", []) if int(c.get("id")) == centro_id]
     medicos = [m for m in dashboard.get("medicos", []) if int(m.get("centro_id", -1)) == centro_id]
     d["medicos"] = medicos
-    # Filtrar pacientes por centro_id directamente, no solo por turnos/documentos
-    d["pacientes"] = [p for p in dashboard.get("pacientes", []) if int(p.get("centro_id", -1)) == centro_id]
+    allowed_paciente_ids = {int(t.get("paciente_id")) for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id}
+    allowed_doc_paciente_ids = {int(doc.get("paciente_id")) for doc in dashboard.get("documentos", [])}
+    allowed_paciente_ids |= allowed_doc_paciente_ids
+    d["pacientes"] = [p for p in dashboard.get("pacientes", []) if int(p.get("id", -1)) in allowed_paciente_ids]
     d["turnos"] = [t for t in dashboard.get("turnos", []) if int(t.get("centro_id", -1)) == centro_id]
     d["disponibilidad"] = [item for item in dashboard.get("disponibilidad", []) if int(item.get("medico", {}).get("centro_id", -1)) == centro_id]
     return d

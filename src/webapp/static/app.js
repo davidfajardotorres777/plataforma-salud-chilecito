@@ -36,27 +36,9 @@ async function api(path, options = {}) {
 }
 
 async function loadDashboard() {
-  const centroId = localStorage.getItem("salud_centroid") || "";
-  const url = centroId ? `/api/dashboard?centro_id=${centroId}` : "/api/dashboard";
-  state.data = await api(url);
+  state.data = await api("/api/dashboard");
   render();
   $("#apiStatus").textContent = "API local conectada";
-  
-  // Verificar estado de persistencia
-  try {
-    const persistenceStatus = await api("/api/persistence/status");
-    if (!persistenceStatus.can_write) {
-      $("#apiStatus").textContent = "API local conectada (Solo memoria)";
-      $("#apiStatus").style.color = "orange";
-      showToast("ADVERTENCIA: Los datos solo se guardan en memoria");
-    } else if (persistenceStatus.using_memory) {
-      $("#apiStatus").textContent = "API local conectada (Modo memoria)";
-      $("#apiStatus").style.color = "orange";
-      showToast("ADVERTENCIA: Error de escritura, usando memoria");
-    }
-  } catch (e) {
-    console.error("Error al verificar persistencia:", e);
-  }
 }
 
 function render() {
@@ -136,13 +118,7 @@ function fillSelects() {
     updateHorariosDisponibles();
   });
 
-  // Filtrar médicos por centro seleccionado
-  const centroId = localStorage.getItem("salud_centroid");
-  const medicosFiltrados = centroId 
-    ? state.data.medicos.filter((m) => m.centro_id === Number(centroId))
-    : state.data.medicos;
-  
-  $("#turnoMedico").innerHTML = medicosFiltrados
+  $("#turnoMedico").innerHTML = state.data.medicos
     .map((m) => {
       const centro = m.centro ? m.centro.nombre : "Sin centro";
       const especialidad = m.especialidad ? m.especialidad.nombre : "Sin especialidad";
@@ -162,19 +138,8 @@ function matchesSearch(...values) {
 }
 
 function renderTurnos() {
-  // Filtrar turnos por el centro seleccionado
-  const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.turnos
-    .filter((t) => {
-      // Si hay un centro seleccionado, solo mostrar turnos de ese centro
-      if (centroId) {
-        if (!t.centro_id || Number(t.centro_id) !== Number(centroId)) {
-          return false;
-        }
-      }
-      // Filtrar por búsqueda
-      return matchesSearch(t.paciente?.nombre, t.medico?.nombre, t.centro?.nombre, t.estado);
-    })
+    .filter((t) => matchesSearch(t.paciente?.nombre, t.medico?.nombre, t.centro?.nombre, t.estado))
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`));
 
   $("#turnosCount").textContent = `${rows.length} registros`;
@@ -313,19 +278,8 @@ function renderDisponibilidad() {
 }
 
 function renderPacientes() {
-  // Filtrar pacientes por el centro seleccionado
-  const centroId = localStorage.getItem("salud_centroid");
   const rows = state.data.pacientes
-    .filter((p) => {
-      // Si hay un centro seleccionado, solo mostrar pacientes de ese centro
-      if (centroId) {
-        if (!p.centro_id || Number(p.centro_id) !== Number(centroId)) {
-          return false;
-        }
-      }
-      // Filtrar por búsqueda
-      return matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social);
-    });
+    .filter((p) => matchesSearch(p.nombre, p.dni, p.distrito, p.obra_social));
   
   $("#pacientesCount").textContent = `${rows.length} registros`;
   $("#pacientesList").innerHTML = rows.map((p) => {
@@ -559,16 +513,6 @@ function wireEvents() {
     event.preventDefault();
     const payload = formDataToObject(event.target);
     delete payload.id;
-    // Agregar centro_id del localStorage
-    const centroId = localStorage.getItem("salud_centroid");
-    if (centroId) {
-      payload.centro_id = Number(centroId);
-    } else if (state.data.centros && state.data.centros.length > 0) {
-      payload.centro_id = state.data.centros[0].id;
-    } else {
-      showToast("Error: No hay centros disponibles");
-      return;
-    }
     const path = state.editingTurnoId ? `/api/turnos/${state.editingTurnoId}` : "/api/turnos";
     await api(path, {
       method: "POST",
