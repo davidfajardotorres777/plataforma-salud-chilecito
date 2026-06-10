@@ -240,22 +240,6 @@ class JsonStore:
             return [self._enrich_paciente(data, p) for p in pacientes]
 
     def create_turno(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """
-        Crea un nuevo turno con validación de disponibilidad en tiempo real.
-        
-        Este método implementa el sistema de sincronización entre turnos virtuales
-        y físicos, similar a un sistema de venta de boletos de avión: cuando alguien
-        reserva un turno, el cupo se bloquea inmediatamente para evitar double-booking.
-        
-        Args:
-            payload: Diccionario con paciente_id, medico_id, fecha, hora, motivo, etc.
-        
-        Returns:
-            dict: El turno creado con información enriquecida
-        
-        Raises:
-            ValueError: Si no hay disponibilidad o si el médico/paciente no existe
-        """
         required = ("paciente_id", "medico_id", "fecha", "hora", "motivo")
         self._require(payload, required)
         with self._lock:
@@ -266,15 +250,6 @@ class JsonStore:
             paciente = self._find(data["pacientes"], int(payload["paciente_id"]))
             if paciente is None:
                 raise ValueError("El paciente seleccionado no existe")
-            
-            # Validar disponibilidad en tiempo real (sincronización virtual/físico)
-            if not self._verificar_disponibilidad_turno(data, medico["id"], payload["fecha"], payload["hora"]):
-                raise ValueError("No hay disponibilidad para este médico en la fecha y hora seleccionada. El horario ya está reservado.")
-            
-            # Verificar si el paciente ya tiene un turno en el mismo horario
-            if self._verificar_turno_duplicado_paciente(data, paciente["id"], payload["fecha"], payload["hora"]):
-                raise ValueError("El paciente ya tiene un turno reservado en esta fecha y hora.")
-            
             precio = payload.get("precio")
             if precio in (None, ""):
                 precio = self._precio_estimado(data, medico)
@@ -288,8 +263,6 @@ class JsonStore:
                 "estado": payload.get("estado", "PENDIENTE"),
                 "precio": float(precio or 0),
                 "motivo": payload["motivo"].strip(),
-                "origen": payload.get("origen", "VIRTUAL"),  # VIRTUAL o FISICO
-                "fecha_creacion": self._now(),
             }
             data["turnos"].append(turno)
             self._write(data)
