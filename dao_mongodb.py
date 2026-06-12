@@ -250,7 +250,7 @@ class SaludDAO:
         if distrito:
             query["distrito"] = distrito
         
-        return list(db["centros"].find(query, {"_id": 0}))
+        return list(db["centros"].find(query))
     
     def crear_centro(self, centro: CentroSalud) -> str:
         """
@@ -392,7 +392,7 @@ class SaludDAO:
             list[dict]: Lista de especialidades
         """
         db = self._get_db()
-        return list(db["especialidades"].find({}, {"_id": 0}))
+        return list(db["especialidades"].find({}))
     
     def crear_especialidad(self, especialidad: Especialidad) -> str:
         """

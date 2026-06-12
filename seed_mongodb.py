@@ -91,27 +91,34 @@ def seed_medicos(dao: SaludDAO) -> None:
         print("Error: No hay centros o especialidades. Ejecuta seed_centros y seed_especialidades primero.")
         return
     
-    centro_id = centros[0].get("_id") if centros else None
-    especialidad_id = especialidades[0].get("_id") if especialidades else None
+    # Obtener el primer centro y especialidad
+    centro = centros[0]
+    especialidad = especialidades[0]
+    
+    # Los IDs de MongoDB vienen como strings en el diccionario
+    centro_id = centro.get("_id")
+    especialidad_id = especialidad.get("_id")
     
     if not centro_id or not especialidad_id:
         print("Error: No se pudieron obtener IDs de centro o especialidad.")
+        print(f"Centro: {centro}")
+        print(f"Especialidad: {especialidad}")
         return
     
     medicos = [
         Medico(
             nombre="Dr. Juan Pérez",
             matricula="12345",
-            especialidad_id=str(especialidad_id),
-            centro_id=str(centro_id),
+            especialidad_id=str(centro_id),
+            centro_id=str(especialidad_id),
             telefono="3825-123456",
             email="juan.perez@hospital.com"
         ),
         Medico(
             nombre="Dra. María González",
             matricula="12346",
-            especialidad_id=str(especialidad_id),
-            centro_id=str(centro_id),
+            especialidad_id=str(centro_id),
+            centro_id=str(especialidad_id),
             telefono="3825-123457",
             email="maria.gonzalez@hospital.com"
         )
