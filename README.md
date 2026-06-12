@@ -4,7 +4,7 @@ Plataforma digital para gestionar centros de salud, pacientes, medicos, turnos,
 historial clinico y documentos asociados a la atencion medica en Chilecito y
 sus distritos cercanos.
 
-El proyecto combina una base Oracle, una capa DAO en Python, scripts de carga,
+El proyecto combina una base MongoDB, una capa DAO en Python, scripts de carga,
 un notebook de demostracion y una interfaz web operativa.
 
 **Modelo de negocio**: Sistema vendido a hospitales/clínicas (single-hospital instance)  
@@ -20,11 +20,11 @@ un notebook de demostracion y una interfaz web operativa.
 - Consultar disponibilidad por medico, dia, horario y cupos.
 - Crear, editar, confirmar, cancelar o eliminar turnos.
 - Calcular un precio estimado segun especialidad y tipo de centro.
-- Adjuntar documentos de pacientes.
-- Ver documentos guardados con metadatos y vista previa.
+- Registrar pacientes con verificación de email.
+- Autenticación de usuarios con roles (paciente, admin, médico).
 - Usar una interfaz grafica desde el navegador.
 - Ejecutar consultas y operaciones desde la capa DAO.
-- Cargar y validar la base Oracle con comandos automatizados.
+- Cargar datos iniciales en MongoDB con scripts automatizados.
 - **Integrarse con sistemas hospitalarios existentes (HIS) mediante API REST**
 - **Sincronizar datos bidireccionalmente con webhooks**
 - **Usar autenticación con API Keys para integraciones seguras**
@@ -75,7 +75,7 @@ Esta plataforma es **COMPLEMENTARIA** al sistema existente del hospital, no lo r
                           │ Sincronización bidireccional
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
-│                    BASE DE DATOS ORACLE                      │
+│                    BASE DE DATOS MONGODB                      │
 │  - Datos persistentes                                        │
 │  - Historial de turnos                                       │
 │  - Configuración de hospitales                               │
@@ -88,16 +88,18 @@ Esta plataforma es **COMPLEMENTARIA** al sistema existente del hospital, no lo r
 - [Documentación de API](docs/API_OPENAPI.md) - Referencia completa de la API REST
 - [Ejemplos de Integración](examples/integracion_his.py) - Ejemplos de código
 - [Presentación para Hospitales](PRESENTACION_VENTA_HOSPITALES.md) - Guía de venta e implementación
+- [Despliegue en Producción](docs/DESPLIEGUE_PRODUCCION.md) - Guía de despliegue en línea
+- [Despliegue Rápido en Render](README_RENDER.md) - Guía rápida para desplegar en Render
 
 
 ## Componentes principales
 
 | Componente | Ruta | Descripcion |
 |---|---|---|
-| Base Oracle | `sql/` | Scripts ordenados para tablespaces, usuarios, roles, tablas, indices, seed y validaciones |
-| DAO Python | `src/dao/` | Clases que encapsulan las operaciones contra Oracle |
-| Modelos | `src/models/` | Dataclasses del dominio de salud |
-| Configuracion | `src/config/` y `.env.example` | Conexion y variables de entorno |
+| Base MongoDB | `docker-compose.yml` | Servicio MongoDB y Redis con Docker Compose |
+| DAO Python | `dao_mongodb.py` | Clases que encapsulan las operaciones contra MongoDB |
+| Modelos | `db_models/` | Dataclasses del dominio de salud |
+| Configuracion | `config_vars.py` y `.env.example` | Conexion y variables de entorno |
 | Plataforma web | `src/webapp/` | Interfaz grafica, API local y store JSON |
 | Notebook | `notebooks/SaludChilecito_DAO_Demo.ipynb` | Recorrido guiado del proyecto |
 | Datos demo | `data/demo_seed.json` | Datos iniciales para usar la plataforma sin preparar Oracle |
