@@ -62,7 +62,9 @@ from bson import ObjectId
 from config_vars import get_mongo_config
 from db_models import (
     Paciente, CentroSalud, Medico, Turno, AgendaMedico,
-    Especialidad, HistorialClinico, Sintoma, ConfiguracionHospital, Usuario, Rol
+    Especialidad, HistorialClinico, Sintoma, ConfiguracionHospital, Usuario, Rol,
+    Receta, MedicamentoRecetado, EstudioMedico, TipoEstudio, EstadoEstudio,
+    Notificacion, TipoNotificacion, EstadoNotificacion, Internacion, TipoInternacion, EstadoInternacion
 )
 
 
@@ -510,3 +512,314 @@ class SaludDAO:
             "sintoma": sintoma_doc,
             "especialidad": especialidad
         }
+    
+    # ======================================================================
+    # RECETAS MÉDICAS
+    # ======================================================================
+    
+    def crear_receta(self, receta: Receta) -> str:
+        """
+        Crea una nueva receta médica.
+        
+        Args:
+            receta: Objeto Receta con los datos de la receta
+        
+        Returns:
+            str: ID de la receta creada (MongoDB ObjectId)
+        """
+        db = self._get_db()
+        
+        # Convertir medicamentos a diccionarios
+        medicamentos_list = []
+        for med in receta.medicamentos:
+            medicamentos_list.append({
+                "nombre": med.nombre,
+                "dosis": med.dosis,
+                "frecuencia": med.frecuencia,
+                "duracion": med.duracion,
+                "instrucciones": med.instrucciones
+            })
+        
+        doc = {
+            "paciente_id": ObjectId(receta.paciente_id),
+            "medico_id": ObjectId(receta.medico_id),
+            "turno_id": ObjectId(receta.turno_id) if receta.turno_id else None,
+            "medicamentos": medicamentos_list,
+            "diagnostico": receta.diagnostico,
+            "indicaciones": receta.indicaciones,
+            "fecha_emision": receta.fecha_emision or datetime.now(),
+            "activa": receta.activa,
+        }
+        
+        result = db["recetas"].insert_one(doc)
+        return str(result.inserted_id)
+    
+    def obtener_recetas_por_paciente(self, paciente_id: str) -> List[Dict]:
+        """
+        Obtiene todas las recetas de un paciente.
+        
+        Args:
+            paciente_id: ID del paciente (MongoDB ObjectId)
+        
+        Returns:
+            list[dict]: Lista de recetas del paciente
+        """
+        db = self._get_db()
+        return list(db["recetas"].find(
+            {"paciente_id": ObjectId(paciente_id)}
+        ).sort("fecha_emision", -1))
+    
+    # ======================================================================
+    # ESTUDIOS MÉDICOS
+    # ======================================================================
+    
+    def crear_estudio_medico(self, estudio: EstudioMedico) -> str:
+        """
+        Crea un nuevo estudio médico.
+        
+        Args:
+            estudio: Objeto EstudioMedico con los datos del estudio
+        
+        Returns:
+            str: ID del estudio creado (MongoDB ObjectId)
+        """
+        db = self._get_db()
+        
+        doc = {
+            "paciente_id": ObjectId(estudio.paciente_id),
+            "medico_id": ObjectId(estudio.medico_id),
+            "tipo_estudio": estudio.tipo_estudio.value,
+            "descripcion": estudio.descripcion,
+            "indicaciones": estudio.indicaciones,
+            "fecha_solicitud": estudio.fecha_solicitud or datetime.now(),
+            "fecha_realizacion": estudio.fecha_realizacion,
+            "fecha_resultado": estudio.fecha_resultado,
+            "resultado": estudio.resultado,
+            "estado": estudio.estado.value,
+            "archivo_url": estudio.archivo_url,
+            "turno_id": ObjectId(estudio.turno_id) if estudio.turno_id else None,
+        }
+        
+        result = db["estudios_medicos"].insert_one(doc)
+        return str(result.inserted_id)
+    
+    def obtener_estudios_por_paciente(self, paciente_id: str) -> List[Dict]:
+        """
+        Obtiene todos los estudios de un paciente.
+        
+        Args:
+            paciente_id: ID del paciente (MongoDB ObjectId)
+        
+        Returns:
+            list[dict]: Lista de estudios del paciente
+        """
+        db = self._get_db()
+        return list(db["estudios_medicos"].find(
+            {"paciente_id": ObjectId(paciente_id)}
+        ).sort("fecha_solicitud", -1))
+    
+    def actualizar_estado_estudio(self, estudio_id: str, estado: EstadoEstudio, resultado: Optional[str] = None) -> bool:
+        """
+        Actualiza el estado de un estudio médico.
+        
+        Args:
+            estudio_id: ID del estudio (MongoDB ObjectId)
+            estado: Nuevo estado del estudio
+            resultado: Resultado del estudio (opcional)
+        
+        Returns:
+            bool: True si se actualizó exitosamente
+        """
+        db = self._get_db()
+        
+        update_data = {
+            "$set": {
+                "estado": estado.value,
+                "fecha_resultado": datetime.now() if estado == EstadoEstudio.COMPLETADO else None
+            }
+        }
+        
+        if resultado:
+            update_data["$set"]["resultado"] = resultado
+        
+        result = db["estudios_medicos"].update_one(
+            {"_id": ObjectId(estudio_id)},
+            update_data
+        )
+        
+        return result.modified_count > 0
+    
+    # ======================================================================
+    # NOTIFICACIONES
+    # ======================================================================
+    
+    def crear_notificacion(self, notificacion: Notificacion) -> str:
+        """
+        Crea una nueva notificación.
+        
+        Args:
+            notificacion: Objeto Notificacion con los datos de la notificación
+        
+        Returns:
+            str: ID de la notificación creada (MongoDB ObjectId)
+        """
+        db = self._get_db()
+        
+        doc = {
+            "usuario_id": ObjectId(notificacion.usuario_id),
+            "tipo": notificacion.tipo.value,
+            "titulo": notificacion.titulo,
+            "mensaje": notificacion.mensaje,
+            "estado": notificacion.estado.value,
+            "fecha_creacion": notificacion.fecha_creacion or datetime.now(),
+            "fecha_envio": notificacion.fecha_envio,
+            "fecha_lectura": notificacion.fecha_lectura,
+            "metadata": notificacion.metadata,
+        }
+        
+        result = db["notificaciones"].insert_one(doc)
+        return str(result.inserted_id)
+    
+    def obtener_notificaciones_por_usuario(self, usuario_id: str, no_leidas: bool = False) -> List[Dict]:
+        """
+        Obtiene las notificaciones de un usuario.
+        
+        Args:
+            usuario_id: ID del usuario (MongoDB ObjectId)
+            no_leidas: Si es True, solo retorna notificaciones no leídas
+        
+        Returns:
+            list[dict]: Lista de notificaciones del usuario
+        """
+        db = self._get_db()
+        
+        query = {"usuario_id": ObjectId(usuario_id)}
+        if no_leidas:
+            query["estado"] = EstadoNotificacion.PENDIENTE.value
+        
+        return list(db["notificaciones"].find(query).sort("fecha_creacion", -1))
+    
+    def marcar_notificacion_leida(self, notificacion_id: str) -> bool:
+        """
+        Marca una notificación como leída.
+        
+        Args:
+            notificacion_id: ID de la notificación (MongoDB ObjectId)
+        
+        Returns:
+            bool: True si se actualizó exitosamente
+        """
+        db = self._get_db()
+        
+        result = db["notificaciones"].update_one(
+            {"_id": ObjectId(notificacion_id)},
+            {
+                "$set": {
+                    "estado": EstadoNotificacion.LEIDA.value,
+                    "fecha_lectura": datetime.now()
+                }
+            }
+        )
+        
+        return result.modified_count > 0
+    
+    # ======================================================================
+    # INTERNACIONES
+    # ======================================================================
+    
+    def crear_internacion(self, internacion: Internacion) -> str:
+        """
+        Crea una nueva internación.
+        
+        Args:
+            internacion: Objeto Internacion con los datos de la internación
+        
+        Returns:
+            str: ID de la internación creada (MongoDB ObjectId)
+        """
+        db = self._get_db()
+        
+        doc = {
+            "paciente_id": ObjectId(internacion.paciente_id),
+            "medico_id": ObjectId(internacion.medico_id),
+            "centro_id": ObjectId(internacion.centro_id),
+            "tipo": internacion.tipo.value,
+            "motivo_ingreso": internacion.motivo_ingreso,
+            "diagnostico_ingreso": internacion.diagnostico_ingreso,
+            "fecha_ingreso": internacion.fecha_ingreso or datetime.now(),
+            "fecha_alta": internacion.fecha_alta,
+            "estado": internacion.estado.value,
+            "habitacion": internacion.habitacion,
+            "cama": internacion.cama,
+            "diagnostico_egreso": internacion.diagnostico_egreso,
+            "resumen_clinico": internacion.resumen_clinico,
+        }
+        
+        result = db["internaciones"].insert_one(doc)
+        return str(result.inserted_id)
+    
+    def obtener_internaciones_por_paciente(self, paciente_id: str) -> List[Dict]:
+        """
+        Obtiene todas las internaciones de un paciente.
+        
+        Args:
+            paciente_id: ID del paciente (MongoDB ObjectId)
+        
+        Returns:
+            list[dict]: Lista de internaciones del paciente
+        """
+        db = self._get_db()
+        return list(db["internaciones"].find(
+            {"paciente_id": ObjectId(paciente_id)}
+        ).sort("fecha_ingreso", -1))
+    
+    def obtener_internaciones_activas(self, centro_id: Optional[str] = None) -> List[Dict]:
+        """
+        Obtiene las internaciones activas.
+        
+        Args:
+            centro_id: ID del centro (opcional)
+        
+        Returns:
+            list[dict]: Lista de internaciones activas
+        """
+        db = self._get_db()
+        
+        query = {"estado": EstadoInternacion.ACTIVA.value}
+        if centro_id:
+            query["centro_id"] = ObjectId(centro_id)
+        
+        return list(db["internaciones"].find(query).sort("fecha_ingreso", -1))
+    
+    def dar_alta_internacion(self, internacion_id: str, diagnostico_egreso: Optional[str] = None, resumen_clinico: Optional[str] = None) -> bool:
+        """
+        Da de alta una internación.
+        
+        Args:
+            internacion_id: ID de la internación (MongoDB ObjectId)
+            diagnostico_egreso: Diagnóstico al egreso (opcional)
+            resumen_clinico: Resumen clínico (opcional)
+        
+        Returns:
+            bool: True si se actualizó exitosamente
+        """
+        db = self._get_db()
+        
+        update_data = {
+            "$set": {
+                "estado": EstadoInternacion.ALTA_MEDICA.value,
+                "fecha_alta": datetime.now()
+            }
+        }
+        
+        if diagnostico_egreso:
+            update_data["$set"]["diagnostico_egreso"] = diagnostico_egreso
+        if resumen_clinico:
+            update_data["$set"]["resumen_clinico"] = resumen_clinico
+        
+        result = db["internaciones"].update_one(
+            {"_id": ObjectId(internacion_id)},
+            update_data
+        )
+        
+        return result.modified_count > 0
