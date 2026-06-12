@@ -57,13 +57,24 @@ class RedisCache:
         if self._client is None:
             try:
                 import redis
-                self._client = redis.Redis(
-                    host=config["host"],
-                    port=config["port"],
-                    db=config["db"],
-                    password=config["password"],
-                    decode_responses=True
-                )
+                config = self._config
+                
+                # Crear cliente Redis
+                if config["password"]:
+                    self._client = redis.Redis(
+                        host=config["host"],
+                        port=config["port"],
+                        db=config["db"],
+                        password=config["password"],
+                        decode_responses=True
+                    )
+                else:
+                    self._client = redis.Redis(
+                        host=config["host"],
+                        port=config["port"],
+                        db=config["db"],
+                        decode_responses=True
+                    )
             except ImportError:
                 raise RuntimeError(
                     "Falta instalar redis. Ejecuta: pip install redis"
