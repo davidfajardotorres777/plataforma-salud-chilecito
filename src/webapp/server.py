@@ -5,11 +5,11 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
+from typing import Optional
 
 from .store import JsonStore
 from .auth import api_key_manager, audit_logger
 from .webhooks import webhook_manager, EventTypes
-
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -54,6 +54,22 @@ STATIC_PREFIX = "/static/"
 
 class SaludHandler(BaseHTTPRequestHandler):
     store = JsonStore()
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Lazy load auth service
+        self._auth_service = None
+    
+    @property
+    def auth_service(self):
+        if self._auth_service is None:
+            try:
+                from auth import AuthService
+                self._auth_service = AuthService()
+            except Exception:
+                # Si no está disponible, usar modo demo
+                self._auth_service = None
+        return self._auth_service
 
     # --- GET ---
     def do_GET(self) -> None:
@@ -65,6 +81,20 @@ class SaludHandler(BaseHTTPRequestHandler):
             return
         if route == "/landing":
             self._serve_file(STATIC_DIR / "landing.html", "text/html; charset=utf-8")
+            return
+        if route == "/registro":
+            self._serve_file(STATIC_DIR / "registro.html", "text/html; charset=utf-8")
+            return
+        if route == "/verificar-email":
+            qs = parse_qs(parsed.query)
+            token = qs.get("token", [None])[0]
+            if token and self.auth_service:
+                if self.auth_service.verificar_email(token):
+                    self._serve_file(STATIC_DIR / "verificacion-exitosa.html", "text/html; charset=utf-8")
+                else:
+                    self._serve_file(STATIC_DIR / "verificacion-fallida.html", "text/html; charset=utf-8")
+            else:
+                self._serve_file(STATIC_DIR / "verificacion-fallida.html", "text/html; charset=utf-8")
             return
         if route.startswith(STATIC_PREFIX):
             requested = STATIC_DIR / unquote(route.removeprefix(STATIC_PREFIX))
@@ -331,6 +361,81 @@ class SaludHandler(BaseHTTPRequestHandler):
                 webhook_manager.trigger_event(event_type, data)
                 self._json(HTTPStatus.OK, {"message": "Evento disparado exitosamente"})
                 return
+            
+            # Endpoints de autenticación para pacientes
+            if route == "/api/auth/registro":
+                if not self.auth_service:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                    return
+                try:
+                    email = payload.get("email")
+                    password = payload.get("password")
+                    nombre = payload.get("nombre")
+                    dni = payload.get("dni")
+                    telefono = payload.get("telefono")
+                    distrito = payload.get("distrito")
+                    obra_social = payload.get("obra_social")
+                    
+                    if not all([email, password, nombre, dni]):
+                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre, dni"})
+                        return
+                    
+                    usuario_id = self.auth_service.registrar_paciente(
+                        email=email,
+                        password=password,
+                        nombre=nombre,
+                        dni=dni,
+                        telefono=telefono,
+                        distrito=distrito,
+                        obra_social=obra_social
+                    )
+                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Verifica tu email."})
+                except ValueError as e:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                return
+            
+            if route == "/api/auth/login":
+                if not self.auth_service:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                    return
+                try:
+                    email = payload.get("email")
+                    password = payload.get("password")
+                    
+                    if not all([email, password]):
+                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password"})
+                        return
+                    
+                    token = self.auth_service.login(email, password)
+                    if token:
+                        self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso"})
+                    else:
+                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Credenciales inválidas"})
+                except ValueError as e:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                return
+            
+            if route == "/api/auth/verificar":
+                if not self.auth_service:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                    return
+                try:
+                    token = payload.get("token")
+                    if not token:
+                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta token"})
+                        return
+                    
+                    if self.auth_service.verificar_email(token):
+                        self._json(HTTPStatus.OK, {"message": "Email verificado exitosamente"})
+                    else:
+                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Token inválido o expirado"})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                return
         except ValueError as exc:
             self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
             return
@@ -383,10 +488,11 @@ class SaludHandler(BaseHTTPRequestHandler):
         print(f"[web] {self.address_string()} - {format % args}")
 
 
-def run(host: str = "127.0.0.1", port: int = 8000) -> None:
+def run(host: str = "0.0.0.0", port: int = 8000) -> None:
     server = ThreadingHTTPServer((host, port), SaludHandler)
     print(f"Salud Chilecito web: http://{host}:{port}")
     print("Modo demo JSON. Los datos editables quedan en runtime/salud_chilecito_data.json")
+    print("Para acceso desde internet, usa 0.0.0.0 como host")
     server.serve_forever()
 
 
