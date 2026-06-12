@@ -1,10 +1,14 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
 
 
 @dataclass(slots=True)
 class Sintoma:
+    """Modelo de síntoma para MongoDB"""
     descripcion: str
-    id_especialidad: int
+    especialidad_id: str  # MongoDB ObjectId como string
     prioridad: str = "MEDIA"
-    activo: str = "S"
-    id_sintoma: int | None = None
+    activo: bool = True
+    fecha_creacion: datetime = field(default_factory=datetime.now)
+    id_sintoma: Optional[str] = None  # MongoDB ObjectId como string

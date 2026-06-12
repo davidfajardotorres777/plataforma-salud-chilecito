@@ -7,6 +7,7 @@ from .especialidad import Especialidad
 from .historial import HistorialClinico
 from .sintoma import Sintoma
 from .configuracion_hospital import ConfiguracionHospital
+from .usuario import Usuario
 
 __all__ = [
     "Paciente",
@@ -18,4 +19,5 @@ __all__ = [
     "HistorialClinico",
     "Sintoma",
     "ConfiguracionHospital",
+    "Usuario",
 ]
