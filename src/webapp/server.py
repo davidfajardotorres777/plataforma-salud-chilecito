@@ -132,6 +132,29 @@ class SaludHandler(BaseHTTPRequestHandler):
             self._json(HTTPStatus.OK, dashboard)
             return
 
+        if route == "/api/medicos":
+            dashboard = self.store.dashboard()
+            medicos = dashboard.get("medicos", [])
+            self._json(HTTPStatus.OK, medicos)
+            return
+
+        if route == "/api/medicos/disponibilidad":
+            qs = parse_qs(parsed.query)
+            medico_id = qs.get("medico_id", [None])[0]
+            if not medico_id:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id requerido"})
+                return
+            try:
+                m = int(medico_id)
+            except Exception:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id invalido"})
+                return
+            
+            # Obtener disponibilidad filtrada por médico
+            rows = self.store.disponibilidad_filtered(medico_id=m)
+            self._json(HTTPStatus.OK, rows)
+            return
+
         if route == "/api/disponibilidad":
             qs = parse_qs(parsed.query)
             centro_id = qs.get("centro_id", [None])[0]
