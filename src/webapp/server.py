@@ -467,25 +467,25 @@ class SaludHandler(BaseHTTPRequestHandler):
                 return
             
             if route == "/api/auth/me":
-                if not self.auth_service:
+                if self.auth_service:
+                    try:
+                        # Obtener token del header Authorization
+                        auth_header = self.headers.get('Authorization')
+                        if not auth_header or not auth_header.startswith('Bearer '):
+                            self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token no proporcionado"})
+                            return
+                        
+                        token = auth_header.split(' ')[1]
+                        usuario_info = self.auth_service.obtener_usuario_desde_token(token)
+                        
+                        if usuario_info:
+                            self._json(HTTPStatus.OK, usuario_info)
+                        else:
+                            self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token inválido"})
+                    except Exception as e:
+                        self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                else:
                     self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                    return
-                try:
-                    # Obtener token del header Authorization
-                    auth_header = self.headers.get('Authorization')
-                    if not auth_header or not auth_header.startswith('Bearer '):
-                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token no proporcionado"})
-                        return
-                    
-                    token = auth_header.split(' ')[1]
-                    usuario_info = self.auth_service.obtener_usuario_desde_token(token)
-                    
-                    if usuario_info:
-                        self._json(HTTPStatus.OK, usuario_info)
-                    else:
-                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token inválido"})
-                except Exception as e:
-                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
                 return
             
             if route == "/api/auth/verificar":

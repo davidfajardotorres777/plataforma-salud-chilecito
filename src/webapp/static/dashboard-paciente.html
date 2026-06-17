@@ -167,76 +167,33 @@
             return;
         }
 
-        // Obtener información del usuario
-        async function loadUserInfo() {
+        // Obtener información del usuario del token
+        function loadUserInfo() {
             try {
-                const response = await fetch('/api/auth/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                // Decodificar el token JWT (simple)
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const data = JSON.parse(jsonPayload);
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('userName').textContent = data.nombre || 'Usuario';
-                }
+                document.getElementById('userName').textContent = data.nombre || data.email || 'Usuario';
             } catch (error) {
                 console.error('Error al cargar información del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
             }
         }
 
-        // Cargar turnos del paciente
-        async function loadTurnos() {
-            try {
-                const response = await fetch('/api/turnos', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    displayTurnos(data);
-                } else {
-                    document.getElementById('turnosContainer').innerHTML = '<div class="error">Error al cargar turnos</div>';
-                }
-            } catch (error) {
-                console.error('Error al cargar turnos:', error);
-                document.getElementById('turnosContainer').innerHTML = '<div class="error">Error de conexión</div>';
-            }
-        }
-
-        // Mostrar turnos
-        function displayTurnos(turnos) {
+        // Mostrar mensaje de turnos
+        function loadTurnos() {
             const container = document.getElementById('turnosContainer');
-            
-            if (!turnos || turnos.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <p>📅 No tienes turnos programados</p>
-                        <p>Haz clic en "Solicitar Turno" para reservar uno</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '<table class="table"><thead><tr><th>Fecha</th><th>Hora</th><th>Médico</th><th>Especialidad</th><th>Estado</th></tr></thead><tbody>';
-            
-            turnos.forEach(turno => {
-                const statusClass = turno.estado.toLowerCase();
-                html += `
-                    <tr>
-                        <td>${turno.fecha}</td>
-                        <td>${turno.hora}</td>
-                        <td>${turno.medico_nombre || 'N/A'}</td>
-                        <td>${turno.especialidad || 'N/A'}</td>
-                        <td><span class="status ${statusClass}">${turno.estado}</span></td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📅 Para ver y gestionar tus turnos</p>
+                    <p>Ve a la página principal usando el botón "Solicitar Turno"</p>
+                </div>
+            `;
         }
 
         // Solicitar nuevo turno
