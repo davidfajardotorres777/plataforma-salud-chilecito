@@ -164,9 +164,6 @@ class AuthService:
         if self.dao.obtener_paciente_por_dni(dni):
             raise ValueError("El DNI ya está registrado")
         
-        # Generar token de verificación
-        verification_token = secrets.token_urlsafe(32)
-        
         # Crear paciente
         paciente = Paciente(
             dni=dni,
@@ -178,7 +175,7 @@ class AuthService:
         )
         paciente_id = self.dao.crear_paciente(paciente)
         
-        # Crear usuario
+        # Crear usuario (verificado automáticamente)
         password_hash = self._hash_password(password)
         usuario = Usuario(
             email=email,
@@ -186,17 +183,10 @@ class AuthService:
             rol=Rol.PACIENTE,
             nombre=nombre,
             paciente_id=paciente_id,
-            verificado=False,
-            verification_token=verification_token,
+            verificado=True,  # Verificado automáticamente
             fecha_registro=datetime.now()
         )
         usuario_id = self.dao.registrar_usuario(usuario)
-        
-        # Enviar email de verificación
-        email_enviado = self._enviar_email_verificacion(email, verification_token)
-        
-        if not email_enviado:
-            print(f"⚠️ No se pudo enviar email de verificación a {email}")
         
         return usuario_id
     
@@ -288,10 +278,7 @@ class AuthService:
         if self.dao.obtener_usuario_por_email(email):
             raise ValueError("El email ya está registrado")
         
-        # Generar token de verificación
-        verification_token = secrets.token_urlsafe(32)
-        
-        # Crear usuario
+        # Crear usuario (verificado automáticamente)
         password_hash = self._hash_password(password)
         usuario = Usuario(
             email=email,
@@ -299,17 +286,10 @@ class AuthService:
             rol=Rol.ADMIN,
             nombre=nombre,
             centro_id=centro_id,
-            verificado=False,
-            verification_token=verification_token,
+            verificado=True,  # Verificado automáticamente
             fecha_registro=datetime.now()
         )
         usuario_id = self.dao.registrar_usuario(usuario)
-        
-        # Enviar email de verificación
-        email_enviado = self._enviar_email_verificacion(email, verification_token)
-        
-        if not email_enviado:
-            print(f"⚠️ No se pudo enviar email de verificación a {email}")
         
         return usuario_id
     
@@ -342,9 +322,6 @@ class AuthService:
         if self.dao.obtener_usuario_por_email(email):
             raise ValueError("El email ya está registrado")
         
-        # Generar token de verificación
-        verification_token = secrets.token_urlsafe(32)
-        
         # Crear médico
         from db_models import Medico
         medico = Medico(
@@ -357,7 +334,7 @@ class AuthService:
         )
         medico_id = self.dao.crear_medico(medico)
         
-        # Crear usuario
+        # Crear usuario (verificado automáticamente)
         password_hash = self._hash_password(password)
         usuario = Usuario(
             email=email,
@@ -366,17 +343,10 @@ class AuthService:
             nombre=nombre,
             medico_id=medico_id,
             centro_id=centro_id,
-            verificado=False,
-            verification_token=verification_token,
+            verificado=True,  # Verificado automáticamente
             fecha_registro=datetime.now()
         )
         usuario_id = self.dao.registrar_usuario(usuario)
-        
-        # Enviar email de verificación
-        email_enviado = self._enviar_email_verificacion(email, verification_token)
-        
-        if not email_enviado:
-            print(f"⚠️ No se pudo enviar email de verificación a {email}")
         
         return usuario_id
     

@@ -58,7 +58,8 @@ class SaludHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Lazy load auth service
-        self._auth_service = None
+        if not hasattr(self, '_auth_service'):
+            self._auth_service = None
     
     @property
     def auth_service(self):
@@ -395,7 +396,7 @@ class SaludHandler(BaseHTTPRequestHandler):
                         distrito=distrito,
                         obra_social=obra_social
                     )
-                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Verifica tu email."})
+                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
                 except ValueError as e:
                     self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
                 except Exception as e:
@@ -422,7 +423,7 @@ class SaludHandler(BaseHTTPRequestHandler):
                         nombre=nombre,
                         centro_id=centro_id
                     )
-                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Verifica tu email."})
+                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
                 except ValueError as e:
                     self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
                 except Exception as e:
