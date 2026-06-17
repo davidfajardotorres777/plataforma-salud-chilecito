@@ -164,6 +164,9 @@ class AuthService:
         if self.dao.obtener_paciente_por_dni(dni):
             raise ValueError("El DNI ya está registrado")
         
+        # Generar token de verificación
+        verification_token = secrets.token_urlsafe(32)
+        
         # Crear paciente
         paciente = Paciente(
             dni=dni,
@@ -184,12 +187,16 @@ class AuthService:
             nombre=nombre,
             paciente_id=paciente_id,
             verificado=False,
+            verification_token=verification_token,
             fecha_registro=datetime.now()
         )
         usuario_id = self.dao.registrar_usuario(usuario)
         
         # Enviar email de verificación
-        self._enviar_email_verificacion(email, usuario.verification_token)
+        email_enviado = self._enviar_email_verificacion(email, verification_token)
+        
+        if not email_enviado:
+            print(f"⚠️ No se pudo enviar email de verificación a {email}")
         
         return usuario_id
     
@@ -209,8 +216,13 @@ class AuthService:
         from email.mime.multipart import MIMEMultipart
         
         try:
+            # Verificar configuración de email
+            if not self.email_config.get("smtp_username") or not self.email_config.get("smtp_password"):
+                print(f"⚠️ Configuración de email incompleta. No se puede enviar email a {email}")
+                return False
+            
             # Crear enlace de verificación
-            base_url = self.app_config["base_url"]
+            base_url = self.app_config.get("base_url", "http://localhost:8000")
             verification_url = f"{base_url}/verificar-email?token={token}"
             
             # Crear mensaje
@@ -247,10 +259,126 @@ class AuthService:
                 )
                 server.send_message(msg)
             
+            print(f"✅ Email de verificación enviado a {email}")
             return True
         except Exception as e:
-            print(f"Error al enviar email de verificación: {e}")
+            print(f"❌ Error al enviar email de verificación: {e}")
             return False
+    
+    def registrar_admin(
+        self,
+        email: str,
+        password: str,
+        nombre: str,
+        centro_id: Optional[str] = None
+    ) -> str:
+        """
+        Registra un nuevo administrador del sistema.
+        
+        Args:
+            email: Email del administrador
+            password: Contraseña del administrador
+            nombre: Nombre completo del administrador
+            centro_id: ID del centro (opcional)
+        
+        Returns:
+            str: ID del usuario creado
+        """
+        # Verificar si el email ya existe
+        if self.dao.obtener_usuario_por_email(email):
+            raise ValueError("El email ya está registrado")
+        
+        # Generar token de verificación
+        verification_token = secrets.token_urlsafe(32)
+        
+        # Crear usuario
+        password_hash = self._hash_password(password)
+        usuario = Usuario(
+            email=email,
+            password_hash=password_hash,
+            rol=Rol.ADMIN,
+            nombre=nombre,
+            centro_id=centro_id,
+            verificado=False,
+            verification_token=verification_token,
+            fecha_registro=datetime.now()
+        )
+        usuario_id = self.dao.registrar_usuario(usuario)
+        
+        # Enviar email de verificación
+        email_enviado = self._enviar_email_verificacion(email, verification_token)
+        
+        if not email_enviado:
+            print(f"⚠️ No se pudo enviar email de verificación a {email}")
+        
+        return usuario_id
+    
+    def registrar_medico(
+        self,
+        email: str,
+        password: str,
+        nombre: str,
+        matricula: str,
+        especialidad_id: str,
+        centro_id: str,
+        telefono: Optional[str] = None
+    ) -> str:
+        """
+        Registra un nuevo médico del sistema.
+        
+        Args:
+            email: Email del médico
+            password: Contraseña del médico
+            nombre: Nombre completo del médico
+            matricula: Matrícula del médico
+            especialidad_id: ID de la especialidad
+            centro_id: ID del centro
+            telefono: Teléfono del médico (opcional)
+        
+        Returns:
+            str: ID del usuario creado
+        """
+        # Verificar si el email ya existe
+        if self.dao.obtener_usuario_por_email(email):
+            raise ValueError("El email ya está registrado")
+        
+        # Generar token de verificación
+        verification_token = secrets.token_urlsafe(32)
+        
+        # Crear médico
+        from db_models import Medico
+        medico = Medico(
+            nombre=nombre,
+            matricula=matricula,
+            especialidad_id=especialidad_id,
+            centro_id=centro_id,
+            telefono=telefono,
+            email=email
+        )
+        medico_id = self.dao.crear_medico(medico)
+        
+        # Crear usuario
+        password_hash = self._hash_password(password)
+        usuario = Usuario(
+            email=email,
+            password_hash=password_hash,
+            rol=Rol.MEDICO,
+            nombre=nombre,
+            medico_id=medico_id,
+            centro_id=centro_id,
+            verificado=False,
+            verification_token=verification_token,
+            fecha_registro=datetime.now()
+        )
+        usuario_id = self.dao.registrar_usuario(usuario)
+        
+        # Enviar email de verificación
+        email_enviado = self._enviar_email_verificacion(email, verification_token)
+        
+        if not email_enviado:
+            print(f"⚠️ No se pudo enviar email de verificación a {email}")
+        
+        return usuario_id
     
     def verificar_email(self, token: str) -> bool:
         """

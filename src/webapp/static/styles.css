@@ -138,6 +138,31 @@ button.danger:hover {
   background: #374151;
 }
 
+.auth-box {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #34475c;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-btn {
+  display: block;
+  text-align: center;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: transform 0.3s;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+}
+
 .bot-link {
   display: flex;
   align-items: center;

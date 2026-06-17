@@ -85,6 +85,12 @@ class SaludHandler(BaseHTTPRequestHandler):
         if route == "/registro":
             self._serve_file(STATIC_DIR / "registro.html", "text/html; charset=utf-8")
             return
+        if route == "/login":
+            self._serve_file(STATIC_DIR / "login.html", "text/html; charset=utf-8")
+            return
+        if route == "/dashboard.html":
+            self._serve_file(STATIC_DIR / "dashboard.html", "text/html; charset=utf-8")
+            return
         if route == "/verificar-email":
             qs = parse_qs(parsed.query)
             token = qs.get("token", [None])[0]
@@ -388,6 +394,33 @@ class SaludHandler(BaseHTTPRequestHandler):
                         telefono=telefono,
                         distrito=distrito,
                         obra_social=obra_social
+                    )
+                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Verifica tu email."})
+                except ValueError as e:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                return
+            
+            if route == "/api/auth/registro-admin":
+                if not self.auth_service:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                    return
+                try:
+                    email = payload.get("email")
+                    password = payload.get("password")
+                    nombre = payload.get("nombre")
+                    centro_id = payload.get("centro_id")
+                    
+                    if not all([email, password, nombre]):
+                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre"})
+                        return
+                    
+                    usuario_id = self.auth_service.registrar_admin(
+                        email=email,
+                        password=password,
+                        nombre=nombre,
+                        centro_id=centro_id
                     )
                     self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Verifica tu email."})
                 except ValueError as e:
