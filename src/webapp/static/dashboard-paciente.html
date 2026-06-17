@@ -150,7 +150,23 @@
 
         <div class="card">
             <h2>📅 Solicitar Nuevo Turno</h2>
-            <button class="btn" onclick="solicitarTurno()">Solicitar Turno</button>
+            <form id="solicitarTurnoForm">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Médico:</label>
+                    <select id="medicoSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                        <option value="">Seleccionar médico...</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Fecha:</label>
+                    <input type="date" id="fechaTurno" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Hora:</label>
+                    <input type="time" id="horaTurno" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                <button type="submit" class="btn">Solicitar Turno</button>
+            </form>
         </div>
 
         <div class="card">
@@ -160,45 +176,134 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay token
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
 
-        // Obtener información del usuario del token
-        function loadUserInfo() {
+            // Mostrar nombre del usuario
+            document.getElementById('userName').textContent = 'Paciente';
+
+            // Cargar médicos
+            loadMedicos();
+
+            // Cargar turnos
+            loadTurnos();
+
+            // Manejar formulario de solicitud de turno
+            document.getElementById('solicitarTurnoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                solicitarTurno();
+            });
+        });
+
+        // Cargar médicos
+        async function loadMedicos() {
             try {
-                // Decodificar el token JWT (simple)
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                const data = JSON.parse(jsonPayload);
-                
-                document.getElementById('userName').textContent = data.nombre || data.email || 'Usuario';
+                const response = await fetch('/api/medicos');
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('medicoSelect');
+                    select.innerHTML = '<option value="">Seleccionar médico...</option>';
+                    
+                    data.forEach(medico => {
+                        const option = document.createElement('option');
+                        option.value = medico.id;
+                        option.textContent = medico.nombre;
+                        select.appendChild(option);
+                    });
+                }
             } catch (error) {
-                console.error('Error al cargar información del usuario:', error);
-                document.getElementById('userName').textContent = 'Usuario';
+                console.error('Error al cargar médicos:', error);
             }
         }
 
-        // Mostrar mensaje de turnos
-        function loadTurnos() {
+        // Cargar turnos
+        async function loadTurnos() {
             const container = document.getElementById('turnosContainer');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>📅 Para ver y gestionar tus turnos</p>
-                    <p>Ve a la página principal usando el botón "Solicitar Turno"</p>
-                </div>
-            `;
+            try {
+                const response = await fetch('/api/turnos');
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTurnos(data);
+                } else {
+                    container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+                }
+            } catch (error) {
+                console.error('Error al cargar turnos:', error);
+                container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+            }
+        }
+
+        // Mostrar turnos
+        function displayTurnos(turnos) {
+            const container = document.getElementById('turnosContainer');
+            
+            if (!turnos || turnos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+                return;
+            }
+
+            let html = '<table class="table"><thead><tr><th>Fecha</th><th>Hora</th><th>Médico</th><th>Estado</th></tr></thead><tbody>';
+            
+            turnos.forEach(turno => {
+                html += `
+                    <tr>
+                        <td>${turno.fecha}</td>
+                        <td>${turno.hora}</td>
+                        <td>${turno.medico_nombre || 'N/A'}</td>
+                        <td><span class="status ${turno.estado.toLowerCase()}">${turno.estado}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
         // Solicitar nuevo turno
-        function solicitarTurno() {
-            window.location.href = '/';
+        async function solicitarTurno() {
+            const medicoId = document.getElementById('medicoSelect').value;
+            const fecha = document.getElementById('fechaTurno').value;
+            const hora = document.getElementById('horaTurno').value;
+            const token = localStorage.getItem('token');
+
+            if (!medicoId || !fecha || !hora) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/turnos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        medico_id: parseInt(medicoId),
+                        fecha: fecha,
+                        hora: hora
+                    })
+                });
+
+                if (response.ok) {
+                    alert('✅ Turno solicitado exitosamente');
+                    document.getElementById('solicitarTurnoForm').reset();
+                    loadTurnos();
+                } else {
+                    const data = await response.json();
+                    alert('❌ Error: ' + (data.error || 'No se pudo solicitar el turno'));
+                }
+            } catch (error) {
+                console.error('Error al solicitar turno:', error);
+                alert('❌ Error de conexión');
+            }
         }
 
         // Cerrar sesión
@@ -206,10 +311,6 @@
             localStorage.removeItem('token');
             window.location.href = '/login';
         }
-
-        // Cargar datos al iniciar
-        loadUserInfo();
-        loadTurnos();
     </script>
 </body>
 </html>
