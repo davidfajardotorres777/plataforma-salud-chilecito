@@ -62,7 +62,7 @@ class SaludHandler(BaseHTTPRequestHandler):
     
     @property
     def auth_service(self):
-        if self._auth_service is None:
+        if not hasattr(self, '_auth_service') or self._auth_service is None:
             try:
                 from auth import AuthService
                 self._auth_service = AuthService()
