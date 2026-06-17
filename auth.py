@@ -382,14 +382,11 @@ class AuthService:
         if not self._verify_password(password, usuario["password_hash"]):
             return None
         
-        # Verificar si el usuario está activo y verificado
+        # Verificar si el usuario está activo
         if not usuario.get("activo", False):
             raise ValueError("Usuario desactivado")
         
-        if not usuario.get("verificado", False):
-            raise ValueError("Email no verificado")
-        
-        # Generar token JWT
+        # Generar token JWT (sin verificación de email)
         token = self._generate_jwt_token(
             str(usuario["_id"]),
             usuario["email"],
