@@ -92,6 +92,9 @@ class SaludHandler(BaseHTTPRequestHandler):
         if route == "/dashboard.html":
             self._serve_file(STATIC_DIR / "dashboard.html", "text/html; charset=utf-8")
             return
+        if route == "/dashboard-paciente.html":
+            self._serve_file(STATIC_DIR / "dashboard-paciente.html", "text/html; charset=utf-8")
+            return
         if route == "/verificar-email":
             qs = parse_qs(parsed.query)
             token = qs.get("token", [None])[0]
@@ -444,11 +447,43 @@ class SaludHandler(BaseHTTPRequestHandler):
                     
                     token = self.auth_service.login(email, password)
                     if token:
-                        self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso"})
+                        # Obtener información del usuario para redirigir según rol
+                        usuario = self.auth_service.dao.obtener_usuario_por_email(email)
+                        rol = usuario.get("rol", "paciente") if usuario else "paciente"
+                        
+                        # Redirigir según rol
+                        if rol == "paciente":
+                            redirect_url = "/dashboard-paciente.html"
+                        else:
+                            redirect_url = "/dashboard.html"
+                        
+                        self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso", "rol": rol, "redirect": redirect_url})
                     else:
                         self._json(HTTPStatus.UNAUTHORIZED, {"error": "Credenciales inválidas"})
                 except ValueError as e:
                     self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+                return
+            
+            if route == "/api/auth/me":
+                if not self.auth_service:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                    return
+                try:
+                    # Obtener token del header Authorization
+                    auth_header = self.headers.get('Authorization')
+                    if not auth_header or not auth_header.startswith('Bearer '):
+                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token no proporcionado"})
+                        return
+                    
+                    token = auth_header.split(' ')[1]
+                    usuario_info = self.auth_service.obtener_usuario_desde_token(token)
+                    
+                    if usuario_info:
+                        self._json(HTTPStatus.OK, usuario_info)
+                    else:
+                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token inválido"})
                 except Exception as e:
                     self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
                 return

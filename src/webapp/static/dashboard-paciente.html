@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel - Salud Chilecito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #666;
+        }
+        .logout-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status.confirmado {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.cancelado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state p {
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Mi Panel - Salud Chilecito</h1>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📅 Solicitar Nuevo Turno</h2>
+            <button class="btn" onclick="solicitarTurno()">Solicitar Turno</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Mis Turnos</h2>
+            <div id="turnosContainer" class="loading">Cargando turnos...</div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        // Obtener información del usuario
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('userName').textContent = data.nombre || 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+            }
+        }
+
+        // Cargar turnos del paciente
+        async function loadTurnos() {
+            try {
+                const response = await fetch('/api/turnos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTurnos(data);
+                } else {
+                    document.getElementById('turnosContainer').innerHTML = '<div class="error">Error al cargar turnos</div>';
+                }
+            } catch (error) {
+                console.error('Error al cargar turnos:', error);
+                document.getElementById('turnosContainer').innerHTML = '<div class="error">Error de conexión</div>';
+            }
+        }
+
+        // Mostrar turnos
+        function displayTurnos(turnos) {
+            const container = document.getElementById('turnosContainer');
+            
+            if (!turnos || turnos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📅 No tienes turnos programados</p>
+                        <p>Haz clic en "Solicitar Turno" para reservar uno</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<table class="table"><thead><tr><th>Fecha</th><th>Hora</th><th>Médico</th><th>Especialidad</th><th>Estado</th></tr></thead><tbody>';
+            
+            turnos.forEach(turno => {
+                const statusClass = turno.estado.toLowerCase();
+                html += `
+                    <tr>
+                        <td>${turno.fecha}</td>
+                        <td>${turno.hora}</td>
+                        <td>${turno.medico_nombre || 'N/A'}</td>
+                        <td>${turno.especialidad || 'N/A'}</td>
+                        <td><span class="status ${statusClass}">${turno.estado}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Solicitar nuevo turno
+        function solicitarTurno() {
+            window.location.href = '/';
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+
+        // Cargar datos al iniciar
+        loadUserInfo();
+        loadTurnos();
+    </script>
+</body>
+</html>

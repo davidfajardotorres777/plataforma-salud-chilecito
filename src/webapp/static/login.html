@@ -187,9 +187,10 @@
                     
                     showMessage('success', 'Login exitoso. Redirigiendo...');
                     
-                    // Redirigir al dashboard
+                    // Redirigir según el rol
+                    const redirectUrl = data.redirect || '/dashboard.html';
                     setTimeout(() => {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = redirectUrl;
                     }, 1500);
                 } else {
                     showMessage('error', data.error || 'Error al iniciar sesión');
