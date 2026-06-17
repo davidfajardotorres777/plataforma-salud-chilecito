@@ -476,9 +476,9 @@ class SaludHandler(BaseHTTPRequestHandler):
                         
                         # Redirigir según rol
                         if rol == "paciente":
-                            redirect_url = "/dashboard-paciente.html"
+                            redirect_url = "/"  # Ir a la página principal
                         else:
-                            redirect_url = "/dashboard.html"
+                            redirect_url = "/dashboard.html"  # Admin/Médicos al dashboard
                         
                         self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso", "rol": rol, "redirect": redirect_url})
                     else:
