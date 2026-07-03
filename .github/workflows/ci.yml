@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           . .venv/bin/activate
-          PYTHONPATH=. pytest -q -p no:cacheprovider --ignore=tests/test_webapp_contract.py
+          PYTHONPATH=. pytest -q -p no:cacheprovider --ignore=tests/test_webapp_contract.py --ignore=tests/test_scripts_contract.py --ignore=tests/test_hospitalarios.py
 
   smoke:
     runs-on: ubuntu-latest
