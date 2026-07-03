@@ -11,7 +11,7 @@ from pathlib import Path
 # Agregar el directorio src al path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from webapp.adapters import AdapterFactory, EXAMPLE_REST_CONFIG, EXAMPLE_FHIR_CONFIG
+from webapp.adapters import AdapterFactory, EXAMPLE_REST_CONFIG
 from webapp.auth import api_key_manager
 from webapp.store import JsonStore
 
@@ -141,12 +141,13 @@ def ejemplo_sincronizacion_completa():
     # Cargar datos de Salud Chilecito
     store = JsonStore()
     dashboard = store.dashboard()
+    data = store.read()
     
     print(f"Datos de Salud Chilecito:")
     print(f"  - Pacientes: {len(dashboard['pacientes'])}")
     print(f"  - Médicos: {len(dashboard['medicos'])}")
     print(f"  - Turnos: {len(dashboard['turnos'])}")
-    print(f"  - Agendas: {len(dashboard['agendas'])}")
+    print(f"  - Agendas: {len(data['agendas'])}")
     
     # Configurar adaptador
     config = EXAMPLE_REST_CONFIG.copy()
@@ -165,7 +166,7 @@ def ejemplo_sincronizacion_completa():
     print("   Código preparado (requiere servidor real)")
     
     print("3. Sincronizar agendas...")
-    # synced_schedules = adapter.sync_schedules(dashboard['agendas'])
+    # synced_schedules = adapter.sync_schedules(data['agendas'])
     print("   Código preparado (requiere servidor real)")
     
     print("4. Sincronizar turnos...")
