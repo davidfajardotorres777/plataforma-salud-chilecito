@@ -49,8 +49,12 @@ def get_app_config():
     if load_dotenv is not None:
         load_dotenv()
 
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise ValueError("SECRET_KEY environment variable is not set")
+
     return {
-        "secret_key": os.getenv("SECRET_KEY", "tu-clave-secreta-aqui-cambiala-en-produccion"),
+        "secret_key": secret_key,
         "base_url": os.getenv("BASE_URL", "http://localhost:8000"),
         "environment": os.getenv("ENVIRONMENT", "development"),
     }
