@@ -10,7 +10,7 @@ Uso:
 from dao_mongodb import SaludDAO
 from redis_cache import RedisCache
 from auth import AuthService
-from db_models import CentroSalud, Paciente, Usuario, Rol
+from db_models import CentroSalud, Paciente, Usuario
 
 
 def test_mongodb():
