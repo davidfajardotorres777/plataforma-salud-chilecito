@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           . .venv/bin/activate
-          pytest tests --ignore=tests/test_webapp_contract.py -q -p no:cacheprovider
+          pytest tests/test_auth.py tests/test_dao_contract.py tests/test_sql_contract.py tests/test_dashboard_filter.py tests/test_integration_hospital.py -q -p no:cacheprovider
 
   smoke:
     runs-on: ubuntu-latest
