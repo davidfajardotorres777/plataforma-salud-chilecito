@@ -87,14 +87,27 @@ class ReportGenerator:
         turnos_por_especialidad = defaultdict(int)
         turnos_por_medico = defaultdict(int)
         
+        # Batch fetch médicos
+        medico_ids = list({t.get("medico_id") for t in turnos if t.get("medico_id") is not None})
+        medicos = list(db["medicos"].find({"_id": {"$in": medico_ids}})) if medico_ids else []
+        medicos_dict = {m["_id"]: m for m in medicos}
+
+        # Batch fetch especialidades
+        especialidad_ids = list({m.get("especialidad_id") for m in medicos if m.get("especialidad_id") is not None})
+        especialidades = list(db["especialidades"].find({"_id": {"$in": especialidad_ids}})) if especialidad_ids else []
+        especialidades_dict = {e["_id"]: e for e in especialidades}
+
         for turno in turnos:
             turnos_por_estado[turno.get("estado", "desconocido")] += 1
             
             # Obtener especialidad del médico
-            medico = db["medicos"].find_one({"_id": turno.get("medico_id")})
-            if medico:
-                especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
-                if especialidad:
+            medico_id = turno.get("medico_id")
+            if medico_id in medicos_dict:
+                medico = medicos_dict[medico_id]
+                especialidad_id = medico.get("especialidad_id")
+
+                if especialidad_id in especialidades_dict:
+                    especialidad = especialidades_dict[especialidad_id]
                     turnos_por_especialidad[especialidad.get("nombre", "desconocido")] += 1
                 turnos_por_medico[medico.get("nombre", "desconocido")] += 1
         
