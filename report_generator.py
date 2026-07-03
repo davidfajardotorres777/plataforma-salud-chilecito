@@ -252,6 +252,26 @@ class ReportGenerator:
         query["estado"] = "completado"
         turnos = list(db["turnos"].find(query))
         
+        # Optimización: Cargar médicos y especialidades en batch para evitar N+1
+        medico_ids = list({turno.get("medico_id") for turno in turnos if turno.get("medico_id")})
+
+        # Obtener todos los médicos relevantes en una sola consulta
+        medicos = {}
+        if medico_ids:
+            medicos_list = list(db["medicos"].find({"_id": {"$in": medico_ids}}))
+            medicos = {str(m["_id"]): m for m in medicos_list}
+            # Add mapping for ObjectId just in case since _id might be ObjectId
+            medicos.update({m["_id"]: m for m in medicos_list})
+
+        especialidad_ids = list({medico.get("especialidad_id") for medico in medicos.values() if medico.get("especialidad_id")})
+
+        # Obtener todas las especialidades relevantes en una sola consulta
+        especialidades = {}
+        if especialidad_ids:
+            especialidades_list = list(db["especialidades"].find({"_id": {"$in": especialidad_ids}}))
+            especialidades = {str(e["_id"]): e for e in especialidades_list}
+            especialidades.update({e["_id"]: e for e in especialidades_list})
+
         # Calcular estadísticas financieras
         total_ingresos = 0
         ingresos_por_especialidad = defaultdict(float)
@@ -260,10 +280,10 @@ class ReportGenerator:
             precio = turno.get("precio_consulta", 0)
             total_ingresos += precio
             
-            # Obtener especialidad del médico
-            medico = db["medicos"].find_one({"_id": turno.get("medico_id")})
+            # Obtener especialidad del médico desde los diccionarios cacheados
+            medico = medicos.get(turno.get("medico_id"))
             if medico:
-                especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
+                especialidad = especialidades.get(medico.get("especialidad_id"))
                 if especialidad:
                     ingresos_por_especialidad[especialidad.get("nombre", "desconocido")] += precio
         
