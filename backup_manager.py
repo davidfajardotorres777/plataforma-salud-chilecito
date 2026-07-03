@@ -26,6 +26,7 @@ Uso básico:
 """
 
 import os
+import re
 import subprocess
 import shutil
 from datetime import datetime
@@ -237,6 +238,9 @@ class BackupManager:
         Returns:
             bool: True si se restauró exitosamente
         """
+        if not re.match(r'^[\w\-]+$', backup_id):
+            raise ValueError(f"ID de backup inválido: {backup_id}")
+
         from config_vars import get_mongo_config
         
         config = get_mongo_config()
@@ -290,6 +294,9 @@ class BackupManager:
         Returns:
             bool: True si se eliminó exitosamente
         """
+        if not re.match(r'^[\w\-]+$', backup_id):
+            raise ValueError(f"ID de backup inválido: {backup_id}")
+
         try:
             if tipo == "mongodb":
                 backup_dir = self.backup_dir / "mongodb"
