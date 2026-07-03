@@ -132,7 +132,7 @@ class BackupManager:
         if not nombre:
             nombre = f"redis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        backup_path = self.backup_dir / "redis" / f"{name}.rdb"
+        backup_path = self.backup_dir / "redis" / f"{nombre}.rdb"
         
         try:
             # Usar redis-cli para crear el backup
@@ -302,6 +302,11 @@ class BackupManager:
             for file in backup_dir.glob(f"{backup_id}.*"):
                 file.unlink()
             
+            # Eliminar metadata
+            metadata_file = backup_dir / f"{backup_id}_metadata.json"
+            if metadata_file.exists():
+                metadata_file.unlink()
+
             return True
         
         except Exception as e:
