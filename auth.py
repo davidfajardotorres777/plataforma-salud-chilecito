@@ -37,6 +37,7 @@ Uso básico:
 
 import hashlib
 import secrets
+import datetime as dt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import bcrypt
@@ -107,8 +108,8 @@ class AuthService:
             "usuario_id": usuario_id,
             "email": email,
             "rol": rol,
-            "exp": datetime.utcnow() + timedelta(hours=24),
-            "iat": datetime.utcnow()
+            "exp": datetime.now(dt.timezone.utc) + timedelta(hours=24),
+            "iat": datetime.now(dt.timezone.utc)
         }
         return jwt.encode(payload, secret, algorithm="HS256")
     
