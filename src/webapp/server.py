@@ -242,292 +242,12 @@ class SaludHandler(BaseHTTPRequestHandler):
         try:
             payload = self._read_json()
 
-            if route == "/api/centros":
-                self._json(HTTPStatus.CREATED, self.store.create_center(payload))
-                return
-            if route.startswith("/api/centros/"):
-                centro_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.update_center(centro_id, payload))
-                return
-            if route == "/api/pacientes":
-                self._json(HTTPStatus.CREATED, self.store.create_patient(payload))
-                return
-            if route == "/api/medicos":
-                self._json(HTTPStatus.CREATED, self.store.create_medico(payload))
-                return
-            if route.startswith("/api/medicos/"):
-                medico_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.update_medico(medico_id, payload))
-                return
-            if route == "/api/pacientes/by-centro":
-                self._json(HTTPStatus.OK, self.store.list_pacientes_by_centro(payload["centro_id"]))
-                return
-            if route.startswith("/api/pacientes/"):
-                paciente_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.update_patient(paciente_id, payload))
-                return
-            if route == "/api/turnos":
-                self._json(HTTPStatus.CREATED, self.store.create_turno(payload))
-                return
-            if route == "/api/turnos/verificar-disponibilidad":
-                self._json(HTTPStatus.OK, self.store.verificar_disponibilidad_especifica(
-                    payload["medico_id"], payload["fecha"], payload["hora"]
-                ))
-                return
-            if route == "/api/turnos/crear-fisico":
-                self._json(HTTPStatus.CREATED, self.store.create_turno_fisico(payload))
-                return
-            if route == "/api/agendas":
-                self._json(HTTPStatus.CREATED, self.store.create_agenda(payload))
-                return
-            if route == "/api/agendas/import":
-                self._json(HTTPStatus.OK, self.store.import_agendas(payload))
-                return
-            if route == "/api/calcular_precio":
-                self._json(HTTPStatus.OK, self.store.calcular_precio(payload))
-                return
-            if route.startswith("/api/turnos/") and route.endswith("/eliminar"):
-                turno_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.delete_turno(turno_id))
-                return
-            if route.startswith("/api/turnos/") and route.endswith("/estado"):
-                turno_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.update_turno_estado(turno_id, payload["estado"]))
-                return
-            if route.startswith("/api/turnos/"):
-                turno_id = int(route.split("/")[3])
-                self._json(HTTPStatus.OK, self.store.update_turno(turno_id, payload))
-                return
-            if route == "/api/documentos":
-                self._json(HTTPStatus.CREATED, self.store.save_document(payload))
-                return
-            if route == "/api/reset":
-                self._json(HTTPStatus.OK, self.store.reset())
-                return
-            if route == "/api/persistence/status":
-                self._json(HTTPStatus.OK, self.store.get_persistence_status())
-                return
-            if route == "/api/persistence/force-save":
-                self._json(HTTPStatus.OK, self.store.force_save())
-                return
-            # Endpoints de autenticación para integración con HIS
-            if route == "/api/auth/api-keys":
-                hospital_name = payload.get("hospital_name")
-                hospital_id = payload.get("hospital_id")
-                permissions = payload.get("permissions")
-                if not hospital_name or not hospital_id:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_name y hospital_id"})
-                    return
-                api_key = api_key_manager.generate_key(hospital_name, hospital_id, permissions)
-                audit_logger.log("key_created", api_key, hospital_id, "/api/auth/api-keys", "POST", HTTPStatus.CREATED)
-                self._json(HTTPStatus.CREATED, {"api_key": api_key, "message": "API Key creada exitosamente"})
-                return
-            if route == "/api/auth/api-keys/list":
-                hospital_id = payload.get("hospital_id")
-                keys = api_key_manager.list_keys(hospital_id)
-                self._json(HTTPStatus.OK, {"keys": keys})
-                return
-            if route == "/api/auth/api-keys/revoke":
-                api_key = payload.get("api_key")
-                if not api_key:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
-                    return
-                if api_key_manager.revoke_key(api_key):
-                    audit_logger.log("key_revoked", api_key, 0, "/api/auth/api-keys/revoke", "POST", HTTPStatus.OK)
-                    self._json(HTTPStatus.OK, {"message": "API Key revocada exitosamente"})
-                else:
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "API Key no encontrada"})
-                return
-            if route == "/api/auth/validate":
-                api_key = payload.get("api_key")
-                if not api_key:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
-                    return
-                hospital_info = api_key_manager.validate_key(api_key)
-                if hospital_info:
-                    self._json(HTTPStatus.OK, {"valid": True, "hospital": hospital_info})
-                else:
-                    self._json(HTTPStatus.UNAUTHORIZED, {"valid": False, "error": "API Key inválida o revocada"})
-                return
-            if route == "/api/auth/logs":
-                hospital_id = payload.get("hospital_id")
-                event_type = payload.get("event_type")
-                logs = audit_logger.get_logs(hospital_id, event_type)
-                self._json(HTTPStatus.OK, {"logs": logs})
-                return
-            # Endpoints de webhooks para sincronización bidireccional
-            if route == "/api/webhooks/register":
-                hospital_id = payload.get("hospital_id")
-                url = payload.get("url")
-                events = payload.get("events")
-                secret = payload.get("secret")
-                if not hospital_id or not url or not events:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_id, url o events"})
-                    return
-                webhook_id = webhook_manager.register_webhook(hospital_id, url, events, secret)
-                self._json(HTTPStatus.CREATED, {"webhook_id": webhook_id, "message": "Webhook registrado exitosamente"})
-                return
-            if route == "/api/webhooks/list":
-                hospital_id = payload.get("hospital_id")
-                webhooks = webhook_manager.get_webhooks(hospital_id)
-                self._json(HTTPStatus.OK, {"webhooks": webhooks})
-                return
-            if route == "/api/webhooks/unregister":
-                webhook_id = payload.get("webhook_id")
-                if not webhook_id:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta webhook_id"})
-                    return
-                if webhook_manager.unregister_webhook(webhook_id):
-                    self._json(HTTPStatus.OK, {"message": "Webhook eliminado exitosamente"})
-                else:
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "Webhook no encontrado"})
-                return
-            if route == "/api/webhooks/events":
-                self._json(HTTPStatus.OK, {"events": EventTypes.all_events()})
-                return
-            if route == "/api/webhooks/trigger":
-                event_type = payload.get("event_type")
-                data = payload.get("data")
-                if not event_type or not data:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan event_type o data"})
-                    return
-                webhook_manager.trigger_event(event_type, data)
-                self._json(HTTPStatus.OK, {"message": "Evento disparado exitosamente"})
-                return
-            
-            # Endpoints de autenticación para pacientes
-            if route == "/api/auth/registro":
-                if not self.auth_service:
-                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                    return
-                try:
-                    email = payload.get("email")
-                    password = payload.get("password")
-                    nombre = payload.get("nombre")
-                    dni = payload.get("dni")
-                    telefono = payload.get("telefono")
-                    distrito = payload.get("distrito")
-                    obra_social = payload.get("obra_social")
-                    
-                    if not all([email, password, nombre, dni]):
-                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre, dni"})
-                        return
-                    
-                    usuario_id = self.auth_service.registrar_paciente(
-                        email=email,
-                        password=password,
-                        nombre=nombre,
-                        dni=dni,
-                        telefono=telefono,
-                        distrito=distrito,
-                        obra_social=obra_social
-                    )
-                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
-                except ValueError as e:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
-                except Exception as e:
-                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-                return
-            
-            if route == "/api/auth/registro-admin":
-                if not self.auth_service:
-                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                    return
-                try:
-                    email = payload.get("email")
-                    password = payload.get("password")
-                    nombre = payload.get("nombre")
-                    centro_id = payload.get("centro_id")
-                    
-                    if not all([email, password, nombre]):
-                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre"})
-                        return
-                    
-                    usuario_id = self.auth_service.registrar_admin(
-                        email=email,
-                        password=password,
-                        nombre=nombre,
-                        centro_id=centro_id
-                    )
-                    self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
-                except ValueError as e:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
-                except Exception as e:
-                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-                return
-            
-            if route == "/api/auth/login":
-                if not self.auth_service:
-                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                    return
-                try:
-                    email = payload.get("email")
-                    password = payload.get("password")
-                    
-                    if not all([email, password]):
-                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password"})
-                        return
-                    
-                    token = self.auth_service.login(email, password)
-                    if token:
-                        # Obtener información del usuario para redirigir según rol
-                        usuario = self.auth_service.dao.obtener_usuario_por_email(email)
-                        rol = usuario.get("rol", "paciente") if usuario else "paciente"
-                        
-                        # Redirigir según rol
-                        if rol == "paciente":
-                            redirect_url = "/"  # Ir a la página principal
-                        else:
-                            redirect_url = "/dashboard.html"  # Admin/Médicos al dashboard
-                        
-                        self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso", "rol": rol, "redirect": redirect_url})
-                    else:
-                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Credenciales inválidas"})
-                except ValueError as e:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
-                except Exception as e:
-                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-                return
-            
-            if route == "/api/auth/me":
-                if self.auth_service:
-                    try:
-                        # Obtener token del header Authorization
-                        auth_header = self.headers.get('Authorization')
-                        if not auth_header or not auth_header.startswith('Bearer '):
-                            self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token no proporcionado"})
-                            return
-                        
-                        token = auth_header.split(' ')[1]
-                        usuario_info = self.auth_service.obtener_usuario_desde_token(token)
-                        
-                        if usuario_info:
-                            self._json(HTTPStatus.OK, usuario_info)
-                        else:
-                            self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token inválido"})
-                    except Exception as e:
-                        self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-                else:
-                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                return
-            
-            if route == "/api/auth/verificar":
-                if not self.auth_service:
-                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
-                    return
-                try:
-                    token = payload.get("token")
-                    if not token:
-                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta token"})
-                        return
-                    
-                    if self.auth_service.verificar_email(token):
-                        self._json(HTTPStatus.OK, {"message": "Email verificado exitosamente"})
-                    else:
-                        self._json(HTTPStatus.BAD_REQUEST, {"error": "Token inválido o expirado"})
-                except Exception as e:
-                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-                return
+            if self._handle_core_api_post(route, payload): return
+            if self._handle_turnos_post(route, payload): return
+            if self._handle_auth_api_keys_post(route, payload): return
+            if self._handle_webhooks_post(route, payload): return
+            if self._handle_patient_auth_post(route, payload): return
+
         except ValueError as exc:
             self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
             return
@@ -535,6 +255,304 @@ class SaludHandler(BaseHTTPRequestHandler):
             self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc)})
             return
         self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada"})
+
+    def _handle_core_api_post(self, route: str, payload: dict) -> bool:
+        if route == "/api/centros":
+            self._json(HTTPStatus.CREATED, self.store.create_center(payload))
+            return True
+        if route.startswith("/api/centros/"):
+            centro_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.update_center(centro_id, payload))
+            return True
+        if route == "/api/pacientes":
+            self._json(HTTPStatus.CREATED, self.store.create_patient(payload))
+            return True
+        if route == "/api/pacientes/by-centro":
+            self._json(HTTPStatus.OK, self.store.list_pacientes_by_centro(payload["centro_id"]))
+            return True
+        if route.startswith("/api/pacientes/"):
+            paciente_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.update_patient(paciente_id, payload))
+            return True
+        if route == "/api/medicos":
+            self._json(HTTPStatus.CREATED, self.store.create_medico(payload))
+            return True
+        if route.startswith("/api/medicos/"):
+            medico_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.update_medico(medico_id, payload))
+            return True
+        if route == "/api/agendas":
+            self._json(HTTPStatus.CREATED, self.store.create_agenda(payload))
+            return True
+        if route == "/api/agendas/import":
+            self._json(HTTPStatus.OK, self.store.import_agendas(payload))
+            return True
+        if route == "/api/calcular_precio":
+            self._json(HTTPStatus.OK, self.store.calcular_precio(payload))
+            return True
+        if route == "/api/documentos":
+            self._json(HTTPStatus.CREATED, self.store.save_document(payload))
+            return True
+        if route == "/api/reset":
+            self._json(HTTPStatus.OK, self.store.reset())
+            return True
+        if route == "/api/persistence/status":
+            self._json(HTTPStatus.OK, self.store.get_persistence_status())
+            return True
+        if route == "/api/persistence/force-save":
+            self._json(HTTPStatus.OK, self.store.force_save())
+            return True
+        return False
+
+    def _handle_turnos_post(self, route: str, payload: dict) -> bool:
+        if route == "/api/turnos":
+            self._json(HTTPStatus.CREATED, self.store.create_turno(payload))
+            return True
+        if route == "/api/turnos/verificar-disponibilidad":
+            self._json(HTTPStatus.OK, self.store.verificar_disponibilidad_especifica(
+                payload["medico_id"], payload["fecha"], payload["hora"]
+            ))
+            return True
+        if route == "/api/turnos/crear-fisico":
+            self._json(HTTPStatus.CREATED, self.store.create_turno_fisico(payload))
+            return True
+        if route.startswith("/api/turnos/") and route.endswith("/eliminar"):
+            turno_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.delete_turno(turno_id))
+            return True
+        if route.startswith("/api/turnos/") and route.endswith("/estado"):
+            turno_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.update_turno_estado(turno_id, payload["estado"]))
+            return True
+        if route.startswith("/api/turnos/"):
+            turno_id = int(route.split("/")[3])
+            self._json(HTTPStatus.OK, self.store.update_turno(turno_id, payload))
+            return True
+        return False
+
+    def _handle_auth_api_keys_post(self, route: str, payload: dict) -> bool:
+        if route == "/api/auth/api-keys":
+            hospital_name = payload.get("hospital_name")
+            hospital_id = payload.get("hospital_id")
+            permissions = payload.get("permissions")
+            if not hospital_name or not hospital_id:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_name y hospital_id"})
+                return True
+            api_key = api_key_manager.generate_key(hospital_name, hospital_id, permissions)
+            audit_logger.log("key_created", api_key, hospital_id, "/api/auth/api-keys", "POST", HTTPStatus.CREATED)
+            self._json(HTTPStatus.CREATED, {"api_key": api_key, "message": "API Key creada exitosamente"})
+            return True
+        if route == "/api/auth/api-keys/list":
+            hospital_id = payload.get("hospital_id")
+            keys = api_key_manager.list_keys(hospital_id)
+            self._json(HTTPStatus.OK, {"keys": keys})
+            return True
+        if route == "/api/auth/api-keys/revoke":
+            api_key = payload.get("api_key")
+            if not api_key:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
+                return True
+            if api_key_manager.revoke_key(api_key):
+                audit_logger.log("key_revoked", api_key, 0, "/api/auth/api-keys/revoke", "POST", HTTPStatus.OK)
+                self._json(HTTPStatus.OK, {"message": "API Key revocada exitosamente"})
+            else:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "API Key no encontrada"})
+            return True
+        if route == "/api/auth/validate":
+            api_key = payload.get("api_key")
+            if not api_key:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta api_key"})
+                return True
+            hospital_info = api_key_manager.validate_key(api_key)
+            if hospital_info:
+                self._json(HTTPStatus.OK, {"valid": True, "hospital": hospital_info})
+            else:
+                self._json(HTTPStatus.UNAUTHORIZED, {"valid": False, "error": "API Key inválida o revocada"})
+            return True
+        if route == "/api/auth/logs":
+            hospital_id = payload.get("hospital_id")
+            event_type = payload.get("event_type")
+            logs = audit_logger.get_logs(hospital_id, event_type)
+            self._json(HTTPStatus.OK, {"logs": logs})
+            return True
+        return False
+
+    def _handle_webhooks_post(self, route: str, payload: dict) -> bool:
+        if route == "/api/webhooks/register":
+            hospital_id = payload.get("hospital_id")
+            url = payload.get("url")
+            events = payload.get("events")
+            secret = payload.get("secret")
+            if not hospital_id or not url or not events:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan hospital_id, url o events"})
+                return True
+            webhook_id = webhook_manager.register_webhook(hospital_id, url, events, secret)
+            self._json(HTTPStatus.CREATED, {"webhook_id": webhook_id, "message": "Webhook registrado exitosamente"})
+            return True
+        if route == "/api/webhooks/list":
+            hospital_id = payload.get("hospital_id")
+            webhooks = webhook_manager.get_webhooks(hospital_id)
+            self._json(HTTPStatus.OK, {"webhooks": webhooks})
+            return True
+        if route == "/api/webhooks/unregister":
+            webhook_id = payload.get("webhook_id")
+            if not webhook_id:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta webhook_id"})
+                return True
+            if webhook_manager.unregister_webhook(webhook_id):
+                self._json(HTTPStatus.OK, {"message": "Webhook eliminado exitosamente"})
+            else:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Webhook no encontrado"})
+            return True
+        if route == "/api/webhooks/events":
+            self._json(HTTPStatus.OK, {"events": EventTypes.all_events()})
+            return True
+        if route == "/api/webhooks/trigger":
+            event_type = payload.get("event_type")
+            data = payload.get("data")
+            if not event_type or not data:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan event_type o data"})
+                return True
+            webhook_manager.trigger_event(event_type, data)
+            self._json(HTTPStatus.OK, {"message": "Evento disparado exitosamente"})
+            return True
+        return False
+
+    def _handle_patient_auth_post(self, route: str, payload: dict) -> bool:
+        if route == "/api/auth/registro":
+            if not self.auth_service:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                return True
+            try:
+                email = payload.get("email")
+                password = payload.get("password")
+                nombre = payload.get("nombre")
+                dni = payload.get("dni")
+                telefono = payload.get("telefono")
+                distrito = payload.get("distrito")
+                obra_social = payload.get("obra_social")
+
+                if not all([email, password, nombre, dni]):
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre, dni"})
+                    return True
+
+                usuario_id = self.auth_service.registrar_paciente(
+                    email=email,
+                    password=password,
+                    nombre=nombre,
+                    dni=dni,
+                    telefono=telefono,
+                    distrito=distrito,
+                    obra_social=obra_social
+                )
+                self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
+            except ValueError as e:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+            except Exception as e:
+                self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+            return True
+
+        if route == "/api/auth/registro-admin":
+            if not self.auth_service:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                return True
+            try:
+                email = payload.get("email")
+                password = payload.get("password")
+                nombre = payload.get("nombre")
+                centro_id = payload.get("centro_id")
+
+                if not all([email, password, nombre]):
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password, nombre"})
+                    return True
+
+                usuario_id = self.auth_service.registrar_admin(
+                    email=email,
+                    password=password,
+                    nombre=nombre,
+                    centro_id=centro_id
+                )
+                self._json(HTTPStatus.CREATED, {"usuario_id": usuario_id, "message": "Registro exitoso. Ya puedes iniciar sesión."})
+            except ValueError as e:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+            except Exception as e:
+                self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+            return True
+
+        if route == "/api/auth/login":
+            if not self.auth_service:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                return True
+            try:
+                email = payload.get("email")
+                password = payload.get("password")
+
+                if not all([email, password]):
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Faltan campos requeridos: email, password"})
+                    return True
+
+                token = self.auth_service.login(email, password)
+                if token:
+                    # Obtener información del usuario para redirigir según rol
+                    usuario = self.auth_service.dao.obtener_usuario_por_email(email)
+                    rol = usuario.get("rol", "paciente") if usuario else "paciente"
+                    
+                    # Redirigir según rol
+                    if rol == "paciente":
+                        redirect_url = "/"  # Ir a la página principal
+                    else:
+                        redirect_url = "/dashboard.html"  # Admin/Médicos al dashboard
+                    
+                    self._json(HTTPStatus.OK, {"token": token, "message": "Login exitoso", "rol": rol, "redirect": redirect_url})
+                else:
+                    self._json(HTTPStatus.UNAUTHORIZED, {"error": "Credenciales inválidas"})
+            except ValueError as e:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": str(e)})
+            except Exception as e:
+                self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+            return True
+
+        if route == "/api/auth/me":
+            if self.auth_service:
+                try:
+                    # Obtener token del header Authorization
+                    auth_header = self.headers.get('Authorization')
+                    if not auth_header or not auth_header.startswith('Bearer '):
+                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token no proporcionado"})
+                        return True
+                    
+                    token = auth_header.split(' ')[1]
+                    usuario_info = self.auth_service.obtener_usuario_desde_token(token)
+                    
+                    if usuario_info:
+                        self._json(HTTPStatus.OK, usuario_info)
+                    else:
+                        self._json(HTTPStatus.UNAUTHORIZED, {"error": "Token inválido"})
+                except Exception as e:
+                    self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+            else:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+            return True
+
+        if route == "/api/auth/verificar":
+            if not self.auth_service:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Servicio de autenticación no disponible"})
+                return True
+            try:
+                token = payload.get("token")
+                if not token:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Falta token"})
+                    return True
+
+                if self.auth_service.verificar_email(token):
+                    self._json(HTTPStatus.OK, {"message": "Email verificado exitosamente"})
+                else:
+                    self._json(HTTPStatus.BAD_REQUEST, {"error": "Token inválido o expirado"})
+            except Exception as e:
+                self._json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+            return True
+
+        return False
 
     # --- Helpers ---
     def _read_json(self) -> dict:
