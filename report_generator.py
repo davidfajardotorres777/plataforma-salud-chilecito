@@ -87,13 +87,31 @@ class ReportGenerator:
         turnos_por_especialidad = defaultdict(int)
         turnos_por_medico = defaultdict(int)
         
+        # Optimización: Carga por lotes para evitar problema N+1
+        medico_ids = list({turno.get("medico_id") for turno in turnos if turno.get("medico_id")})
+        medicos_dict = {}
+        especialidad_ids = set()
+
+        if medico_ids:
+            medicos = list(db["medicos"].find({"_id": {"$in": medico_ids}}))
+            for medico in medicos:
+                medicos_dict[medico["_id"]] = medico
+                if medico.get("especialidad_id"):
+                    especialidad_ids.add(medico.get("especialidad_id"))
+
+        especialidades_dict = {}
+        if especialidad_ids:
+            especialidades = list(db["especialidades"].find({"_id": {"$in": list(especialidad_ids)}}))
+            for especialidad in especialidades:
+                especialidades_dict[especialidad["_id"]] = especialidad
+
         for turno in turnos:
             turnos_por_estado[turno.get("estado", "desconocido")] += 1
             
             # Obtener especialidad del médico
-            medico = db["medicos"].find_one({"_id": turno.get("medico_id")})
+            medico = medicos_dict.get(turno.get("medico_id"))
             if medico:
-                especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
+                especialidad = especialidades_dict.get(medico.get("especialidad_id"))
                 if especialidad:
                     turnos_por_especialidad[especialidad.get("nombre", "desconocido")] += 1
                 turnos_por_medico[medico.get("nombre", "desconocido")] += 1
@@ -192,6 +210,7 @@ class ReportGenerator:
         if centro_id:
             query["centro_id"] = centro_id
         
+        from bson import ObjectId
         # Obtener médicos
         medicos = list(db["medicos"].find(query))
         
@@ -199,17 +218,36 @@ class ReportGenerator:
         total_medicos = len(medicos)
         medicos_por_especialidad = defaultdict(int)
         
+        # Optimización: Carga por lotes para evitar problema N+1
+        especialidad_ids = list({medico.get("especialidad_id") for medico in medicos if medico.get("especialidad_id")})
+        especialidades_dict = {}
+        if especialidad_ids:
+            especialidades = list(db["especialidades"].find({"_id": {"$in": especialidad_ids}}))
+            for especialidad in especialidades:
+                especialidades_dict[especialidad["_id"]] = especialidad
+
         for medico in medicos:
-            especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
+            especialidad = especialidades_dict.get(medico.get("especialidad_id"))
             if especialidad:
                 medicos_por_especialidad[especialidad.get("nombre", "desconocido")] += 1
         
-        # Calcular turnos por médico
+        # Calcular turnos por médico - Optimización: Aggregation
         turnos_por_medico = {}
+        medico_ids = [ObjectId(str(medico["_id"])) for medico in medicos if "_id" in medico]
+
+        if medico_ids:
+            pipeline = [
+                {"$match": {"medico_id": {"$in": medico_ids}}},
+                {"$group": {"_id": "$medico_id", "count": {"$sum": 1}}}
+            ]
+            turnos_counts = list(db["turnos"].aggregate(pipeline))
+            turnos_counts_dict = {str(item["_id"]): item["count"] for item in turnos_counts}
+        else:
+            turnos_counts_dict = {}
+
         for medico in medicos:
             medico_id = str(medico["_id"])
-            turnos_count = db["turnos"].count_documents({"medico_id": ObjectId(medico_id)})
-            turnos_por_medico[medico.get("nombre", "desconocido")] = turnos_count
+            turnos_por_medico[medico.get("nombre", "desconocido")] = turnos_counts_dict.get(medico_id, 0)
         
         return {
             "tipo": "reporte_medicos",
@@ -256,14 +294,32 @@ class ReportGenerator:
         total_ingresos = 0
         ingresos_por_especialidad = defaultdict(float)
         
+        # Optimización: Carga por lotes para evitar problema N+1
+        medico_ids = list({turno.get("medico_id") for turno in turnos if turno.get("medico_id")})
+        medicos_dict = {}
+        especialidad_ids = set()
+
+        if medico_ids:
+            medicos = list(db["medicos"].find({"_id": {"$in": medico_ids}}))
+            for medico in medicos:
+                medicos_dict[medico["_id"]] = medico
+                if medico.get("especialidad_id"):
+                    especialidad_ids.add(medico.get("especialidad_id"))
+
+        especialidades_dict = {}
+        if especialidad_ids:
+            especialidades = list(db["especialidades"].find({"_id": {"$in": list(especialidad_ids)}}))
+            for especialidad in especialidades:
+                especialidades_dict[especialidad["_id"]] = especialidad
+
         for turno in turnos:
             precio = turno.get("precio_consulta", 0)
             total_ingresos += precio
             
             # Obtener especialidad del médico
-            medico = db["medicos"].find_one({"_id": turno.get("medico_id")})
+            medico = medicos_dict.get(turno.get("medico_id"))
             if medico:
-                especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
+                especialidad = especialidades_dict.get(medico.get("especialidad_id"))
                 if especialidad:
                     ingresos_por_especialidad[especialidad.get("nombre", "desconocido")] += precio
         
