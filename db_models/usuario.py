@@ -25,3 +25,4 @@ class Usuario:
     id_usuario: str = None  # MongoDB ObjectId como string
     paciente_id: str = None  # Referencia al paciente si es rol PACIENTE
     medico_id: str = None  # Referencia al médico si es rol MEDICO
+    centro_id: str = None  # Referencia al centro si es rol MEDICO o ADMIN

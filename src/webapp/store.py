@@ -164,18 +164,20 @@ class JsonStore:
         Raises:
             ValueError: Si ya existe un paciente con ese DNI o si el centro no existe
         """
-        required = ("dni", "nombre", "telefono", "distrito", "centro_id")
+        required = ("dni", "nombre", "telefono", "distrito")
         self._require(payload, required)
         with self._lock:
             data = self.read()
             
-            # Verificar que el centro existe
-            centro = self._find(data["centros"], int(payload["centro_id"]))
-            if centro is None:
-                raise ValueError("El centro/hospital seleccionado no existe")
+            # Verificar que el centro existe si se proporciona
+            if "centro_id" in payload:
+                centro = self._find(data["centros"], int(payload["centro_id"]))
+                if centro is None:
+                    raise ValueError("El centro/hospital seleccionado no existe")
             
             # Verificar si ya existe un paciente con ese DNI (solo en el mismo centro)
-            if any(p["dni"] == payload["dni"] and int(p.get("centro_id", 0)) == int(payload["centro_id"]) for p in data["pacientes"]):
+            centro_id = int(payload.get("centro_id", 1)) # Default a 1 si no se provee
+            if any(p["dni"] == payload["dni"] and int(p.get("centro_id", 1)) == centro_id for p in data["pacientes"]):
                 raise ValueError("Ya existe un paciente con ese DNI en este hospital")
             
             paciente = {
@@ -185,7 +187,7 @@ class JsonStore:
                 "telefono": payload["telefono"].strip(),
                 "obra_social": payload.get("obra_social", "Sin obra social").strip(),
                 "distrito": payload["distrito"].strip(),
-                "centro_id": int(payload["centro_id"]),  # Asociar al centro/hospital
+                "centro_id": centro_id,  # Asociar al centro/hospital
             }
             data["pacientes"].append(paciente)
             self._write(data)
