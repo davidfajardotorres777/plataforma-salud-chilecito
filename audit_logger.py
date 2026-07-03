@@ -74,6 +74,8 @@ class AuditLogger:
         self.logger.setLevel(logging.INFO)
         
         # Handler para archivo
+        import pathlib
+        pathlib.Path("logs").mkdir(exist_ok=True)
         file_handler = logging.FileHandler("logs/audit.log")
         file_handler.setLevel(logging.INFO)
         
