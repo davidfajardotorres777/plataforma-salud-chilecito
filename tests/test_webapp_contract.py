@@ -36,6 +36,7 @@ def test_json_store_creates_patient_turno_and_document():
                 "telefono": "3825-111111",
                 "distrito": "Chilecito",
                 "obra_social": "APOS",
+                "centro_id": 1,
             }
         )
         turno = store.create_turno(
