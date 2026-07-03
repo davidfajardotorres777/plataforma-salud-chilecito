@@ -132,7 +132,7 @@ class BackupManager:
         if not nombre:
             nombre = f"redis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        backup_path = self.backup_dir / "redis" / f"{name}.rdb"
+        backup_path = self.backup_dir / "redis" / f"{nombre}.rdb"
         
         try:
             # Usar redis-cli para crear el backup
@@ -299,7 +299,7 @@ class BackupManager:
                 raise Exception(f"Tipo de backup no válido: {tipo}")
             
             # Eliminar archivo de backup
-            for file in backup_dir.glob(f"{backup_id}.*"):
+            for file in backup_dir.glob(f"{backup_id}*"):
                 file.unlink()
             
             return True
