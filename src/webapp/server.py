@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
