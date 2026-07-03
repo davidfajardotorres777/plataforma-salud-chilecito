@@ -256,14 +256,24 @@ class ReportGenerator:
         total_ingresos = 0
         ingresos_por_especialidad = defaultdict(float)
         
+        # Obtener todos los médicos necesarios de una vez para evitar N+1
+        medico_ids = list(set([turno.get("medico_id") for turno in turnos if turno.get("medico_id")]))
+        medicos = list(db["medicos"].find({"_id": {"$in": medico_ids}}))
+        medicos_dict = {m.get("_id"): m for m in medicos}
+
+        # Obtener todas las especialidades necesarias de una vez
+        especialidad_ids = list(set([m.get("especialidad_id") for m in medicos if m.get("especialidad_id")]))
+        especialidades = list(db["especialidades"].find({"_id": {"$in": especialidad_ids}}))
+        especialidades_dict = {e.get("_id"): e for e in especialidades}
+
         for turno in turnos:
             precio = turno.get("precio_consulta", 0)
             total_ingresos += precio
             
-            # Obtener especialidad del médico
-            medico = db["medicos"].find_one({"_id": turno.get("medico_id")})
+            # Obtener especialidad del médico desde el diccionario
+            medico = medicos_dict.get(turno.get("medico_id"))
             if medico:
-                especialidad = db["especialidades"].find_one({"_id": medico.get("especialidad_id")})
+                especialidad = especialidades_dict.get(medico.get("especialidad_id"))
                 if especialidad:
                     ingresos_por_especialidad[especialidad.get("nombre", "desconocido")] += precio
         
