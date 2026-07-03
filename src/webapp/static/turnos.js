@@ -266,8 +266,7 @@ $p("#confirmForm").addEventListener("submit", async (e) => {
       }).then(r => r.json());
       if (pRes.error && pRes.error.includes("Ya existe")) {
         // Buscar paciente existente
-        const dash = await api("/api/dashboard");
-        const existente = dash.pacientes.find(p => p.dni === pacienteData.dni);
+        const existente = PS.data.pacientes.find(p => p.dni === pacienteData.dni);
         if (!existente) throw new Error("No se pudo encontrar el paciente");
         pacienteId = existente.id;
       } else {
@@ -275,8 +274,7 @@ $p("#confirmForm").addEventListener("submit", async (e) => {
       }
     } catch (err) {
       if (err.message.includes("Ya existe")) {
-        const dash = await api("/api/dashboard");
-        const existente = dash.pacientes.find(p => p.dni === pacienteData.dni);
+        const existente = PS.data.pacientes.find(p => p.dni === pacienteData.dni);
         if (!existente) throw new Error("No se pudo encontrar el paciente");
         pacienteId = existente.id;
       } else {
