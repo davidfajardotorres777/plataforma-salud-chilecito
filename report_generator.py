@@ -76,7 +76,7 @@ class ReportGenerator:
                 query["fecha_turno"]["$lte"] = datetime.strptime(fecha_fin, "%Y-%m-%d")
         
         if centro_id:
-            query["centro_id"] = centro_id
+            query["centro_id"] = str(centro_id)
         
         # Obtener turnos
         turnos = list(db["turnos"].find(query))
@@ -143,7 +143,7 @@ class ReportGenerator:
                 query["fecha_alta"]["$lte"] = datetime.strptime(fecha_fin, "%Y-%m-%d")
         
         if centro_id:
-            query["centro_id"] = centro_id
+            query["centro_id"] = str(centro_id)
         
         # Obtener pacientes
         pacientes = list(db["pacientes"].find(query))
@@ -190,7 +190,7 @@ class ReportGenerator:
         # Construir query
         query = {}
         if centro_id:
-            query["centro_id"] = centro_id
+            query["centro_id"] = str(centro_id)
         
         # Obtener médicos
         medicos = list(db["medicos"].find(query))
