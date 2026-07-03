@@ -31,7 +31,6 @@ Uso básico:
 
 import json
 from typing import Optional, Any, Dict
-from datetime import timedelta
 
 from config_vars import get_redis_config
 
