@@ -255,7 +255,19 @@ class BackupManager:
             temp_dir = self.backup_dir / "temp" / backup_id
             temp_dir.mkdir(parents=True, exist_ok=True)
             
-            shutil.unpack_archive(str(backup_file), str(temp_dir))
+            import zipfile
+            with zipfile.ZipFile(str(backup_file), 'r') as zf:
+                target_dir_abs = os.path.abspath(str(temp_dir))
+                for member in zf.namelist():
+                    target_path_abs = os.path.abspath(os.path.join(target_dir_abs, member))
+                    common_prefix = os.path.commonprefix([target_path_abs, target_dir_abs])
+                    if common_prefix != target_dir_abs:
+                        raise Exception(f"Intento de path traversal en archivo zip: {member}")
+
+                    if not target_path_abs.startswith(target_dir_abs + os.sep) and target_path_abs != target_dir_abs:
+                        raise Exception(f"Intento de path traversal en archivo zip (match parcial): {member}")
+
+                    zf.extract(member, str(temp_dir))
             
             # Usar mongorestore para restaurar
             cmd = [
