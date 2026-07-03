@@ -255,7 +255,14 @@ class BackupManager:
             temp_dir = self.backup_dir / "temp" / backup_id
             temp_dir.mkdir(parents=True, exist_ok=True)
             
-            shutil.unpack_archive(str(backup_file), str(temp_dir))
+            import zipfile
+            with zipfile.ZipFile(str(backup_file), 'r') as zip_ref:
+                temp_dir_path = os.path.abspath(str(temp_dir))
+                for member in zip_ref.namelist():
+                    extracted_path = os.path.abspath(os.path.join(temp_dir_path, member))
+                    if not extracted_path.startswith(temp_dir_path + os.sep):
+                        raise Exception(f"Intento de path traversal detectado en el archivo: {member}")
+                    zip_ref.extract(member, str(temp_dir))
             
             # Usar mongorestore para restaurar
             cmd = [
