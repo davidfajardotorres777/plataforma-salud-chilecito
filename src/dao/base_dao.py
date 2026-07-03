@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from src.config.database import OracleDatabase
@@ -19,5 +20,7 @@ class BaseDAO:
         return self.db.execute(sql, params)
 
     def contar(self) -> int:
+        if not re.match(r"^[a-zA-Z0-9_]+$", self.table_name):
+            raise ValueError(f"Invalid table name: {self.table_name}")
         row = self.fetch_one(f"SELECT COUNT(*) AS total FROM {self.table_name}")
         return int(row["total"]) if row else 0
