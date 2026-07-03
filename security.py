@@ -25,7 +25,7 @@ Uso básico:
 
 import re
 import secrets
-from typing import Optional, List
+from typing import List
 from datetime import datetime, timedelta
 from functools import wraps
 
