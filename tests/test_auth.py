@@ -37,6 +37,10 @@ def test_registrar_paciente_exito(auth_service):
     auth_service.dao.obtener_usuario_por_email.assert_called_once_with("test@example.com")
     auth_service.dao.obtener_paciente_por_dni.assert_called_once_with("12345678")
 
+
+    auth_service.dao.obtener_usuario_por_email.assert_called_once_with("test@example.com")
+    auth_service.dao.obtener_paciente_por_dni.assert_called_once_with("12345678")
+
     # Verificar que crear_paciente se llamó con un objeto Paciente correcto
     auth_service.dao.crear_paciente.assert_called_once()
     args, _ = auth_service.dao.crear_paciente.call_args
@@ -80,6 +84,7 @@ def test_registrar_paciente_email_existente(auth_service):
             dni="12345678"
         )
 
+
     # Verificaciones
     auth_service.dao.obtener_usuario_por_email.assert_called_once_with("test@example.com")
     auth_service.dao.obtener_paciente_por_dni.assert_not_called()
@@ -101,6 +106,7 @@ def test_registrar_paciente_dni_existente(auth_service):
             nombre="Juan Perez",
             dni="12345678"
         )
+
 
     # Verificaciones
     auth_service.dao.obtener_usuario_por_email.assert_called_once_with("test@example.com")
