@@ -55,7 +55,6 @@ Año: 2026
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-import hashlib
 import secrets
 from bson import ObjectId
 
