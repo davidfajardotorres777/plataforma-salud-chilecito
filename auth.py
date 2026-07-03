@@ -285,7 +285,6 @@ class AuthService:
             password_hash=password_hash,
             rol=Rol.ADMIN,
             nombre=nombre,
-            centro_id=centro_id,
             verificado=True,  # Verificado automáticamente
             fecha_registro=datetime.now()
         )
@@ -342,7 +341,6 @@ class AuthService:
             rol=Rol.MEDICO,
             nombre=nombre,
             medico_id=medico_id,
-            centro_id=centro_id,
             verificado=True,  # Verificado automáticamente
             fecha_registro=datetime.now()
         )
