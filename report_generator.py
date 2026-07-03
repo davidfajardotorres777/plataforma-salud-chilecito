@@ -27,7 +27,7 @@ Uso básico:
 
 import csv
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 from collections import defaultdict
 
