@@ -6,7 +6,7 @@ Permite conectar Salud Chilecito con diferentes sistemas mediante una interfaz c
 
 import json
 import requests
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
 from datetime import datetime
 
