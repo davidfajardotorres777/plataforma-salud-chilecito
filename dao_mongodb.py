@@ -53,7 +53,7 @@ Universidad: Universidad Nacional de Chilecito
 Año: 2026
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from datetime import datetime
 import hashlib
 import secrets
