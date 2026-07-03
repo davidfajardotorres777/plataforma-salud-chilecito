@@ -7,3 +7,4 @@ pytest==8.3.4
 notebook==7.5.5
 pandas==3.0.2
 requests==2.32.3
+bson
