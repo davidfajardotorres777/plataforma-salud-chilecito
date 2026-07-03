@@ -35,6 +35,7 @@ Uso básico:
     auth.cerrar()
 """
 
+import hashlib
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
