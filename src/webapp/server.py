@@ -5,7 +5,6 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse, parse_qs
-from typing import Optional
 
 from .store import JsonStore
 from .auth import api_key_manager, audit_logger
