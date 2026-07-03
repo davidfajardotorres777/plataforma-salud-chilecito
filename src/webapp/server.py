@@ -72,29 +72,122 @@ class SaludHandler(BaseHTTPRequestHandler):
                 self._auth_service = None
         return self._auth_service
 
+    # --- GET Helpers ---
+    def _handle_get_dashboard(self, parsed) -> None:
+        qs = parse_qs(parsed.query)
+        centro_ids = qs.get("centro_id")
+        slug = qs.get("slug", [None])[0]
+        dashboard = self.store.dashboard()
+        if slug:
+            cid = centro_id_for_slug_or_host(dashboard, slug=slug)
+            if cid is None:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Hospital no encontrado"})
+                return
+            dashboard = filter_dashboard_by_centro(dashboard, cid)
+        elif centro_ids:
+            try:
+                centro_id = int(centro_ids[0])
+            except Exception:
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id invalido"})
+                return
+            dashboard = filter_dashboard_by_centro(dashboard, centro_id)
+        self._json(HTTPStatus.OK, dashboard)
+
+    def _handle_get_medicos(self, parsed) -> None:
+        dashboard = self.store.dashboard()
+        medicos = dashboard.get("medicos", [])
+        self._json(HTTPStatus.OK, medicos)
+
+    def _handle_get_medicos_disponibilidad(self, parsed) -> None:
+        qs = parse_qs(parsed.query)
+        medico_id = qs.get("medico_id", [None])[0]
+        if not medico_id:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id requerido"})
+            return
+        try:
+            m = int(medico_id)
+        except Exception:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id invalido"})
+            return
+
+        # Obtener disponibilidad filtrada por médico
+        rows = self.store.disponibilidad_filtered(medico_id=m)
+        self._json(HTTPStatus.OK, rows)
+
+    def _handle_get_disponibilidad(self, parsed) -> None:
+        qs = parse_qs(parsed.query)
+        centro_id = qs.get("centro_id", [None])[0]
+        especialidad_id = qs.get("especialidad_id", [None])[0]
+        medico_id = qs.get("medico_id", [None])[0]
+        try:
+            c = int(centro_id) if centro_id not in (None, "None") else None
+        except Exception:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id invalido"})
+            return
+        try:
+            e = int(especialidad_id) if especialidad_id not in (None, "None") else None
+        except Exception:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "especialidad_id invalido"})
+            return
+        try:
+            m = int(medico_id) if medico_id not in (None, "None") else None
+        except Exception:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id invalido"})
+            return
+        rows = self.store.disponibilidad_filtered(centro_id=c, especialidad_id=e, medico_id=m)
+        self._json(HTTPStatus.OK, rows)
+
+    def _handle_get_health(self, parsed) -> None:
+        self._json(HTTPStatus.OK, {"status": "OK", "modo": "demo-json"})
+
+    def _handle_get_sintomas(self, parsed) -> None:
+        self._json(HTTPStatus.OK, self.store.listar_sintomas())
+
+    def _handle_get_buscar_especialidad(self, parsed) -> None:
+        qs = parse_qs(parsed.query)
+        sintoma = qs.get("sintoma", [None])[0]
+        if not sintoma:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "sintoma requerido"})
+            return
+        resultado = self.store.buscar_especialidad_por_sintoma(sintoma)
+        self._json(HTTPStatus.OK, resultado or {"error": "No se encontró especialidad para el síntoma"})
+
+    def _handle_get_configuracion_hospital(self, parsed) -> None:
+        self._json(HTTPStatus.OK, self.store.obtener_configuracion_hospital())
+
+    def _handle_get_tipos_consulta(self, parsed) -> None:
+        self._json(HTTPStatus.OK, self.store.listar_tipos_consulta())
+
+    def _handle_get_precios_especialidad(self, parsed) -> None:
+        qs = parse_qs(parsed.query)
+        centro_id = qs.get("centro_id", [None])[0]
+        especialidad_id = qs.get("especialidad_id", [None])[0]
+        if not centro_id or not especialidad_id:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id y especialidad_id requeridos"})
+            return
+        try:
+            precios = self.store.obtener_precios_por_especialidad(int(centro_id), int(especialidad_id))
+            self._json(HTTPStatus.OK, precios)
+        except Exception as exc:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+
     # --- GET ---
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         route = parsed.path
 
-        if route == "/":
-            self._serve_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
+        static_pages = {
+            "/": "index.html",
+            "/landing": "landing.html",
+            "/registro": "registro.html",
+            "/login": "login.html",
+            "/dashboard.html": "dashboard.html",
+            "/dashboard-paciente.html": "dashboard-paciente.html",
+        }
+        if route in static_pages:
+            self._serve_file(STATIC_DIR / static_pages[route], "text/html; charset=utf-8")
             return
-        if route == "/landing":
-            self._serve_file(STATIC_DIR / "landing.html", "text/html; charset=utf-8")
-            return
-        if route == "/registro":
-            self._serve_file(STATIC_DIR / "registro.html", "text/html; charset=utf-8")
-            return
-        if route == "/login":
-            self._serve_file(STATIC_DIR / "login.html", "text/html; charset=utf-8")
-            return
-        if route == "/dashboard.html":
-            self._serve_file(STATIC_DIR / "dashboard.html", "text/html; charset=utf-8")
-            return
-        if route == "/dashboard-paciente.html":
-            self._serve_file(STATIC_DIR / "dashboard-paciente.html", "text/html; charset=utf-8")
-            return
+
         if route == "/verificar-email":
             qs = parse_qs(parsed.query)
             token = qs.get("token", [None])[0]
@@ -106,123 +199,32 @@ class SaludHandler(BaseHTTPRequestHandler):
             else:
                 self._serve_file(STATIC_DIR / "verificacion-fallida.html", "text/html; charset=utf-8")
             return
+
         if route.startswith(STATIC_PREFIX):
             requested = STATIC_DIR / unquote(route.removeprefix(STATIC_PREFIX))
             self._serve_static(requested)
             return
 
-        if route == "/api/dashboard":
-            qs = parse_qs(parsed.query)
-            centro_ids = qs.get("centro_id")
-            slug = qs.get("slug", [None])[0]
-            dashboard = self.store.dashboard()
-            if slug:
-                cid = centro_id_for_slug_or_host(dashboard, slug=slug)
-                if cid is None:
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "Hospital no encontrado"})
-                    return
-                dashboard = filter_dashboard_by_centro(dashboard, cid)
-            elif centro_ids:
-                try:
-                    centro_id = int(centro_ids[0])
-                except Exception:
-                    self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id invalido"})
-                    return
-                dashboard = filter_dashboard_by_centro(dashboard, centro_id)
-            self._json(HTTPStatus.OK, dashboard)
-            return
+        api_routes = {
+            "/api/dashboard": self._handle_get_dashboard,
+            "/api/medicos": self._handle_get_medicos,
+            "/api/medicos/disponibilidad": self._handle_get_medicos_disponibilidad,
+            "/api/disponibilidad": self._handle_get_disponibilidad,
+            "/api/health": self._handle_get_health,
+            "/api/sintomas": self._handle_get_sintomas,
+            "/api/buscar-especialidad-por-sintoma": self._handle_get_buscar_especialidad,
+            "/api/configuracion-hospital": self._handle_get_configuracion_hospital,
+            "/api/tipos-consulta": self._handle_get_tipos_consulta,
+            "/api/precios-especialidad": self._handle_get_precios_especialidad,
+        }
 
-        if route == "/api/medicos":
-            dashboard = self.store.dashboard()
-            medicos = dashboard.get("medicos", [])
-            self._json(HTTPStatus.OK, medicos)
-            return
-
-        if route == "/api/medicos/disponibilidad":
-            qs = parse_qs(parsed.query)
-            medico_id = qs.get("medico_id", [None])[0]
-            if not medico_id:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id requerido"})
-                return
-            try:
-                m = int(medico_id)
-            except Exception:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id invalido"})
-                return
-            
-            # Obtener disponibilidad filtrada por médico
-            rows = self.store.disponibilidad_filtered(medico_id=m)
-            self._json(HTTPStatus.OK, rows)
-            return
-
-        if route == "/api/disponibilidad":
-            qs = parse_qs(parsed.query)
-            centro_id = qs.get("centro_id", [None])[0]
-            especialidad_id = qs.get("especialidad_id", [None])[0]
-            medico_id = qs.get("medico_id", [None])[0]
-            try:
-                c = int(centro_id) if centro_id not in (None, "None") else None
-            except Exception:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id invalido"})
-                return
-            try:
-                e = int(especialidad_id) if especialidad_id not in (None, "None") else None
-            except Exception:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "especialidad_id invalido"})
-                return
-            try:
-                m = int(medico_id) if medico_id not in (None, "None") else None
-            except Exception:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "medico_id invalido"})
-                return
-            rows = self.store.disponibilidad_filtered(centro_id=c, especialidad_id=e, medico_id=m)
-            self._json(HTTPStatus.OK, rows)
+        if route in api_routes:
+            api_routes[route](parsed)
             return
 
         if route.startswith("/api/documentos/"):
             documento_id = int(route.split("/")[3])
             self._json(HTTPStatus.OK, self.store.get_document(documento_id))
-            return
-
-        if route == "/api/health":
-            self._json(HTTPStatus.OK, {"status": "OK", "modo": "demo-json"})
-            return
-
-        # --- Nuevos endpoints para modelo Single-Hospital ---
-        if route == "/api/sintomas":
-            self._json(HTTPStatus.OK, self.store.listar_sintomas())
-            return
-
-        if route == "/api/buscar-especialidad-por-sintoma":
-            qs = parse_qs(parsed.query)
-            sintoma = qs.get("sintoma", [None])[0]
-            if not sintoma:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "sintoma requerido"})
-                return
-            resultado = self.store.buscar_especialidad_por_sintoma(sintoma)
-            self._json(HTTPStatus.OK, resultado or {"error": "No se encontró especialidad para el síntoma"})
-            return
-
-        if route == "/api/configuracion-hospital":
-            self._json(HTTPStatus.OK, self.store.obtener_configuracion_hospital())
-            return
-
-        if route == "/api/tipos-consulta":
-            self._json(HTTPStatus.OK, self.store.listar_tipos_consulta())
-            return
-
-        if route == "/api/precios-especialidad":
-            qs = parse_qs(parsed.query)
-            centro_id = qs.get("centro_id", [None])[0]
-            especialidad_id = qs.get("especialidad_id", [None])[0]
-            if not centro_id or not especialidad_id:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "centro_id y especialidad_id requeridos"})
-                return
-            try:
-                precios = self.store.obtener_precios_por_especialidad(int(centro_id), int(especialidad_id))
-                self._json(HTTPStatus.OK, precios)
-            except Exception as exc:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
             return
 
         # --- Ruta publica: /<slug> → pagina de turnos del hospital ---
