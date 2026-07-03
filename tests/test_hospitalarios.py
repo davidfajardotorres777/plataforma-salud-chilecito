@@ -312,6 +312,11 @@ class TestSeguridad:
 
 
 class TestAuditLogger:
+    @pytest.fixture(autouse=True)
+    def setup_logs_dir(self, tmp_path):
+        import os
+        os.makedirs("logs", exist_ok=True)
+
     """Tests para módulo de auditoría"""
     
     def test_log_action(self):
