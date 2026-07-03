@@ -36,6 +36,7 @@ def test_json_store_creates_patient_turno_and_document():
                 "telefono": "3825-111111",
                 "distrito": "Chilecito",
                 "obra_social": "APOS",
+                "centro_id": 1,
             }
         )
         turno = store.create_turno(
@@ -200,7 +201,7 @@ def test_bot_agent_operates_platform_by_conversation():
         agent = BotAgent(store)
 
         created_patient = agent.handle(
-            "crear paciente nombre Ana Diaz dni 50999111 telefono 3825-111222 distrito Chilecito obra social APOS"
+            "crear paciente nombre Ana Diaz dni 50999111 telefono 3825-111222 distrito Chilecito obra social APOS centro_id 1"
         )
         patient_id = created_patient["paciente"]["id"]
         updated_patient = agent.handle(f"editar paciente {patient_id} telefono 3825-999000 distrito Nonogasta")
