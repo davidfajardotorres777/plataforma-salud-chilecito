@@ -59,6 +59,24 @@ import hashlib
 import secrets
 from bson import ObjectId
 
+def _to_mongo_id(val):
+    """Convierte una cadena hex de 24 caracteres a ObjectId cuando sea posible.
+    Si el valor ya es ObjectId o no es convertible, lo retorna tal cual.
+    """
+    if val is None:
+        return None
+    try:
+        if isinstance(val, ObjectId):
+            return val
+        if isinstance(val, str):
+            # ObjectId hex strings are 24 hex characters
+            if len(val) == 24:
+                return ObjectId(val)
+    except Exception:
+        pass
+    return val
+
+
 from config_vars import get_mongo_config
 from db_models import (
     Paciente, CentroSalud, Medico, Turno, AgendaMedico,
@@ -174,9 +192,9 @@ class SaludDAO:
         }
         
         if usuario.paciente_id:
-            doc["paciente_id"] = ObjectId(usuario.paciente_id)
+            doc["paciente_id"] = _to_mongo_id(usuario.paciente_id)
         if usuario.medico_id:
-            doc["medico_id"] = ObjectId(usuario.medico_id)
+            doc["medico_id"] = _to_mongo_id(usuario.medico_id)
         
         result = db["usuarios"].insert_one(doc)
         return str(result.inserted_id)
@@ -230,7 +248,7 @@ class SaludDAO:
             dict | None: Datos del usuario si existe
         """
         db = self._get_db()
-        return db["usuarios"].find_one({"_id": ObjectId(usuario_id)})
+        return db["usuarios"].find_one({"_id": _to_mongo_id(usuario_id)})
     
     # ======================================================================
     # CENTROS DE SALUD
@@ -328,7 +346,7 @@ class SaludDAO:
             "fecha_nacimiento": paciente.fecha_nacimiento,
             "obra_social": paciente.obra_social,
             "distrito": paciente.distrito,
-            "centro_id": ObjectId(paciente.centro_id) if paciente.centro_id else None,
+            "centro_id": _to_mongo_id(paciente.centro_id) if paciente.centro_id else None,
             "fecha_alta": paciente.fecha_alta or datetime.now(),
             "activo": paciente.activo,
         }
@@ -352,7 +370,7 @@ class SaludDAO:
         """
         db = self._get_db()
         return list(db["medicos"].find(
-            {"centro_id": ObjectId(centro_id)},
+            {"centro_id": _to_mongo_id(centro_id)},
             {"_id": 0}
         ))
     
@@ -371,8 +389,8 @@ class SaludDAO:
         doc = {
             "nombre": medico.nombre,
             "matricula": medico.matricula,
-            "especialidad_id": ObjectId(medico.especialidad_id),
-            "centro_id": ObjectId(medico.centro_id),
+            "especialidad_id": _to_mongo_id(medico.especialidad_id),
+            "centro_id": _to_mongo_id(medico.centro_id),
             "telefono": medico.telefono,
             "email": medico.email,
             "activo": medico.activo,
@@ -451,9 +469,9 @@ class SaludDAO:
         db = self._get_db()
         
         doc = {
-            "paciente_id": ObjectId(turno.paciente_id),
-            "medico_id": ObjectId(turno.medico_id),
-            "centro_id": ObjectId(turno.centro_id),
+            "paciente_id": _to_mongo_id(turno.paciente_id),
+            "medico_id": _to_mongo_id(turno.medico_id),
+            "centro_id": _to_mongo_id(turno.centro_id),
             "fecha_turno": turno.fecha_turno,
             "estado": turno.estado,
             "precio_consulta": turno.precio_consulta,
@@ -541,9 +559,9 @@ class SaludDAO:
             })
         
         doc = {
-            "paciente_id": ObjectId(receta.paciente_id),
-            "medico_id": ObjectId(receta.medico_id),
-            "turno_id": ObjectId(receta.turno_id) if receta.turno_id else None,
+            "paciente_id": _to_mongo_id(receta.paciente_id),
+            "medico_id": _to_mongo_id(receta.medico_id),
+            "turno_id": _to_mongo_id(receta.turno_id) if receta.turno_id else None,
             "medicamentos": medicamentos_list,
             "diagnostico": receta.diagnostico,
             "indicaciones": receta.indicaciones,
@@ -566,7 +584,7 @@ class SaludDAO:
         """
         db = self._get_db()
         return list(db["recetas"].find(
-            {"paciente_id": ObjectId(paciente_id)}
+            {"paciente_id": _to_mongo_id(paciente_id)}
         ).sort("fecha_emision", -1))
     
     # ======================================================================
@@ -586,8 +604,8 @@ class SaludDAO:
         db = self._get_db()
         
         doc = {
-            "paciente_id": ObjectId(estudio.paciente_id),
-            "medico_id": ObjectId(estudio.medico_id),
+            "paciente_id": _to_mongo_id(estudio.paciente_id),
+            "medico_id": _to_mongo_id(estudio.medico_id),
             "tipo_estudio": estudio.tipo_estudio.value,
             "descripcion": estudio.descripcion,
             "indicaciones": estudio.indicaciones,
@@ -597,7 +615,7 @@ class SaludDAO:
             "resultado": estudio.resultado,
             "estado": estudio.estado.value,
             "archivo_url": estudio.archivo_url,
-            "turno_id": ObjectId(estudio.turno_id) if estudio.turno_id else None,
+            "turno_id": _to_mongo_id(estudio.turno_id) if estudio.turno_id else None,
         }
         
         result = db["estudios_medicos"].insert_one(doc)
@@ -615,7 +633,7 @@ class SaludDAO:
         """
         db = self._get_db()
         return list(db["estudios_medicos"].find(
-            {"paciente_id": ObjectId(paciente_id)}
+            {"paciente_id": _to_mongo_id(paciente_id)}
         ).sort("fecha_solicitud", -1))
     
     def actualizar_estado_estudio(self, estudio_id: str, estado: EstadoEstudio, resultado: Optional[str] = None) -> bool:
@@ -643,11 +661,16 @@ class SaludDAO:
             update_data["$set"]["resultado"] = resultado
         
         result = db["estudios_medicos"].update_one(
-            {"_id": ObjectId(estudio_id)},
+            {"_id": _to_mongo_id(estudio_id)},
             update_data
         )
         
-        return result.modified_count > 0
+        # Consider match without modification as success (id existed)
+        if result.modified_count > 0 or getattr(result, 'matched_count', 0) > 0:
+            return True
+        # Fallback: check existence of document
+        exists = db["estudios_medicos"].find_one({"_id": _to_mongo_id(estudio_id)})
+        return exists is not None
     
     # ======================================================================
     # NOTIFICACIONES
@@ -666,7 +689,7 @@ class SaludDAO:
         db = self._get_db()
         
         doc = {
-            "usuario_id": ObjectId(notificacion.usuario_id),
+            "usuario_id": _to_mongo_id(notificacion.usuario_id),
             "tipo": notificacion.tipo.value,
             "titulo": notificacion.titulo,
             "mensaje": notificacion.mensaje,
@@ -693,7 +716,7 @@ class SaludDAO:
         """
         db = self._get_db()
         
-        query = {"usuario_id": ObjectId(usuario_id)}
+        query = {"usuario_id": _to_mongo_id(usuario_id)}
         if no_leidas:
             query["estado"] = EstadoNotificacion.PENDIENTE.value
         
@@ -712,7 +735,7 @@ class SaludDAO:
         db = self._get_db()
         
         result = db["notificaciones"].update_one(
-            {"_id": ObjectId(notificacion_id)},
+            {"_id": _to_mongo_id(notificacion_id)},
             {
                 "$set": {
                     "estado": EstadoNotificacion.LEIDA.value,
@@ -721,7 +744,10 @@ class SaludDAO:
             }
         )
         
-        return result.modified_count > 0
+        if result.modified_count > 0 or getattr(result, 'matched_count', 0) > 0:
+            return True
+        exists = db["notificaciones"].find_one({"_id": _to_mongo_id(notificacion_id)})
+        return exists is not None
     
     # ======================================================================
     # INTERNACIONES
@@ -740,9 +766,9 @@ class SaludDAO:
         db = self._get_db()
         
         doc = {
-            "paciente_id": ObjectId(internacion.paciente_id),
-            "medico_id": ObjectId(internacion.medico_id),
-            "centro_id": ObjectId(internacion.centro_id),
+            "paciente_id": _to_mongo_id(internacion.paciente_id),
+            "medico_id": _to_mongo_id(internacion.medico_id),
+            "centro_id": _to_mongo_id(internacion.centro_id),
             "tipo": internacion.tipo.value,
             "motivo_ingreso": internacion.motivo_ingreso,
             "diagnostico_ingreso": internacion.diagnostico_ingreso,
@@ -770,7 +796,7 @@ class SaludDAO:
         """
         db = self._get_db()
         return list(db["internaciones"].find(
-            {"paciente_id": ObjectId(paciente_id)}
+            {"paciente_id": _to_mongo_id(paciente_id)}
         ).sort("fecha_ingreso", -1))
     
     def obtener_internaciones_activas(self, centro_id: Optional[str] = None) -> List[Dict]:
@@ -787,7 +813,7 @@ class SaludDAO:
         
         query = {"estado": EstadoInternacion.ACTIVA.value}
         if centro_id:
-            query["centro_id"] = ObjectId(centro_id)
+            query["centro_id"] = _to_mongo_id(centro_id)
         
         return list(db["internaciones"].find(query).sort("fecha_ingreso", -1))
     
@@ -818,8 +844,11 @@ class SaludDAO:
             update_data["$set"]["resumen_clinico"] = resumen_clinico
         
         result = db["internaciones"].update_one(
-            {"_id": ObjectId(internacion_id)},
+            {"_id": _to_mongo_id(internacion_id)},
             update_data
         )
         
-        return result.modified_count > 0
+        if result.modified_count > 0 or getattr(result, 'matched_count', 0) > 0:
+            return True
+        exists = db["internaciones"].find_one({"_id": _to_mongo_id(internacion_id)})
+        return exists is not None
