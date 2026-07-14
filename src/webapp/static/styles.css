@@ -3,16 +3,57 @@
   --bg: #f5f7f8;
   --surface: #ffffff;
   --surface-2: #eef2f5;
-  --text: #1e293b;
-  --muted: #64748b;
+  --text: #0f172a;
+  --muted: #516177;
   --line: #d8dee6;
   --primary: #0f766e;
-  --primary-dark: #115e59;
+  --primary-dark: #0e6b62;
   --accent: #f59e0b;
   --danger: #b91c1c;
   --success: #166534;
-  --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
+
+/* Hero and presentation styles */
+.hero {
+  background: linear-gradient(90deg, rgba(15,118,110,0.06), rgba(245,158,11,0.03));
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.hero-inner {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+}
+.hero-text h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--primary-dark);
+}
+.hero-text p {
+  margin: 0 0 12px 0;
+  color: var(--muted);
+}
+.hero-ctas button {
+  margin-right: 8px;
+}
+.hero-visual svg { border-radius: 8px; box-shadow: var(--shadow); }
+
+/* Login modal styling */
+.login-modal::backdrop { background: rgba(2,6,23,0.4); }
+.login-modal form { max-width: 420px; width: 100%; }
+.login-modal .panel { padding: 18px; border-radius: 10px; }
+.login-modal input { padding: 12px; }
+
+/* Make layout more airy */
+.app-shell { gap: 18px; }
+.brand img { width: 56px; height: 56px; border-radius: 8px; }
+.topbar h1 { font-weight: 600; }
+
+/* Use nicer font if available */
+body { font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
 
 * {
   box-sizing: border-box;
