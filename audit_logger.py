@@ -73,6 +73,10 @@ class AuditLogger:
         self.logger = logging.getLogger("salud_chilecito")
         self.logger.setLevel(logging.INFO)
         
+        # Ensure logs directory exists
+        import os
+        os.makedirs("logs", exist_ok=True)
+
         # Handler para archivo
         file_handler = logging.FileHandler("logs/audit.log")
         file_handler.setLevel(logging.INFO)
