@@ -26,7 +26,7 @@ function escapeHtml(value) {
 async function api(path, options = {}) {
   const token = localStorage.getItem('salud_token');
   const headers = { "Content-Type": "application/json" };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers['Authorization'] = 'Bearer ' + token;
   const response = await fetch(path, {
     headers,
     ...options
@@ -430,7 +430,77 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
+
+
+// ----------------- Autenticación (UI helpers) -----------------
+function updateAuthUI() {
+  const token = localStorage.getItem('salud_token');
+  const loginBtn = ("#loginBtn") ? document.querySelector("#loginBtn") : null;
+  const logoutBtn = ("#logoutBtn") ? document.querySelector("#logoutBtn") : null;
+  if (token) {
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = '';
+  } else {
+    if (loginBtn) loginBtn.style.display = '';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
+
+function showLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (!modal) return;
+  if (typeof modal.showModal === 'function') modal.showModal();
+  else modal.style.display = 'block';
+}
+
+function hideLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (!modal) return;
+  if (typeof modal.close === 'function') modal.close();
+  else modal.style.display = 'none';
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const email = form.email.value;
+  const password = form.password.value;
+  try {
+    const res = await fetch('/api/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(payload.detail || payload.error || 'Credenciales inválidas');
+    localStorage.setItem('salud_token', payload.access_token);
+    updateAuthUI();
+    hideLoginModal();
+    showToast('Sesión iniciada');
+    await loadDashboard();
+  } catch (e) {
+    showToast('Error inicio sesión: ' + e.message);
+  }
+}
+
+function logout() {
+  localStorage.removeItem('salud_token');
+  updateAuthUI();
+  showToast('Sesión cerrada');
+}
+
 function wireEvents() {
+  // auth listeners
+  const _loginBtn = document.querySelector('#loginBtn');
+  if (_loginBtn) _loginBtn.addEventListener('click', showLoginModal);
+  const _logoutBtn = document.querySelector('#logoutBtn');
+  if (_logoutBtn) _logoutBtn.addEventListener('click', logout);
+  const _loginForm = document.querySelector('#loginForm');
+  if (_loginForm) _loginForm.addEventListener('submit', handleLoginSubmit);
+  const _cancelLogin = document.querySelector('#cancelLogin');
+  if (_cancelLogin) _cancelLogin.addEventListener('click', hideLoginModal);
+  updateAuthUI();
+
   $$(".nav-tab").forEach((button) => {
     button.addEventListener("click", () => {
       $$(".nav-tab").forEach((b) => b.classList.remove("active"));

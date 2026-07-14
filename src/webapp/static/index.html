@@ -33,8 +33,8 @@
           <button id="resetData" type="button">Reiniciar demo</button>
         </div>
         <div class="auth-box">
-          <a href="/login" class="auth-btn">Iniciar Sesión</a>
-          <a href="/registro" class="auth-btn">Registrarse</a>
+          <button id="loginBtn" class="auth-btn" type="button">Iniciar Sesión</button>
+          <button id="logoutBtn" class="auth-btn" type="button" style="display:none">Cerrar sesión</button>
         </div>
       </aside>
 
@@ -417,6 +417,26 @@
         </section>
       </main>
     </div>
+
+
+    <dialog id="loginModal" class="login-modal">
+      <form id="loginForm" method="dialog" class="panel form-panel">
+        <div class="panel-head">
+          <h2>Iniciar Sesión</h2>
+          <span>Accede para gestionar la plataforma</span>
+        </div>
+        <label>Email
+          <input name="email" type="email" required>
+        </label>
+        <label>Contraseña
+          <input name="password" type="password" required>
+        </label>
+        <div class="button-row">
+          <button type="submit">Entrar</button>
+          <button type="button" id="cancelLogin" class="secondary">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
 
     <dialog id="documentDialog" class="document-dialog">
       <div class="modal-head">
