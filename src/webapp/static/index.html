@@ -3,7 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Plataforma Salud Chilecito - gestión de turnos, pacientes y centros de salud (demo).">
+    <meta name="theme-color" content="#007bff">
+    <meta name="author" content="Alesandro David Fajardo">
     <title>Salud Chilecito</title>
+    <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
@@ -29,16 +34,16 @@
           <button id="resetData" type="button">Reiniciar demo</button>
         </div>
         <div class="auth-box">
-          <a href="/login" class="auth-btn">Iniciar Sesión</a>
-          <a href="/registro" class="auth-btn">Registrarse</a>
+          <button id="loginBtn" class="auth-btn" type="button">Iniciar Sesión</button>
+          <button id="logoutBtn" class="auth-btn" type="button" style="display:none">Cerrar sesión</button>
         </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
           <div>
-            <h1>Gestion de atencion medica</h1>
-            <p>Chilecito, Nonogasta, Sanogasta y distritos cercanos</p>
+            <h1>Gestión de Atención Médica</h1>
+            <p>Chilecito y distritos cercanos — gestión de turnos, pacientes y centros</p>
           </div>
           <div class="top-actions">
             <select id="centerFilter" title="Seleccionar centro">
@@ -49,6 +54,30 @@
             <button id="openBot" type="button">Abrir Bot IA</button>
           </div>
         </header>
+
+        <!-- Hero / Presentación -->
+        <section class="hero">
+          <div class="hero-inner">
+            <div class="hero-text">
+              <h2>Salud Chilecito — Plataforma de Gestión</h2>
+              <p>Panel demostrativo con administración de turnos, agenda, pacientes y centros. Listo para presentar: responsive, seguro y fácil de usar.</p>
+              <div class="hero-ctas">
+                <button id="demoBtn" class="secondary" type="button">Ver demo pública</button>
+                <button id="startLogin" type="button">Iniciar sesión</button>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <!-- Placeholder illustration -->
+              <svg width="260" height="160" viewBox="0 0 260 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="0" y="0" width="260" height="160" rx="12" fill="#f1f5f9" />
+                <circle cx="60" cy="60" r="28" fill="#0f766e" />
+                <rect x="110" y="30" width="120" height="18" rx="6" fill="#0f766e" />
+                <rect x="110" y="60" width="80" height="12" rx="6" fill="#94d3c2" />
+                <rect x="110" y="84" width="100" height="12" rx="6" fill="#c7f2e9" />
+              </svg>
+            </div>
+          </div>
+        </section>
 
         <section class="metrics" aria-label="Indicadores">
           <div class="metric">
@@ -413,6 +442,26 @@
         </section>
       </main>
     </div>
+
+
+    <dialog id="loginModal" class="login-modal">
+      <form id="loginForm" method="dialog" class="panel form-panel">
+        <div class="panel-head">
+          <h2>Iniciar Sesión</h2>
+          <span>Accede para gestionar la plataforma</span>
+        </div>
+        <label>Email
+          <input name="email" type="email" required>
+        </label>
+        <label>Contraseña
+          <input name="password" type="password" required>
+        </label>
+        <div class="button-row">
+          <button type="submit">Entrar</button>
+          <button type="button" id="cancelLogin" class="secondary">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
 
     <dialog id="documentDialog" class="document-dialog">
       <div class="modal-head">

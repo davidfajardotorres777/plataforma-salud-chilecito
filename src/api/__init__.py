@@ -1,5 +1,5 @@
 """API REST endpoints para la plataforma"""
 
-from .bot_api import router as bot_router
-
-__all__ = ['bot_router']
+# Avoid importing submodules with heavy dependencies at package import time.
+# Import specific routers or helpers directly where needed (e.g., in src.api.main).
+__all__ = []
