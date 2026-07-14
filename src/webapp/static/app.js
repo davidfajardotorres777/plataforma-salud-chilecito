@@ -24,11 +24,14 @@ function escapeHtml(value) {
 }
 
 async function api(path, options = {}) {
+  const token = localStorage.getItem('salud_token');
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...options
   });
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(payload.error || "Operacion no completada");
   }
