@@ -1,6 +1,7 @@
 # Salud Chilecito
 
 [![CI](https://github.com/davidfajardotorres777/plataforma-salud-chilecito/actions/workflows/ci.yml/badge.svg)](https://github.com/davidfajardotorres777/plataforma-salud-chilecito/actions)
+[![Pages](https://github.com/davidfajardotorres777/plataforma-salud-chilecito/actions/workflows/deploy_pages.yml/badge.svg)](https://github.com/davidfajardotorres777/plataforma-salud-chilecito/actions)
 
 Plataforma digital para gestionar centros de salud, pacientes, medicos, turnos, historial clinico y documentos asociados a la atencion medica en Chilecito y sus distritos cercanos.
 
