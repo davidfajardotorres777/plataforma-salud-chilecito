@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Salud Chilecito</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="/static/logo.svg" alt="Salud Chilecito">
+          <div>
+            <strong>Salud Chilecito</strong>
+            <span>Panel operativo</span>
+          </div>
+        </div>
+        <nav class="nav-tabs" aria-label="Vistas">
+          <button class="nav-tab active" data-view="turnos">Turnos</button>
+          <button class="nav-tab" data-view="pacientes">Pacientes</button>
+          <button class="nav-tab" data-view="centros">Centros</button>
+          <button class="nav-tab" data-view="documentos">Documentos</button>
+          <button class="nav-tab" data-view="integracion">Integración HIS</button>
+        </nav>
+        <div class="sync-box">
+          <span id="apiStatus">Conectando...</span>
+          <button id="forceSaveData" type="button" title="Forzar guardado manual">Guardar</button>
+          <button id="resetData" type="button">Reiniciar demo</button>
+        </div>
+        <div class="auth-box">
+          <a href="/login" class="auth-btn">Iniciar Sesión</a>
+          <a href="/registro" class="auth-btn">Registrarse</a>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1>Gestion de atencion medica</h1>
+            <p>Chilecito, Nonogasta, Sanogasta y distritos cercanos</p>
+          </div>
+          <div class="top-actions">
+            <select id="centerFilter" title="Seleccionar centro">
+              <option value="">Todos los centros</option>
+            </select>
+            <input id="globalSearch" type="search" placeholder="Buscar paciente, medico o centro">
+            <button id="refreshData" type="button">Actualizar</button>
+            <button id="openBot" type="button">Abrir Bot IA</button>
+          </div>
+        </header>
+
+        <section class="metrics" aria-label="Indicadores">
+          <div class="metric">
+            <span>Centros</span>
+            <strong id="metricCentros">0</strong>
+          </div>
+          <div class="metric">
+            <span>Pacientes</span>
+            <strong id="metricPacientes">0</strong>
+          </div>
+          <div class="metric warning">
+            <span>Pendientes</span>
+            <strong id="metricPendientes">0</strong>
+          </div>
+          <div class="metric success">
+            <span>Confirmados</span>
+            <strong id="metricConfirmados">0</strong>
+          </div>
+          <div class="metric">
+            <span>Documentos</span>
+            <strong id="metricDocumentos">0</strong>
+          </div>
+        </section>
+
+        <section class="view active" id="view-turnos">
+          <div class="split-grid">
+            <form class="panel form-panel" id="turnoForm">
+              <div class="panel-head">
+                <h2 id="turnoFormTitle">Nuevo turno</h2>
+                <span>Reserva y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="turnoId">
+              <label>Paciente
+                <select name="paciente_id" id="turnoPaciente" required></select>
+              </label>
+              <label>Edad del paciente (opcional - ayuda a derivar al médico correcto)
+                <input name="edad_paciente" id="turnoEdadPaciente" type="number" min="0" max="120" placeholder="Ej: 25">
+              </label>
+              <label>Síntoma (opcional - autoselecciona especialidad)
+                <select name="sintoma_id" id="turnoSintoma">
+                  <option value="">Seleccionar síntoma...</option>
+                </select>
+              </label>
+              <label>Medico
+                <select name="medico_id" id="turnoMedico" required></select>
+              </label>
+              <div class="form-row">
+                <label>Fecha
+                  <input name="fecha" type="date" required>
+                </label>
+                <label>Hora
+                  <input name="hora" type="time" required>
+                </label>
+              </div>
+              <div class="form-row">
+                <label>Horarios disponibles
+                  <select name="horario_disponible" id="turnoHorarioDisponible">
+                    <option value="">Seleccionar horario disponible...</option>
+                  </select>
+                </label>
+                <label>Precio
+                  <input name="precio" type="number" min="0" step="100" value="0">
+                </label>
+              </div>
+              <div class="form-row">
+                <label>Estado
+                  <select name="estado">
+                    <option>PENDIENTE</option>
+                    <option>CONFIRMADO</option>
+                  </select>
+                </label>
+              </div>
+              <label>Motivo
+                <textarea name="motivo" rows="3" required></textarea>
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar turno</button>
+                <button class="secondary" id="cancelTurnoEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+
+            <div class="panel availability-panel">
+              <div class="panel-head">
+                <h2>Disponibilidad</h2>
+                <span>Horarios, cupos y precios</span>
+              </div>
+              <div id="disponibilidadList" class="records"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Agenda</h2>
+                <span id="turnosCount">0 registros</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Paciente</th>
+                      <th>Medico</th>
+                      <th>Centro</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="turnosBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-pacientes">
+          <div class="split-grid">
+            <form class="panel form-panel" id="pacienteForm">
+              <div class="panel-head">
+                <h2 id="pacienteFormTitle">Paciente</h2>
+                <span>Alta y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="pacienteId">
+              <label>DNI
+                <input name="dni" required maxlength="20">
+              </label>
+              <label>Nombre completo
+                <input name="nombre" required>
+              </label>
+              <div class="form-row">
+                <label>Telefono
+                  <input name="telefono" required>
+                </label>
+                <label>Distrito
+                  <input name="distrito" required>
+                </label>
+              </div>
+              <label>Obra social
+                <input name="obra_social" value="Sin obra social">
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar paciente</button>
+                <button class="secondary" id="cancelPacienteEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Padron</h2>
+                <span id="pacientesCount">0 registros</span>
+              </div>
+              <div id="pacientesList" class="records"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-centros">
+          <div class="split-grid">
+            <form class="panel form-panel" id="centroForm">
+              <div class="panel-head">
+                <h2 id="centroFormTitle">Centro de salud</h2>
+                <span>Alta y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="centroId">
+              <label>Nombre
+                <input name="nombre" required>
+              </label>
+              <label>Direccion
+                <input name="direccion" required>
+              </label>
+              <div class="form-row">
+                <label>Distrito
+                  <input name="distrito" required>
+                </label>
+                <label>Telefono
+                  <input name="telefono" required>
+                </label>
+              </div>
+              <label>Tipo
+                <select name="tipo" required>
+                  <option>PUBLICO</option>
+                  <option>PRIVADO</option>
+                  <option>MIXTO</option>
+                </select>
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar centro</button>
+                <button class="secondary" id="cancelCentroEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+
+            <form class="panel form-panel" id="medicoForm">
+              <div class="panel-head">
+                <h2 id="medicoFormTitle">Medico</h2>
+                <span>Alta y edicion</span>
+              </div>
+              <input type="hidden" name="id" id="medicoId">
+              <label>Nombre completo
+                <input name="nombre" required>
+              </label>
+              <label>Centro
+                <select name="centro_id" id="medicoCentro" required></select>
+              </label>
+              <label>Especialidad
+                <select name="especialidad_id" id="medicoEspecialidad" required></select>
+              </label>
+              <label>Telefono
+                <input name="telefono" required>
+              </label>
+              <div class="panel-head" style="margin-top: 20px;">
+                <h3>Horarios de trabajo</h3>
+                <span>Días y horarios de atención</span>
+              </div>
+              <label>Día de la semana
+                <select name="dia_semana" id="medicoDia">
+                  <option value="">Seleccionar día...</option>
+                  <option value="Lunes">Lunes</option>
+                  <option value="Martes">Martes</option>
+                  <option value="Miércoles">Miércoles</option>
+                  <option value="Jueves">Jueves</option>
+                  <option value="Viernes">Viernes</option>
+                  <option value="Sábado">Sábado</option>
+                  <option value="Domingo">Domingo</option>
+                </select>
+              </label>
+              <div class="form-row">
+                <label>Hora inicio
+                  <input name="hora_inicio" type="time" id="medicoHoraInicio">
+                </label>
+                <label>Hora fin
+                  <input name="hora_fin" type="time" id="medicoHoraFin">
+                </label>
+              </div>
+              <label>Duración consulta (minutos)
+                <input name="duracion_minutos" type="number" value="30" min="15" step="5">
+              </label>
+              <label>Cupo diario
+                <input name="cupo_diario" type="number" value="8" min="1">
+              </label>
+              <div class="button-row">
+                <button type="submit">Guardar medico</button>
+                <button class="secondary" id="cancelMedicoEdit" type="button">Nuevo</button>
+              </div>
+            </form>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Centros y medicos</h2>
+                <span>Red de atencion editable</span>
+              </div>
+              <div id="centrosList" class="center-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-documentos">
+          <div class="split-grid">
+            <form class="panel form-panel" id="documentoForm">
+              <div class="panel-head">
+                <h2>Documento clinico</h2>
+                <span>Adjunto local</span>
+              </div>
+              <label>Paciente
+                <select name="paciente_id" id="documentoPaciente" required></select>
+              </label>
+              <label>Tipo
+                <select name="tipo">
+                  <option>ORDEN</option>
+                  <option>ESTUDIO</option>
+                  <option>RECETA</option>
+                  <option>IMAGEN</option>
+                  <option>OTRO</option>
+                </select>
+              </label>
+              <label>Archivo
+                <input name="archivo" type="file" required>
+              </label>
+              <button type="submit">Adjuntar</button>
+            </form>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Repositorio</h2>
+                <span id="documentosCount">0 archivos</span>
+              </div>
+              <div id="documentosList" class="records"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-integracion">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Integración con Sistema HIS del Hospital</h2>
+              <span>Configuración y estado de integración</span>
+            </div>
+            <div class="integration-info">
+              <h3>¿Cómo funciona la integración?</h3>
+              <p>Esta plataforma se <strong>integra con el sistema HIS existente del hospital</strong>, no lo reemplaza. Funciona como una capa complementaria que mejora la gestión de turnos sin interrumpir las operaciones actuales.</p>
+              
+              <h4>Métodos de Integración Disponibles:</h4>
+              <ul>
+                <li><strong>API REST</strong>: Sincronización en tiempo real con el sistema del hospital</li>
+                <li><strong>Webhooks</strong>: Notificaciones automáticas de eventos</li>
+                <li><strong>Exportación/Importación</strong>: Para sistemas sin API</li>
+                <li><strong>Manual</strong>: Para fase piloto y pruebas</li>
+              </ul>
+
+              <h4>Flujo de Datos:</h4>
+              <div class="data-flow">
+                <div class="flow-step">
+                  <strong>1. Sistema HIS del Hospital</strong>
+                  <p>Gestión de pacientes, historia clínica, facturación</p>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <strong>2. Plataforma Salud Chilecito</strong>
+                  <p>Gestión inteligente de turnos, triaje por síntomas</p>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <strong>3. Base de Datos Oracle</strong>
+                  <p>Persistencia de datos, historial de turnos</p>
+                </div>
+              </div>
+
+              <h4>Beneficios de la Integración:</h4>
+              <ul>
+                <li>✓ No requiere cambiar el sistema actual del hospital</li>
+                <li>✓ Sincronización bidireccional de datos</li>
+                <li>✓ Seguridad con encriptación SSL/TLS</li>
+                <li>✓ Implementación gradual y sin riesgo</li>
+                <li>✓ Soporte para múltiples centros de salud</li>
+              </ul>
+
+              <h4>Estado de Integración:</h4>
+              <div class="integration-status">
+                <div class="status-item">
+                  <span class="status-label">Conexión API:</span>
+                  <span class="status-value pending">No configurado</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Webhooks:</span>
+                  <span class="status-value pending">No configurado</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Sincronización:</span>
+                  <span class="status-value pending">No activa</span>
+                </div>
+              </div>
+
+              <h4>Próximos Pasos para Implementación:</h4>
+              <ol>
+                <li>Contactar al departamento de TI del hospital</li>
+                <li>Obtener documentación de API del sistema HIS</li>
+                <li>Configurar API keys y webhooks</li>
+                <li>Realizar pruebas de integración</li>
+                <li>Iniciar fase piloto en un centro</li>
+              </ol>
+
+              <div class="integration-note">
+                <strong>Nota:</strong> Para más información sobre la implementación, consulte el documento "PRESENTACION_VENTA_HOSPITALES.md" en el repositorio.
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="documentDialog" class="document-dialog">
+      <div class="modal-head">
+        <div>
+          <h2 id="documentTitle">Documento</h2>
+          <p id="documentMeta"></p>
+        </div>
+        <button class="secondary" id="closeDocument" type="button">Cerrar</button>
+      </div>
+      <div id="documentPreview" class="document-preview"></div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

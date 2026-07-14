@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel - Salud Chilecito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #666;
+        }
+        .logout-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status.confirmado {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.cancelado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state p {
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Mi Panel - Salud Chilecito</h1>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📅 Solicitar Nuevo Turno</h2>
+            <form id="solicitarTurnoForm">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Médico:</label>
+                    <select id="medicoSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                        <option value="">Seleccionar médico...</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Fecha:</label>
+                    <input type="date" id="fechaTurno" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #333;">Hora:</label>
+                    <select id="horaTurno" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required disabled>
+                        <option value="">Selecciona médico y fecha primero</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Solicitar Turno</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>📋 Mis Turnos</h2>
+            <div id="turnosContainer" class="loading">Cargando turnos...</div>
+        </div>
+    </div>
+
+    <script>
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay token
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Mostrar nombre del usuario
+            document.getElementById('userName').textContent = 'Paciente';
+
+            // Cargar médicos
+            loadMedicos();
+
+            // Cargar turnos
+            loadTurnos();
+
+            // Manejar cambio de médico
+            document.getElementById('medicoSelect').addEventListener('change', function() {
+                const medicoId = this.value;
+                if (medicoId) {
+                    document.getElementById('horaTurno').disabled = false;
+                    loadHorasDisponibles(medicoId);
+                } else {
+                    document.getElementById('horaTurno').disabled = true;
+                    document.getElementById('horaTurno').innerHTML = '<option value="">Selecciona médico y fecha primero</option>';
+                }
+            });
+
+            // Manejar formulario de solicitud de turno
+            document.getElementById('solicitarTurnoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                solicitarTurno();
+            });
+        });
+
+        // Cargar médicos
+        async function loadMedicos() {
+            try {
+                const response = await fetch('/api/medicos');
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('medicoSelect');
+                    select.innerHTML = '<option value="">Seleccionar médico...</option>';
+                    
+                    data.forEach(medico => {
+                        const option = document.createElement('option');
+                        option.value = medico.id;
+                        option.textContent = medico.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar médicos:', error);
+            }
+        }
+
+        // Cargar horas disponibles de un médico
+        async function loadHorasDisponibles(medicoId) {
+            try {
+                const response = await fetch(`/api/medicos/disponibilidad?medico_id=${medicoId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('horaTurno');
+                    select.innerHTML = '<option value="">Seleccionar hora...</option>';
+                    
+                    // Agrupar horas por fecha
+                    const horasPorFecha = {};
+                    data.forEach(disponibilidad => {
+                        const fecha = disponibilidad.fecha;
+                        if (!horasPorFecha[fecha]) {
+                            horasPorFecha[fecha] = [];
+                        }
+                        horasPorFecha[fecha].push(disponibilidad.hora);
+                    });
+                    
+                    // Mostrar horas disponibles
+                    Object.keys(horasPorFecha).sort().forEach(fecha => {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = fecha;
+                        
+                        horasPorFecha[fecha].sort().forEach(hora => {
+                            const option = document.createElement('option');
+                            option.value = `${fecha}|${hora}`;
+                            option.textContent = hora;
+                            optgroup.appendChild(option);
+                        });
+                        
+                        select.appendChild(optgroup);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar horas disponibles:', error);
+            }
+        }
+
+        // Cargar turnos
+        async function loadTurnos() {
+            const container = document.getElementById('turnosContainer');
+            try {
+                const response = await fetch('/api/turnos');
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTurnos(data);
+                } else {
+                    container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+                }
+            } catch (error) {
+                console.error('Error al cargar turnos:', error);
+                container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+            }
+        }
+
+        // Mostrar turnos
+        function displayTurnos(turnos) {
+            const container = document.getElementById('turnosContainer');
+            
+            if (!turnos || turnos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>📅 No tienes turnos programados</p></div>';
+                return;
+            }
+
+            let html = '<table class="table"><thead><tr><th>Fecha</th><th>Hora</th><th>Médico</th><th>Estado</th></tr></thead><tbody>';
+            
+            turnos.forEach(turno => {
+                html += `
+                    <tr>
+                        <td>${turno.fecha}</td>
+                        <td>${turno.hora}</td>
+                        <td>${turno.medico_nombre || 'N/A'}</td>
+                        <td><span class="status ${turno.estado.toLowerCase()}">${turno.estado}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Solicitar nuevo turno
+        async function solicitarTurno() {
+            const medicoId = document.getElementById('medicoSelect').value;
+            const horaSeleccionada = document.getElementById('horaTurno').value;
+            const token = localStorage.getItem('token');
+
+            if (!medicoId || !horaSeleccionada) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            // El formato de horaSeleccionada es "fecha|hora"
+            const [fecha, hora] = horaSeleccionada.split('|');
+
+            try {
+                const response = await fetch('/api/turnos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        medico_id: parseInt(medicoId),
+                        fecha: fecha,
+                        hora: hora
+                    })
+                });
+
+                if (response.ok) {
+                    alert('✅ Turno solicitado exitosamente');
+                    document.getElementById('solicitarTurnoForm').reset();
+                    document.getElementById('horaTurno').disabled = true;
+                    document.getElementById('horaTurno').innerHTML = '<option value="">Selecciona médico y fecha primero</option>';
+                    loadTurnos();
+                } else {
+                    const data = await response.json();
+                    alert('❌ Error: ' + (data.error || 'No se pudo solicitar el turno'));
+                }
+            } catch (error) {
+                console.error('Error al solicitar turno:', error);
+                alert('❌ Error de conexión');
+            }
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
