@@ -151,6 +151,19 @@ def api_config():
     except Exception:
         return {}
 
+
+@app.post('/api/seed')
+def api_seed_demo():
+    """Crea datos de demostración mínimos para presentaciones.
+    Útil en entornos de desarrollo para poblar centros, médicos, pacientes y
+    un usuario demo (demo@salud.local / demo123).
+    """
+    try:
+        summary = dao.seed_demo()
+        return {"ok": True, "summary": summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get('/api/precios-especialidad')
 def api_precios_especialidad(centro_id: int, especialidad_id: int):
     try:

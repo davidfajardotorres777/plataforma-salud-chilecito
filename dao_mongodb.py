@@ -399,6 +399,90 @@ class SaludDAO:
         
         result = db["medicos"].insert_one(doc)
         return str(result.inserted_id)
+
+    # ----------------------------------------------------------------------
+    # SEED / DEMO HELPERS
+    # ----------------------------------------------------------------------
+    def seed_demo(self) -> Dict[str, Any]:
+        """
+        Crea datos de demostración mínimos: un centro, especialidades, médicos,
+        un paciente y un usuario demo (email/demo@local, password: demo123).
+        Retorna un resumen con los ids creados o ya existentes.
+        """
+        db = self._get_db()
+        summary = {"created": {}, "skipped": {}}
+
+        # Crear centro demo si no existe
+        if db["centros"].count_documents({}) == 0:
+            centro = {
+                "nombre": "Hospital Demo Chilecito",
+                "direccion": "Av. Principal 123",
+                "distrito": "Chilecito",
+                "tipo": "PUBLICO",
+                "telefono": "03825-000000",
+                "email": "contacto@demo.local",
+                "activo": True,
+                "fecha_creacion": datetime.now(),
+                "slug": "hospital-demo-chilecito"
+            }
+            res = db["centros"].insert_one(centro)
+            summary["created"]["centro_id"] = str(res.inserted_id)
+        else:
+            summary["skipped"]["centros"] = db["centros"].count_documents({})
+
+        # Especialidades de ejemplo
+        existing_esps = list(db["especialidades"].find({}, {"nombre": 1}))
+        if len(existing_esps) == 0:
+            especialidades = [
+                {"nombre": "Medicina General"},
+                {"nombre": "Pediatría"},
+                {"nombre": "Ginecología"},
+                {"nombre": "Traumatología"}
+            ]
+            ids = db["especialidades"].insert_many(especialidades).inserted_ids
+            summary["created"]["especialidades"] = [str(i) for i in ids]
+        else:
+            summary["skipped"]["especialidades"] = len(existing_esps)
+
+        # Médicos de ejemplo si no hay
+        if db["medicos"].count_documents({}) == 0:
+            centro_doc = db["centros"].find_one({})
+            esp = db["especialidades"].find_one({"nombre": "Medicina General"}) or {}
+            medicos = [
+                {"nombre": "Dr. Juan Pérez", "matricula": "M-001", "especialidad_id": esp.get("_id"), "centro_id": centro_doc.get("_id"), "telefono": "03825-111111", "email": "juan.perez@demo.local", "activo": True, "fecha_creacion": datetime.now()},
+                {"nombre": "Dra. Ana Gómez", "matricula": "M-002", "especialidad_id": esp.get("_id"), "centro_id": centro_doc.get("_id"), "telefono": "03825-222222", "email": "ana.gomez@demo.local", "activo": True, "fecha_creacion": datetime.now()},
+            ]
+            mids = db["medicos"].insert_many(medicos).inserted_ids
+            summary["created"]["medicos"] = [str(i) for i in mids]
+        else:
+            summary["skipped"]["medicos"] = db["medicos"].count_documents({})
+
+        # Paciente demo
+        if db["pacientes"].count_documents({}) == 0:
+            paciente = {"dni": "12345678", "nombre": "Paciente Demo", "telefono": "03825-333333", "fecha_nacimiento": None, "obra_social": "Sin obra social", "distrito": "Chilecito", "centro_id": None, "fecha_alta": datetime.now(), "activo": True}
+            pid = db["pacientes"].insert_one(paciente).inserted_id
+            summary["created"]["paciente_id"] = str(pid)
+        else:
+            summary["skipped"]["pacientes"] = db["pacientes"].count_documents({})
+
+        # Usuario demo
+        demo_email = "demo@salud.local"
+        existing = db["usuarios"].find_one({"email": demo_email})
+        if not existing:
+            try:
+                from passlib.context import CryptContext
+                pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                pwd_hash = pwd_ctx.hash("demo123")
+            except Exception:
+                pwd_hash = "demo123"  # fallback (not secure)
+            user_doc = {"email": demo_email, "password_hash": pwd_hash, "rol": "ADMIN", "nombre": "Usuario Demo", "activo": True, "verificado": True, "fecha_registro": datetime.now()}
+            uid = db["usuarios"].insert_one(user_doc).inserted_id
+            summary["created"]["usuario_demo"] = str(uid)
+        else:
+            summary["skipped"]["usuario_demo"] = str(existing.get("_id"))
+
+        return summary
+        return str(result.inserted_id)
     
     # ======================================================================
     # ESPECIALIDADES
