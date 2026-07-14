@@ -1,0 +1,31 @@
+name: Codecov Upload
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  codecov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov codecov
+      - name: Run tests with coverage
+        run: |
+          . .venv/bin/activate
+          pytest --cov=src --cov-report=xml -q -p no:cacheprovider
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml

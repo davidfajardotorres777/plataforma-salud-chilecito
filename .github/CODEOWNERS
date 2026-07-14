@@ -1,0 +1,7 @@
+# CODEOWNERS
+# Require reviews from the repo owner for critical paths
+/.github/ @davidfajardotorres777
+/docs/ @davidfajardotorres777
+/src/ @davidfajardotorres777
+/src/webapp/ @davidfajardotorres777
+README.md @davidfajardotorres777
